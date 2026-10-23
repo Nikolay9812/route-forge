@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "routeforge"
+  },
+  "onboarding": {
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "signIn": "Anmelden",
+    "createAccount": "Neu hier? Konto erstellen",
+    "step": "Schritt {{current}} von {{total}}",
+    "log": {
+      "eyebrow": "Stunden · Pakete · km",
+      "title": "Den Tag in einer Minute erfassen",
+      "body": "Stunden, Pakete, Kilometer und das Auto, das du gefahren bist. Eine Schicht, ein Bildschirm."
+    },
+    "approve": {
+      "eyebrow": "Prüfung durch Disposition",
+      "title": "Die Disposition prüft sie",
+      "body": "Reiche deine Schicht ein und sieh, wann sie freigegeben ist oder was du korrigieren musst."
+    },
+    "pay": {
+      "eyebrow": "Stundenlohn",
+      "title": "Richtig bezahlt werden",
+      "body": "Dein Lohn folgt deinen freigegebenen Stunden, damit jeder Monat stimmt."
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Anmelden",
+      "heading": "Die Anmeldung kommt bald",
+      "body": "Du meldest dich mit dem Konto an, das deine Firma für dich eingerichtet hat."
+    },
+    "signUp": {
+      "title": "Konto erstellen",
+      "heading": "Die Registrierung kommt bald",
+      "body": "Bald erstellst du hier ein Konto oder trittst deiner Firma per Einladung bei."
+    },
+    "backToStart": "Zurück zum Start"
+  }
+}

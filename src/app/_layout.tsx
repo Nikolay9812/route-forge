@@ -7,7 +7,8 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
-import { fontFiles, FontScriptProvider, useDeviceFontScript, useThemeColor, type FontScript } from "@/theme";
+import { useLanguage } from "@/i18n";
+import { fontFiles, fontScriptFor, FontScriptProvider, useThemeColor, type FontScript } from "@/theme";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,7 +48,7 @@ function useNavigationTheme(script: FontScript): Theme {
 
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontFiles);
-  const script = useDeviceFontScript();
+  const script = fontScriptFor(useLanguage());
   const theme = useNavigationTheme(script);
 
   useEffect(() => {
@@ -60,7 +61,11 @@ export default function RootLayout() {
     <FontScriptProvider script={script}>
       <ThemeProvider value={theme}>
         <StatusBar style="auto" />
-        <Stack />
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        </Stack>
       </ThemeProvider>
     </FontScriptProvider>
   );

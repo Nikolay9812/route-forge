@@ -47,31 +47,32 @@
   --color-white: #ffffff;
   --color-transparent: transparent;
 
-  /* Type ramp. Tracking is in px because React Native has no em letter-spacing. */
+  /* Type ramp. Line heights are unitless ratios (px / size): NativeWind on Android reads a px value here as a multiplier.
+     Tracking is in px because React Native has no em letter-spacing. */
   --text-display: 36px;
-  --text-display--line-height: 38px;
+  --text-display--line-height: calc(38 / 36);
   --text-display--letter-spacing: -1.26px;
   --text-number: 28px;
-  --text-number--line-height: 32px;
+  --text-number--line-height: calc(32 / 28);
   --text-number--letter-spacing: -0.84px;
   --text-heading: 22px;
-  --text-heading--line-height: 26px;
+  --text-heading--line-height: calc(26 / 22);
   --text-heading--letter-spacing: -0.44px;
   --text-title: 17px;
-  --text-title--line-height: 20px;
+  --text-title--line-height: calc(20 / 17);
   --text-title--letter-spacing: -0.34px;
   --text-button: 16px;
-  --text-button--line-height: 20px;
+  --text-button--line-height: calc(20 / 16);
   --text-body: 15px;
-  --text-body--line-height: 22px;
+  --text-body--line-height: calc(22 / 15);
   --text-label: 13px;
-  --text-label--line-height: 18px;
+  --text-label--line-height: calc(18 / 13);
   --text-caption: 13px;
-  --text-caption--line-height: 18px;
+  --text-caption--line-height: calc(18 / 13);
   --text-footnote: 12px;
-  --text-footnote--line-height: 16px;
+  --text-footnote--line-height: calc(16 / 12);
   --text-micro: 11px;
-  --text-micro--line-height: 14px;
+  --text-micro--line-height: calc(14 / 11);
 
   /* One family per weight (static files, loaded in the root layout). */
   --font-jakarta-regular: "PlusJakartaSans-Regular";

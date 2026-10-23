@@ -1,19 +1,6 @@
-import { Link } from "expo-router";
-import { View } from "react-native";
+import { Redirect } from "expo-router";
 
-import { ThemedText } from "@/components/themed-text";
-
+// Signed-out entry. The auth plan sends signed-in users to their home screen instead.
 export default function Index() {
-  return (
-    <View className="flex-1 items-center justify-center gap-4 bg-canvas px-4">
-      <ThemedText variant="heading">welcome to the new app</ThemedText>
-      {__DEV__ ? (
-        <Link href="/design-system">
-          <ThemedText variant="label" color="secondary-ink">
-            Design system
-          </ThemedText>
-        </Link>
-      ) : null}
-    </View>
-  );
+  return <Redirect href="/onboarding" />;
 }

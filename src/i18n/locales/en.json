@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "routeforge"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "signIn": "Sign in",
+    "createAccount": "New here? Create an account",
+    "step": "Step {{current}} of {{total}}",
+    "log": {
+      "eyebrow": "Hours · packages · km",
+      "title": "Log the day in a minute",
+      "body": "Hours, packages, kilometers and the car you drove. One shift, one screen."
+    },
+    "approve": {
+      "eyebrow": "Dispatcher check",
+      "title": "Your dispatcher checks it",
+      "body": "Send your shift and see when it's approved, or what to fix if it comes back."
+    },
+    "pay": {
+      "eyebrow": "Hourly pay",
+      "title": "Get paid right",
+      "body": "Your pay follows your approved hours, so every month adds up."
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "heading": "Sign in is on its way",
+      "body": "You'll sign in with the account your firm set up for you."
+    },
+    "signUp": {
+      "title": "Create account",
+      "heading": "Sign up is on its way",
+      "body": "Soon you'll create an account here or join your firm from an invite."
+    },
+    "backToStart": "Back to start"
+  }
+}

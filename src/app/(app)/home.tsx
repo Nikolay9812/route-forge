@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View } from "react-native";
 
 import { useAuth } from "@/auth";
@@ -9,6 +10,17 @@ import { useTranslation } from "@/i18n";
 export default function Home() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      // Still mounted only if sign-out failed (e.g. offline); let the user try again.
+      setSigningOut(false);
+    }
+  }
 
   return (
     <View className="flex-1 items-center justify-center gap-2 bg-canvas px-4">
@@ -16,7 +28,13 @@ export default function Home() {
         {t("home.signedInAs", { name: user?.fullName ?? "" })}
       </ThemedText>
       <ThemedText variant="body">{user?.emailAddress}</ThemedText>
-      <Button title={t("home.signOut")} variant="secondary" onPress={signOut} className="mt-6" />
+      <Button
+        title={t("home.signOut")}
+        variant="secondary"
+        loading={signingOut}
+        onPress={handleSignOut}
+        className="mt-6"
+      />
     </View>
   );
 }

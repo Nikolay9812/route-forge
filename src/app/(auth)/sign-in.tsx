@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, View, type TextInputInstance } from "react-native";
 
@@ -29,7 +29,7 @@ export default function SignIn() {
     setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
-  // Success flips the auth guard, which takes the user home.
+  // Success flips the auth guard, which takes the user home. On a new device Clerk first emails a code.
   async function submit() {
     const found: FieldErrors<Field> = {};
     if (!isEmail(values.emailAddress)) found.emailAddress = "auth.errors.emailInvalid";
@@ -39,8 +39,9 @@ export default function SignIn() {
     if (Object.keys(found).length > 0) return;
 
     setSubmitting(true);
-    const { error } = await signIn.password(values);
+    const { error, needsCode } = await signIn.password(values);
     setSubmitting(false);
+    if (needsCode) router.push({ pathname: "/verify", params: { flow: "sign-in" } });
     if (!error) return;
     if (error.field === "emailAddress" || error.field === "password") setErrors({ [error.field]: authErrorKey(error) });
     else setFormError(error);

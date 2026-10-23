@@ -127,6 +127,8 @@ export default function SignUp() {
       <View className="mt-6">
         <GoogleButton disabled={submitting} onError={setFormError} />
       </View>
+      {/* Mount point for Clerk's bot protection when the instance turns captcha on. */}
+      <View nativeID="clerk-captcha" />
 
       <View className="mt-auto flex-row items-center justify-center gap-1 pt-8 pb-4">
         <ThemedText variant="caption" color="ink-muted">

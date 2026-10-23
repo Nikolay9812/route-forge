@@ -1,4 +1,4 @@
-import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -13,14 +13,25 @@ import { useTranslation } from "@/i18n";
 
 const RESEND_SECONDS = 30;
 
-/** Email code step for both sign-up (`flow=sign-up`) and password reset (`flow=reset`). */
+type Flow = "sign-up" | "sign-in" | "reset";
+const restart: Record<Flow, Href> = { "sign-up": "/sign-up", "sign-in": "/sign-in", reset: "/forgot-password" };
+
+/**
+ * Email code step for sign-up (`flow=sign-up`), a sign-in from a new device (`flow=sign-in`),
+ * and password reset (`flow=reset`).
+ */
 export default function Verify() {
   const { t } = useTranslation();
-  const { flow } = useLocalSearchParams<{ flow?: string }>();
+  const params = useLocalSearchParams<{ flow?: string }>();
+  const flow: Flow = params.flow === "reset" || params.flow === "sign-in" ? params.flow : "sign-up";
   const { signUp } = useSignUp();
   const { signIn } = useSignIn();
   const reset = flow === "reset";
-  const email = reset ? signIn.resetEmailAddress : signUp.emailAddress;
+  const email = {
+    "sign-up": signUp.emailAddress,
+    "sign-in": signIn.trustEmailAddress,
+    reset: signIn.resetEmailAddress,
+  }[flow];
 
   const [code, setCode] = useState("");
   const [error, setError] = useState<AuthError | null>(null);
@@ -34,16 +45,18 @@ export default function Verify() {
     return () => clearTimeout(timer);
   }, [secondsLeft]);
 
-  // Opened without a pending sign-up or reset (deep link, reload): start over.
-  if (!email) return <Redirect href={reset ? "/forgot-password" : "/sign-up"} />;
+  // Opened without a pending attempt (deep link, finished flow): start that flow over.
+  if (!email) return <Redirect href={restart[flow]} />;
 
   async function submit(value = code) {
     if (value.length < CODE_LENGTH || submitting) return;
     setSubmitting(true);
     setError(null);
-    const result = reset
-      ? await signIn.resetPasswordEmailCode.verifyCode({ code: value })
-      : await signUp.verifications.verifyEmailCode({ code: value });
+    const result = await {
+      "sign-up": () => signUp.verifications.verifyEmailCode({ code: value }),
+      "sign-in": () => signIn.verifyEmailCode({ code: value }),
+      reset: () => signIn.resetPasswordEmailCode.verifyCode({ code: value }),
+    }[flow]();
     setSubmitting(false);
     if (result.error) {
       setError(result.error);
@@ -51,16 +64,18 @@ export default function Verify() {
     } else if (reset) {
       router.push("/new-password");
     }
-    // A verified sign-up is signed in; the auth guard takes it home.
+    // A verified sign-up or new-device sign-in is signed in; the auth guard takes it home.
   }
 
   async function resend() {
     setError(null);
     setResent(false);
     setSecondsLeft(RESEND_SECONDS);
-    const result = reset
-      ? await signIn.resetPasswordEmailCode.sendCode({ emailAddress: email! })
-      : await signUp.verifications.sendEmailCode();
+    const result = await {
+      "sign-up": () => signUp.verifications.sendEmailCode(),
+      "sign-in": () => signIn.sendEmailCode(),
+      reset: () => signIn.resetPasswordEmailCode.sendCode({ emailAddress: email! }),
+    }[flow]();
     if (result.error) setError(result.error);
     else setResent(true);
   }
@@ -77,18 +92,18 @@ export default function Verify() {
             setError(null);
             if (next.length === CODE_LENGTH) submit(next);
           }}
-          error={error?.code === "form_code_incorrect"}
+          error={error?.field === "code"}
           editable={!submitting}
           accessibilityLabel={t("auth.verify.codeLabel")}
         />
-        {error?.code === "form_code_incorrect" ? (
+        {error?.field === "code" ? (
           <ThemedText variant="footnote" weight="regular" color="danger" className="ml-1">
             {t(authErrorKey(error))}
           </ThemedText>
         ) : null}
       </View>
 
-      {error && error.code !== "form_code_incorrect" ? (
+      {error && error.field !== "code" ? (
         <Alert
           tone={error.code === "network_error" ? "offline" : "danger"}
           message={t(authErrorKey(error))}

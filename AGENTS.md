@@ -30,13 +30,13 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 - On web, routes are server-rendered, so anything that differs between server and browser (locale, color scheme, `window`) must not change the first render.
 - i18n: `expo-localization` + `i18n-js`. Strings live in `src/i18n/locales/{en,bg,de}.json` (en is the source of key types) and are read with `useTranslation()` from `@/i18n`. `useLanguage()` gives the app language (en on the server's first render) and also picks the font script via `fontScriptFor`.
 - Stock photos (Unsplash) are downloaded into `assets/images/<feature>/` with a `CREDITS.md`, never hotlinked.
-- Signed-out entry: `/` redirects to `/onboarding`, which leads to `/(auth)/sign-in` and `/(auth)/sign-up` (placeholders until Clerk is set up).
+- Routing by auth: `/` redirects by Clerk auth state. Signed-out users get onboarding and `(auth)`, signed-in users get `(app)`, guarded with `Stack.Protected` in the root layout. The splash stays up until fonts and Clerk are loaded.
 
 ## Who owns what
 
 Each tool has one job. Ask before moving a responsibility to a different tool.
 
-- **Auth, firms, and roles:** Clerk is the source of truth. Each firm is a Clerk Organization. A user's role in that firm is a Clerk org role: `owner`, `dispatcher`, or `courier`. The app keeps its own custom auth screens. Set Clerk up through the Clerk CLI and use the Clerk skills for current Expo patterns.
+- **Auth, firms, and roles:** Clerk is the source of truth. Each firm is a Clerk Organization. A user's role in that firm is a Clerk org role: `owner`, `dispatcher`, or `courier`. The app keeps its own custom auth screens. They import auth only from `src/auth/`, which adapts `@clerk/expo`'s current custom-flow API (`{ error }` results, `finalize()`) and maps Clerk error codes to translation keys, so screens never show raw Clerk messages. Sessions persist through Clerk's `tokenCache` (`expo-secure-store`). Change Clerk instance settings through the Clerk MCP server (`.mcp.json`) or the Clerk CLI, and use the Clerk skills for current Expo patterns.
 - **Data:** Neon Postgres holds depots, cars, shifts, pay rates, and firm settings. Only API routes reach it, through `DATABASE_URL`. The app never talks to the database directly.
 - **Business logic** (permissions, approvals, salary math): code in API routes and shared utils, never in the client alone.
 - **Languages:** English, Bulgarian, and German. Every UI string comes from translation files, never hardcoded in a screen. The device language picks the default.
@@ -110,5 +110,6 @@ End every piece of work that changes code (features and fixes, not answers to qu
 - Lint and type check pass before any task is called done.
 - Screens that load data handle loading, error, empty, and offline states.
 - New UI text exists in English, Bulgarian, and German.
+- Auth flows are tested with Clerk test emails (any address containing `+clerk_test`, code `424242`), which send no real email.
 - Every new API route is tried as each role and as a user from a second firm. A courier can't read another courier's data, a dispatcher can't reach depots outside their own, and no firm sees another firm's data.
 - Salary changes are checked against a hand-calculated example month, including a mid-month rate change and a rejected shift.

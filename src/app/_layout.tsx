@@ -9,7 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
-import { AuthProvider, useAuth } from "@/auth";
+import { useAuth } from "@/auth";
 import { useLanguage } from "@/i18n";
 import { fontFiles, fontScriptFor, FontScriptProvider, useThemeColor, type FontScript } from "@/theme";
 
@@ -56,9 +56,18 @@ function useNavigationTheme(script: FontScript): Theme {
 }
 
 // Signed-out users only reach onboarding and (auth); signed-in users only (app). A guard turning false
-// sends the user to index, which redirects by auth state.
-function RootStack() {
-  const { isSignedIn } = useAuth();
+// sends the user to index, which redirects by auth state. Nothing renders, and the splash stays up,
+// until Clerk has restored the session from the token cache, so onboarding never flashes for a signed-in user.
+function RootStack({ fontsReady }: { fontsReady: boolean }) {
+  const { isLoaded, isSignedIn } = useAuth();
+  const ready = fontsReady && isLoaded;
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
@@ -79,20 +88,17 @@ export default function RootLayout() {
   const script = fontScriptFor(useLanguage());
   const theme = useNavigationTheme(script);
 
-  useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
-
-  if (!loaded && !error) return null;
-
+  // Offline requests reject with network_error instead of resolving empty, so screens show the offline alert.
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+      experimental={{ rethrowOfflineNetworkErrors: true }}
+    >
       <FontScriptProvider script={script}>
         <ThemeProvider value={theme}>
           <StatusBar style="auto" />
-          <AuthProvider>
-            <RootStack />
-          </AuthProvider>
+          <RootStack fontsReady={loaded || !!error} />
         </ThemeProvider>
       </FontScriptProvider>
     </ClerkProvider>

@@ -7,8 +7,14 @@ const messages: Record<AuthErrorCode, TranslationKey> = {
   form_identifier_not_found: "auth.errors.emailNotFound",
   form_password_incorrect: "auth.errors.passwordIncorrect",
   form_password_length_too_short: "auth.errors.passwordShort",
+  form_password_pwned: "auth.errors.passwordPwned",
+  form_param_format_invalid: "auth.errors.emailInvalid",
+  strategy_for_user_invalid: "auth.errors.useGoogle",
   form_code_incorrect: "auth.errors.codeIncorrect",
+  verification_expired: "auth.errors.codeExpired",
+  too_many_attempts: "auth.errors.tooManyAttempts",
   network_error: "auth.errors.network",
+  unknown: "auth.errors.unknown",
 };
 
 export function authErrorKey(error: AuthError): TranslationKey {

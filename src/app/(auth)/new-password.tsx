@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -29,8 +29,9 @@ export default function NewPassword() {
       return;
     }
     setSubmitting(true);
-    const { error } = await signIn.resetPasswordEmailCode.submitPassword({ password });
+    const { error, needsCode } = await signIn.resetPasswordEmailCode.submitPassword({ password });
     setSubmitting(false);
+    if (needsCode) router.replace({ pathname: "/verify", params: { flow: "sign-in" } });
     if (error?.field === "password") setFieldError(authErrorKey(error));
     else if (error) setFormError(error);
   }

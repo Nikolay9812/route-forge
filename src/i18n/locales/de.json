@@ -98,6 +98,10 @@
       "passwordIncorrect": "Das Passwort stimmt nicht.",
       "codeIncorrect": "Der Code stimmt nicht. Prüfe die E-Mail und versuche es erneut.",
       "network": "Keine Verbindung. Deine Eingaben bleiben erhalten. Versuche es erneut, wenn du online bist.",
+      "passwordPwned": "Dieses Passwort ist bei einem Datenleck aufgetaucht. Wähle ein anderes.",
+      "useGoogle": "Dieses Konto meldet sich mit Google an. Nutze „Weiter mit Google“.",
+      "codeExpired": "Der Code ist abgelaufen. Fordere einen neuen an.",
+      "tooManyAttempts": "Zu viele Versuche. Warte eine Minute und versuche es erneut.",
       "unknown": "Etwas ist schiefgelaufen. Versuche es erneut."
     }
   },

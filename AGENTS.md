@@ -23,6 +23,11 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 - `ios/` and `android/` are generated. Never create or edit them by hand; configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, switch to a development build (`npx expo run:ios`).
 - Styling uses NativeWind v5 (pinned RC) with Tailwind v4: `className` on React Native components. `src/global.css` is the only stylesheet and is imported in the root layout. Use `StyleSheet` only for what a utility can't express. Keep `nativewind`, `react-native-css`, `tailwindcss`, `@tailwindcss/postcss`, and `lightningcss` (also forced via `overrides`) pinned, and upgrade them together using the NativeWind v5 docs.
+- Design tokens live only in `src/global.css` (`@theme`, with dark values under `prefers-color-scheme`). Tailwind's default palette, type scale, radii, and shadows are removed, so use Route Forge tokens (`bg-canvas`, `text-ink`, `rounded-md`, `h-button`). Spacing is a 4px step (`p-4` = 16). Dark mode follows the system. In JS, read colors with `useThemeColor` from `@/theme`, never hex.
+- Text goes through `ThemedText` with a `variant` and optional `color` token, never `font-bold`, `text-[n]`, or a color className (two color classes resolve by stylesheet order). Fonts: Plus Jakarta Sans for EN and DE, Manrope for BG (Plus Jakarta Sans has no Cyrillic), static weights in `assets/fonts/` loaded with `useFonts` in the root layout. `FontScriptProvider` picks the family.
+- Icons: `expo-symbols` through `<Icon name color>`, with names from the registry in `src/components/icons.ts`. Add new icons there with an iOS and an Android name.
+- Shared primitives live in `src/components/` (button, icon-button, text-field, chip, segmented-control, stepper, toggle, tag, alert, surface). Check them before building a new control. Their `className` is for layout only, and they take all text as props. `/design-system` is a dev-only showcase of all of them.
+- On web, routes are server-rendered, so anything that differs between server and browser (locale, color scheme, `window`) must not change the first render.
 
 ## Who owns what
 
@@ -80,7 +85,7 @@ For a new feature or a change across several files. Small fixes and questions sk
 
 ## Building from designs
 
-Designs are attached in the chat. Screens must match them exactly: layout, spacing, sizes, colors, type, radii, icons, and copy.
+Designs are attached in the chat. Screens must match them exactly: layout, spacing, sizes, colors, type, radii, icons, and copy. The design system reference is the Route Forge Design Board (`https://claude.ai/artifact/4x1GGuAYpH6XjXYM3hQ3mu`), with panels numbered 01–15. Its icons are stand-ins; the app uses native symbols.
 
 - Icons, fonts, and brand images come from `assets/` or the chosen icon library, never recreated from a screenshot. Firm logos come from firm settings, not from `assets/`. If an asset is missing, use a marked placeholder and list it.
 - Map every color, font, spacing value, and radius to a design-system token. List values with no token in the plan as proposed new tokens instead of hardcoding them. When creating the design system itself, derive the tokens from the designs.

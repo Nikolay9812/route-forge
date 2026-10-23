@@ -3,3 +3,144 @@
 @import "tailwindcss/utilities.css";
 
 @import "nativewind/theme";
+
+/* Docs and plans mention class names that the app does not use. */
+@source not "../.agents";
+@source not "../prompts";
+
+/*
+ * Route Forge design tokens (Design Board 02, 03, footer).
+ * Tailwind's default palette, type scale, radii and shadows are cleared so only these exist.
+ */
+@theme {
+  --color-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+
+  /* 4-pt grid on every platform (rem is 14 on native, 16 on web). */
+  --spacing: 4px;
+
+  /* Colors: light values. Dark values are below. */
+  --color-primary: #f5b82e;
+  --color-on-primary: #14161c;
+  --color-primary-soft: #fdf1d3;
+  --color-secondary: #c9d3f0;
+  --color-secondary-soft: #eef1fa;
+  --color-secondary-ink: #3b4c7e;
+  --color-ink: #11141c;
+  --color-ink-muted: #6a7180;
+  --color-surface: #ffffff;
+  --color-canvas: #f4f5f7;
+  --color-border: #e4e6eb;
+  --color-glass: rgba(255, 255, 255, 0.7);
+  --color-success: #2e9e5b;
+  --color-success-soft: #e6f4ec;
+  --color-danger: #d9443a;
+  --color-danger-soft: #fcebea;
+  --color-info: #3b4c7e;
+  --color-info-soft: #eef1fa;
+  --color-neutral: #6a7180;
+  --color-neutral-soft: #eef0f3;
+  --color-inverse: #11141c;
+  --color-on-inverse: #ffffff;
+  --color-white: #ffffff;
+  --color-transparent: transparent;
+
+  /* Type ramp. Tracking is in px because React Native has no em letter-spacing. */
+  --text-display: 36px;
+  --text-display--line-height: 38px;
+  --text-display--letter-spacing: -1.26px;
+  --text-number: 28px;
+  --text-number--line-height: 32px;
+  --text-number--letter-spacing: -0.84px;
+  --text-heading: 22px;
+  --text-heading--line-height: 26px;
+  --text-heading--letter-spacing: -0.44px;
+  --text-title: 17px;
+  --text-title--line-height: 20px;
+  --text-title--letter-spacing: -0.34px;
+  --text-button: 16px;
+  --text-button--line-height: 20px;
+  --text-body: 15px;
+  --text-body--line-height: 22px;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-footnote: 12px;
+  --text-footnote--line-height: 16px;
+  --text-micro: 11px;
+  --text-micro--line-height: 14px;
+
+  /* One family per weight (static files, loaded in the root layout). */
+  --font-jakarta-regular: "PlusJakartaSans-Regular";
+  --font-jakarta-medium: "PlusJakartaSans-Medium";
+  --font-jakarta-semibold: "PlusJakartaSans-SemiBold";
+  --font-jakarta-bold: "PlusJakartaSans-Bold";
+  --font-jakarta-extrabold: "PlusJakartaSans-ExtraBold";
+  --font-manrope-regular: "Manrope-Regular";
+  --font-manrope-medium: "Manrope-Medium";
+  --font-manrope-semibold: "Manrope-SemiBold";
+  --font-manrope-bold: "Manrope-Bold";
+  --font-manrope-extrabold: "Manrope-ExtraBold";
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* Control sizes: h-button, size-icon-button, ... */
+  --spacing-button: 54px;
+  --spacing-button-sm: 34px;
+  --spacing-ghost: 44px;
+  --spacing-icon-button: 50px;
+  --spacing-field: 52px;
+  --spacing-chip: 38px;
+  --spacing-segment: 38px;
+  --spacing-tag: 30px;
+  --spacing-tag-sm: 24px;
+  --spacing-stepper-button: 34px;
+  --spacing-alert-badge: 26px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #f7c14b;
+    --color-primary-soft: #3a2f14;
+    --color-secondary: #34426b;
+    --color-secondary-soft: #1f2638;
+    --color-secondary-ink: #bac7ef;
+    --color-ink: #f1f3f7;
+    --color-ink-muted: #9ca3b1;
+    --color-surface: #191c22;
+    --color-canvas: #101216;
+    --color-border: #2a2f38;
+    --color-glass: rgba(30, 33, 40, 0.62);
+    --color-success: #4cc27c;
+    --color-success-soft: #16291f;
+    --color-danger: #f06a60;
+    --color-danger-soft: #331a19;
+    --color-info: #bac7ef;
+    --color-info-soft: #1f2638;
+    --color-neutral: #9ca3b1;
+    --color-neutral-soft: #23272f;
+    --color-inverse: #f1f3f7;
+    --color-on-inverse: #11141c;
+  }
+}
+
+@utility shadow-card {
+  box-shadow: 0 1px 2px rgba(17, 20, 28, 0.04), 0 4px 16px rgba(17, 20, 28, 0.05);
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@utility shadow-floating {
+  box-shadow: 0 6px 24px rgba(17, 20, 28, 0.1);
+}
+
+@utility shadow-focus {
+  box-shadow: 0 0 0 4px var(--color-secondary-soft);
+}

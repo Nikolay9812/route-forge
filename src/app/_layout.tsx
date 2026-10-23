@@ -1,7 +1,67 @@
 import "@/global.css";
 
-import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { useColorScheme } from "react-native";
+
+import { fontFiles, FontScriptProvider, useDeviceFontScript, useThemeColor, type FontScript } from "@/theme";
+
+SplashScreen.preventAutoHideAsync();
+
+const navigationFonts: Record<FontScript, Theme["fonts"]> = {
+  latin: {
+    regular: { fontFamily: "PlusJakartaSans-Regular", fontWeight: "400" },
+    medium: { fontFamily: "PlusJakartaSans-Medium", fontWeight: "500" },
+    bold: { fontFamily: "PlusJakartaSans-Bold", fontWeight: "700" },
+    heavy: { fontFamily: "PlusJakartaSans-ExtraBold", fontWeight: "800" },
+  },
+  cyrillic: {
+    regular: { fontFamily: "Manrope-Regular", fontWeight: "400" },
+    medium: { fontFamily: "Manrope-Medium", fontWeight: "500" },
+    bold: { fontFamily: "Manrope-Bold", fontWeight: "700" },
+    heavy: { fontFamily: "Manrope-ExtraBold", fontWeight: "800" },
+  },
+};
+
+// Headers, tab bars and screen backgrounds follow the tokens too.
+function useNavigationTheme(script: FontScript): Theme {
+  const dark = useColorScheme() === "dark";
+  const base = dark ? DarkTheme : DefaultTheme;
+  return {
+    ...base,
+    colors: {
+      ...base.colors,
+      primary: useThemeColor("secondary-ink"),
+      background: useThemeColor("canvas"),
+      card: useThemeColor("surface"),
+      text: useThemeColor("ink"),
+      border: useThemeColor("border"),
+      notification: useThemeColor("danger"),
+    },
+    fonts: navigationFonts[script],
+  };
+}
 
 export default function RootLayout() {
-  return <Stack />;
+  const [loaded, error] = useFonts(fontFiles);
+  const script = useDeviceFontScript();
+  const theme = useNavigationTheme(script);
+
+  useEffect(() => {
+    if (loaded || error) SplashScreen.hideAsync();
+  }, [loaded, error]);
+
+  if (!loaded && !error) return null;
+
+  return (
+    <FontScriptProvider script={script}>
+      <ThemeProvider value={theme}>
+        <StatusBar style="auto" />
+        <Stack />
+      </ThemeProvider>
+    </FontScriptProvider>
+  );
 }

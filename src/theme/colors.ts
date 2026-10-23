@@ -1,0 +1,28 @@
+// Names of the color tokens in src/global.css. Values live only there.
+export const colorTokens = [
+  "primary",
+  "on-primary",
+  "primary-soft",
+  "secondary",
+  "secondary-soft",
+  "secondary-ink",
+  "ink",
+  "ink-muted",
+  "surface",
+  "canvas",
+  "border",
+  "glass",
+  "success",
+  "success-soft",
+  "danger",
+  "danger-soft",
+  "info",
+  "info-soft",
+  "neutral",
+  "neutral-soft",
+  "inverse",
+  "on-inverse",
+  "white",
+] as const;
+
+export type ColorToken = (typeof colorTokens)[number];

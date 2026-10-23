@@ -94,9 +94,11 @@
   /* Control sizes: h-button, size-icon-button, ... */
   --spacing-button: 54px;
   --spacing-button-sm: 34px;
+  --spacing-button-social: 48px;
   --spacing-ghost: 44px;
   --spacing-icon-button: 50px;
   --spacing-field: 52px;
+  --spacing-field-labeled: 64px;
   --spacing-chip: 38px;
   --spacing-segment: 38px;
   --spacing-tag: 30px;

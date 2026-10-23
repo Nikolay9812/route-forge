@@ -23,6 +23,8 @@ export const icons = {
   alert: { ios: "exclamationmark", android: "priority_high" },
   chevron: { ios: "chevron.right", android: "chevron_right" },
   arrow: { ios: "arrow.right", android: "arrow_forward" },
+  back: { ios: "chevron.left", android: "chevron_left" },
+  mail: { ios: "envelope", android: "mail" },
   plus: { ios: "plus", android: "add" },
   minus: { ios: "minus", android: "remove" },
   lock: { ios: "lock", android: "lock" },

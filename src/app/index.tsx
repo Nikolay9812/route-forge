@@ -1,6 +1,9 @@
 import { Redirect } from "expo-router";
 
-// Signed-out entry. The auth plan sends signed-in users to their home screen instead.
+import { useAuth } from "@/auth";
+
+// Entry point: signed-in users go home, everyone else starts at onboarding.
 export default function Index() {
-  return <Redirect href="/onboarding" />;
+  const { isSignedIn } = useAuth();
+  return <Redirect href={isSignedIn ? "/home" : "/onboarding"} />;
 }

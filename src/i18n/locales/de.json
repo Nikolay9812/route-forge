@@ -25,16 +25,84 @@
     }
   },
   "auth": {
-    "signIn": {
-      "title": "Anmelden",
-      "heading": "Die Anmeldung kommt bald",
-      "body": "Du meldest dich mit dem Konto an, das deine Firma für dich eingerichtet hat."
+    "back": "Zurück",
+    "or": "oder",
+    "continueWithGoogle": "Weiter mit Google",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "dismiss": "Schließen",
+    "fields": {
+      "fullName": {
+        "label": "Vollständiger Name",
+        "placeholder": "z. B. Maria Ivanova"
+      },
+      "email": {
+        "label": "E-Mail-Adresse",
+        "placeholder": "du@beispiel.de"
+      },
+      "password": {
+        "label": "Passwort",
+        "placeholder": "Mindestens 8 Zeichen"
+      },
+      "newPassword": {
+        "label": "Neues Passwort",
+        "placeholder": "Mindestens 8 Zeichen"
+      },
+      "currentPassword": {
+        "label": "Passwort",
+        "placeholder": "Dein Passwort"
+      }
     },
     "signUp": {
       "title": "Konto erstellen",
-      "heading": "Die Registrierung kommt bald",
-      "body": "Bald erstellst du hier ein Konto oder trittst deiner Firma per Einladung bei."
+      "intro": "Mit Route Forge erfasst du deine Schichten, verfolgst Freigaben und siehst deinen Lohn auf jedem Gerät.",
+      "submit": "Konto erstellen",
+      "haveAccount": "Schon ein Konto?",
+      "signIn": "Anmelden"
     },
-    "backToStart": "Zurück zum Start"
+    "signIn": {
+      "title": "Willkommen zurück",
+      "intro": "Melde dich an, um die heutige Schicht zu erfassen und deine Stunden zu sehen.",
+      "submit": "Anmelden",
+      "forgot": "Passwort vergessen?",
+      "noAccount": "Neu bei Route Forge?",
+      "signUp": "Konto erstellen"
+    },
+    "verify": {
+      "title": "Prüfe deine E-Mails",
+      "intro": "Wir haben einen 6-stelligen Code an {{email}} gesendet. Gib ihn unten ein.",
+      "codeLabel": "6-stelliger Code",
+      "submit": "Bestätigen",
+      "noCode": "Nichts angekommen?",
+      "resendIn": "Neu senden in {{time}}",
+      "resend": "Code erneut senden",
+      "resent": "Neuer Code gesendet. Prüfe deine E-Mails."
+    },
+    "forgot": {
+      "title": "Passwort zurücksetzen",
+      "intro": "Gib die E-Mail deines Kontos ein, und wir senden dir einen Code.",
+      "submit": "Code senden"
+    },
+    "newPassword": {
+      "title": "Neues Passwort wählen",
+      "intro": "Verwende mindestens 8 Zeichen.",
+      "submit": "Speichern und anmelden"
+    },
+    "errors": {
+      "nameRequired": "Gib deinen vollständigen Namen ein.",
+      "emailInvalid": "Gib eine gültige E-Mail-Adresse ein.",
+      "passwordShort": "Verwende mindestens 8 Zeichen.",
+      "passwordRequired": "Gib dein Passwort ein.",
+      "emailExists": "Mit dieser E-Mail gibt es schon ein Konto. Melde dich an.",
+      "emailNotFound": "Kein Konto nutzt diese E-Mail.",
+      "passwordIncorrect": "Das Passwort stimmt nicht.",
+      "codeIncorrect": "Der Code stimmt nicht. Prüfe die E-Mail und versuche es erneut.",
+      "network": "Keine Verbindung. Deine Eingaben bleiben erhalten. Versuche es erneut, wenn du online bist.",
+      "unknown": "Etwas ist schiefgelaufen. Versuche es erneut."
+    }
+  },
+  "home": {
+    "signedInAs": "Angemeldet als {{name}}",
+    "signOut": "Abmelden"
   }
 }

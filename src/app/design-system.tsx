@@ -1,5 +1,6 @@
 // Dev-only showcase of the design system, sectioned like the Design Board.
 // Sample copy is hardcoded on purpose: this screen never ships (see prompts/02-design-system.md).
+import { Image } from "expo-image";
 import { Redirect, Stack } from "expo-router";
 import { useState, type PropsWithChildren, type ReactNode } from "react";
 import { ScrollView, View } from "react-native";
@@ -7,6 +8,7 @@ import { ScrollView, View } from "react-native";
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { Chip } from "@/components/chip";
+import { Divider } from "@/components/divider";
 import { Icon } from "@/components/icon";
 import { IconButton } from "@/components/icon-button";
 import { icons, type IconName } from "@/components/icons";
@@ -136,11 +138,19 @@ export default function DesignSystem() {
         <Button title="Submit shift" loading={loading} onPress={() => setLoading(true)} />
         <Button title="Submit shift" disabled />
         <Button title="Submit shift" size="sm" />
+        <Button
+          title="Continue with Google"
+          variant="secondary"
+          size="social"
+          leading={<Image source={require("@/assets/images/auth/google-g.png")} style={{ width: 20, height: 20 }} />}
+        />
+        <Divider label="or" />
         <View className="flex-row gap-2.5">
           <IconButton icon="plus" variant="primary" accessibilityLabel="New shift" />
           <IconButton icon="search" accessibilityLabel="Search" />
           <IconButton icon="shifts" accessibilityLabel="Calendar" />
           <IconButton icon="filter" accessibilityLabel="Filter" />
+          <IconButton icon="back" variant="outline" size="sm" accessibilityLabel="Back" />
         </View>
       </Section>
 
@@ -149,6 +159,7 @@ export default function DesignSystem() {
         <TextField icon="car" placeholder="Plate number" accessibilityLabel="Plate number" />
         <TextField icon="packages" defaultValue="142" keyboardType="number-pad" accessibilityLabel="Packages" />
         <TextField icon="km" defaultValue="1260 km" error="More than 800 km in one shift. Check the number." accessibilityLabel="Kilometers" />
+        <TextField label="Email address" icon="mail" placeholder="you@example.com" accessibilityLabel="Email address" />
         <TextField
           icon="lock"
           defaultValue="hunter2hunter"

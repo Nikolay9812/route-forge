@@ -25,16 +25,84 @@
     }
   },
   "auth": {
-    "signIn": {
-      "title": "Sign in",
-      "heading": "Sign in is on its way",
-      "body": "You'll sign in with the account your firm set up for you."
+    "back": "Back",
+    "or": "or",
+    "continueWithGoogle": "Continue with Google",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "dismiss": "Dismiss",
+    "fields": {
+      "fullName": {
+        "label": "Full name",
+        "placeholder": "e.g. Maria Ivanova"
+      },
+      "email": {
+        "label": "Email address",
+        "placeholder": "you@example.com"
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "At least 8 characters"
+      },
+      "newPassword": {
+        "label": "New password",
+        "placeholder": "At least 8 characters"
+      },
+      "currentPassword": {
+        "label": "Password",
+        "placeholder": "Your password"
+      }
     },
     "signUp": {
-      "title": "Create account",
-      "heading": "Sign up is on its way",
-      "body": "Soon you'll create an account here or join your firm from an invite."
+      "title": "Create\nyour account",
+      "intro": "Join Route Forge to log your shifts, follow approvals and see your pay on any device.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
     },
-    "backToStart": "Back to start"
+    "signIn": {
+      "title": "Welcome back",
+      "intro": "Sign in to log today's shift and check your hours.",
+      "submit": "Sign in",
+      "forgot": "Forgot password?",
+      "noAccount": "New to Route Forge?",
+      "signUp": "Create account"
+    },
+    "verify": {
+      "title": "Check your email",
+      "intro": "We sent a 6-digit code to {{email}}. Enter it below.",
+      "codeLabel": "6-digit code",
+      "submit": "Verify",
+      "noCode": "Didn't get it?",
+      "resendIn": "Resend in {{time}}",
+      "resend": "Resend code",
+      "resent": "New code sent. Check your email."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "intro": "Enter your account email and we'll send you a code.",
+      "submit": "Send code"
+    },
+    "newPassword": {
+      "title": "Choose a new password",
+      "intro": "Use at least 8 characters.",
+      "submit": "Save and sign in"
+    },
+    "errors": {
+      "nameRequired": "Enter your full name.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordShort": "Use at least 8 characters.",
+      "passwordRequired": "Enter your password.",
+      "emailExists": "An account with this email already exists. Sign in instead.",
+      "emailNotFound": "No account uses this email.",
+      "passwordIncorrect": "That password isn't right.",
+      "codeIncorrect": "That code isn't right. Check the email and try again.",
+      "network": "No connection. What you typed stays here. Try again when you're online.",
+      "unknown": "Something went wrong. Try again."
+    }
+  },
+  "home": {
+    "signedInAs": "Signed in as {{name}}",
+    "signOut": "Sign out"
   }
 }

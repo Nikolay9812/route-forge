@@ -1,0 +1,19 @@
+import type { AuthError, AuthErrorCode } from "@/auth";
+import type { TranslationKey } from "@/i18n";
+
+// Screens show translated text for each error code, never the provider's raw message.
+const messages: Record<AuthErrorCode, TranslationKey> = {
+  form_identifier_exists: "auth.errors.emailExists",
+  form_identifier_not_found: "auth.errors.emailNotFound",
+  form_password_incorrect: "auth.errors.passwordIncorrect",
+  form_password_length_too_short: "auth.errors.passwordShort",
+  form_code_incorrect: "auth.errors.codeIncorrect",
+  network_error: "auth.errors.network",
+};
+
+export function authErrorKey(error: AuthError): TranslationKey {
+  return messages[error.code] ?? "auth.errors.unknown";
+}
+
+/** Errors tied to a field show under it; the rest (network, unknown) show as a form alert. */
+export type FieldErrors<F extends string> = Partial<Record<F, TranslationKey>>;

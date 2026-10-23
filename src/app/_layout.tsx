@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
+import { AuthProvider, useAuth } from "@/auth";
 import { useLanguage } from "@/i18n";
 import { fontFiles, fontScriptFor, FontScriptProvider, useThemeColor, type FontScript } from "@/theme";
 
@@ -46,6 +47,25 @@ function useNavigationTheme(script: FontScript): Theme {
   };
 }
 
+// Signed-out users only reach onboarding and (auth); signed-in users only (app). A guard turning false
+// sends the user to index, which redirects by auth state.
+function RootStack() {
+  const { isSignedIn } = useAuth();
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+      <Stack.Protected guard={isSignedIn}>
+        <Stack.Screen name="(app)" />
+      </Stack.Protected>
+      <Stack.Screen name="design-system" options={{ headerShown: true }} />
+    </Stack>
+  );
+}
+
 export default function RootLayout() {
   const [loaded, error] = useFonts(fontFiles);
   const script = fontScriptFor(useLanguage());
@@ -61,11 +81,9 @@ export default function RootLayout() {
     <FontScriptProvider script={script}>
       <ThemeProvider value={theme}>
         <StatusBar style="auto" />
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
+        <AuthProvider>
+          <RootStack />
+        </AuthProvider>
       </ThemeProvider>
     </FontScriptProvider>
   );

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, View, type PressableProps } from "react-native";
 
 import type { ColorToken } from "@/theme";
@@ -18,6 +19,7 @@ export function Button({
   variant = "primary",
   size = "md",
   trailingIcon,
+  leading,
   loading = false,
   disabled,
   className,
@@ -25,8 +27,11 @@ export function Button({
 }: Omit<PressableProps, "children"> & {
   title: string;
   variant?: keyof typeof variants;
-  size?: "md" | "sm";
+  /** social is the 48-high sign-in-provider button. */
+  size?: "md" | "sm" | "social";
   trailingIcon?: IconName;
+  /** Inline before the title, e.g. a provider logo. */
+  leading?: ReactNode;
   loading?: boolean;
   /** Layout only (margins, flex). */
   className?: string;
@@ -34,7 +39,13 @@ export function Button({
   const v = variants[variant];
   // The destructive button is a lighter ghost row: 44 high, 15 text.
   const ghost = variant === "destructive" && size === "md";
-  const sizeClass = ghost ? "h-ghost w-full px-6" : size === "md" ? "h-button w-full px-6" : "h-button-sm self-start px-4";
+  const sizeClass = ghost
+    ? "h-ghost w-full px-6"
+    : size === "md"
+      ? "h-button w-full px-6"
+      : size === "social"
+        ? "h-button-social w-full gap-3 px-6"
+        : "h-button-sm self-start px-4";
 
   return (
     <Pressable
@@ -46,11 +57,12 @@ export function Button({
       className={`flex-row items-center justify-center rounded-full disabled:opacity-40 ${sizeClass} ${v.container} ${className ?? ""}`}
       {...props}
     >
+      {leading && !loading ? leading : null}
       {loading ? (
         <ActivityIndicator className={textColors[v.color]} />
       ) : (
         <ThemedText
-          variant={ghost ? "body" : size === "md" ? "button" : "label"}
+          variant={ghost ? "body" : size === "sm" ? "label" : "button"}
           weight="bold"
           color={v.color}
           numberOfLines={1}

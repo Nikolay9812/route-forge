@@ -31,6 +31,8 @@ export function useFormat(timeZone: string, currency: string) {
     const longDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "long", day: "numeric", month: "long" });
     const shortDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
     const monthName = new Intl.DateTimeFormat(locale, { timeZone, month: "long" });
+    const monthYear = new Intl.DateTimeFormat(locale, { timeZone, month: "long", year: "numeric" });
+    const weekday = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short" });
     const timeOfDay = new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
     return {
       money: (minor: number) => money.format(minor / 100),
@@ -40,6 +42,13 @@ export function useFormat(timeZone: string, currency: string) {
         t("units.duration", { hours: Math.floor(minutes / 60), minutes: minutes % 60 }),
       longDay: (date: string) => longDay.format(dateAtNoon(date)),
       shortDay: (date: string) => shortDay.format(dateAtNoon(date)),
+      /** "Mo", "Mon", "пн": the calendar's column heads, without German's trailing dot. */
+      weekday: (date: string) => weekday.format(dateAtNoon(date)).replace(/\.$/, ""),
+      /** "Oktober" in the current year, "Dezember 2025" in any other. */
+      calendarMonth: (date: string, today: string) => {
+        const name = (date.slice(0, 4) === today.slice(0, 4) ? monthName : monthYear).format(dateAtNoon(date));
+        return name.charAt(0).toUpperCase() + name.slice(1);
+      },
       /** "07:30" for a UTC timestamp, in the firm's timezone. */
       time: (at: number) => timeOfDay.format(at),
       month: (date: string) => {

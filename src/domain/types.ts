@@ -1,5 +1,6 @@
 // Domain shapes shared by API routes and the app. Dates are calendar days ("YYYY-MM-DD") in the firm's
 // timezone, timestamps are ISO strings in UTC, working time is minutes, money is integer minor units.
+import type { MonthStats } from "./calendar";
 
 export type ShiftStatus = "draft" | "submitted" | "approved" | "rejected";
 
@@ -53,6 +54,16 @@ export type ReviewItem = { shift: Shift; courierName: string };
 export type Rate = { effectiveFrom: string; hourlyMinor: number };
 
 export type Firm = { name: string; currency: string; timeZone: string };
+
+/** One month of a courier's shifts, oldest day first. `firstMonth` is where paging back stops. */
+export type CalendarMonth = {
+  firm: Firm;
+  today: string;
+  month: string;
+  firstMonth: string;
+  shifts: Shift[];
+  stats: MonthStats;
+};
 
 export type Station = { id: string; name: string };
 

@@ -110,7 +110,8 @@
     "shifts": "Shifts",
     "pay": "Pay",
     "profile": "Profile",
-    "approvals": "Approvals"
+    "approvals": "Approvals",
+    "team": "Team"
   },
   "status": {
     "draft": "Draft",
@@ -315,5 +316,40 @@
       "title": "Pay",
       "body": "Your monthly pay will show up here."
     }
+  },
+  "calendar": {
+    "list": "List",
+    "calendar": "Calendar",
+    "stats": {
+      "shifts": "Shifts",
+      "hours": "Hours",
+      "approved": "Approved"
+    },
+    "legend": {
+      "approved": "Approved",
+      "submitted": "Waiting",
+      "rejected": "Rejected",
+      "today": "Today"
+    },
+    "status": {
+      "allApproved": "All shifts approved",
+      "waiting": "Waiting for approval: {{count}}",
+      "rejected": "To fix: {{count}}"
+    },
+    "empty": "No shifts this month",
+    "previous": "Previous month",
+    "next": "Next month",
+    "day": "{{day}}, {{status}}",
+    "error": "The calendar couldn't load.",
+    "offline": "No connection. Try again when you're online."
+  },
+  "team": {
+    "title": "Team",
+    "summary": "Shifts: {{shifts}} · Hours: {{hours}}",
+    "waiting": "Waiting: {{count}}",
+    "emptyTitle": "No couriers yet",
+    "emptyBody": "Couriers show up here once they join the firm or work in your depots.",
+    "error": "The team couldn't load.",
+    "offline": "No connection. Try again when you're online."
   }
 }

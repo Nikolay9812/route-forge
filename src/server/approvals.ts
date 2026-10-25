@@ -31,7 +31,7 @@ export function canUseDepot(scope: ReviewScope, depotId: string): boolean {
 }
 
 /** Shifts the reviewer may see, plus any extra conditions. Every approvals query and update filters through this. */
-function inScope(scope: ReviewScope, ...extra: SQL[]) {
+export function inScope(scope: ReviewScope, ...extra: SQL[]) {
   const depotFilter =
     scope.depotIds === "all"
       ? undefined

@@ -1,5 +1,5 @@
 // Shift queries for API routes. Every query filters by the courier's firm and user from the verified session.
-import { and, desc, eq, gte, inArray, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, min, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
 import { cars, courierRates, depots, firmSettings, shiftChanges, shifts } from "@/db/schema";
@@ -94,10 +94,18 @@ export async function shiftsBefore(courier: Courier, date: string, limit: number
   return rows.map(toShift);
 }
 
-/** Every shift from `from` to `to`, inclusive. */
+/** Every shift from `from` to `to`, inclusive, oldest first. */
 export async function shiftsBetween(courier: Courier, from: string, to: string): Promise<Shift[]> {
-  const rows = await selectShifts().where(mine(courier, gte(shifts.date, from), lte(shifts.date, to)));
+  const rows = await selectShifts()
+    .where(mine(courier, gte(shifts.date, from), lte(shifts.date, to)))
+    .orderBy(asc(shifts.date));
   return rows.map(toShift);
+}
+
+/** The day of the courier's first shift, or null when there is none. */
+export async function firstShiftDate(courier: Courier): Promise<string | null> {
+  const [row] = await db.select({ first: min(shifts.date) }).from(shifts).where(mine(courier));
+  return row?.first ?? null;
 }
 
 export async function ratesOf({ firmId, userId }: Courier): Promise<Rate[]> {

@@ -73,6 +73,21 @@ export async function userNames(ids: string[]): Promise<Map<string, string>> {
   return new Map(ids.map((id) => [id, names.get(id)?.name ?? ""]));
 }
 
+/** User IDs of the firm's `org:courier` members, every page. */
+export async function firmCouriers(firmId: string): Promise<string[]> {
+  const ids: string[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const { data, totalCount } = await clerk.organizations.getOrganizationMembershipList({
+      organizationId: firmId,
+      role: ["org:courier"],
+      limit: 100,
+      offset,
+    });
+    for (const m of data) if (m.publicUserData?.userId) ids.push(m.publicUserData.userId);
+    if (offset + 100 >= totalCount) return ids;
+  }
+}
+
 const firmNames = new Map<string, string>();
 
 /** The firm's display name from its Clerk Organization, cached per server process. */

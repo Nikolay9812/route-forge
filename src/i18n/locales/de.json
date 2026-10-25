@@ -110,7 +110,8 @@
     "shifts": "Schichten",
     "pay": "Lohn",
     "profile": "Profil",
-    "approvals": "Freigaben"
+    "approvals": "Freigaben",
+    "team": "Team"
   },
   "status": {
     "draft": "Entwurf",
@@ -315,5 +316,40 @@
       "title": "Lohn",
       "body": "Hier erscheint dein Monatslohn."
     }
+  },
+  "calendar": {
+    "list": "Liste",
+    "calendar": "Kalender",
+    "stats": {
+      "shifts": "Schichten",
+      "hours": "Arbeitszeit",
+      "approved": "Genehmigt"
+    },
+    "legend": {
+      "approved": "Genehmigt",
+      "submitted": "Offen",
+      "rejected": "Abgelehnt",
+      "today": "Heute"
+    },
+    "status": {
+      "allApproved": "Alle Schichten bestätigt",
+      "waiting": "Warten auf Freigabe: {{count}}",
+      "rejected": "Zu korrigieren: {{count}}"
+    },
+    "empty": "Keine Schichten in diesem Monat",
+    "previous": "Vorheriger Monat",
+    "next": "Nächster Monat",
+    "day": "{{day}}, {{status}}",
+    "error": "Der Kalender konnte nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist."
+  },
+  "team": {
+    "title": "Team",
+    "summary": "Schichten: {{shifts}} · Stunden: {{hours}}",
+    "waiting": "Offen: {{count}}",
+    "emptyTitle": "Noch keine Fahrer",
+    "emptyBody": "Fahrer erscheinen hier, sobald sie der Firma beitreten oder in deinen Depots arbeiten.",
+    "error": "Das Team konnte nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist."
   }
 }

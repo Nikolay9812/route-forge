@@ -13,6 +13,7 @@ const tabs = [
   { name: "shifts", icon: "shifts", label: "tabs.shifts", for: "courier" },
   { name: "pay", icon: "salary", label: "tabs.pay", for: "courier" },
   { name: "approvals", icon: "approvals", label: "tabs.approvals", for: "reviewer" },
+  { name: "team", icon: "team", label: "tabs.team", for: "reviewer" },
   { name: "profile", icon: "profile", label: "tabs.profile", for: "everyone" },
 ] as const satisfies readonly {
   name: string;

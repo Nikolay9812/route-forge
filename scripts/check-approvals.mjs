@@ -146,7 +146,12 @@ r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, {
 });
 check("correction saved and marked", r.status === 200 && r.json.corrected && r.json.minutes === 522, r.status);
 r = await call(token.dispatcher, "GET", `/api/approvals/${target.id}`);
-const expectedPay = Number(target.date.slice(8, 10)) >= 15 ? 13920 : 13050;
+// 522 min at the rate in force on the shift's day (the seed changes rates mid-month), rounded half up.
+const [{ hourly_minor: hourly }] = await sql`
+  select hourly_minor from courier_rates
+  where user_id = (select user_id from shifts where id = ${target.id}) and effective_from <= ${target.date}
+  order by effective_from desc limit 1`;
+const expectedPay = Math.round((522 * hourly) / 60);
 check("pay after correction matches the hand calculation", r.json.pay?.payMinor === expectedPay, r.json.pay?.payMinor);
 check(
   "history records who changed which fields",

@@ -1,8 +1,13 @@
-// Development seed: firm settings, depots, cars, courier rates and a month of past shifts for the firms below.
+// Development seed: firm settings, depots, cars, courier rates and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
-// Run with `npm run db:seed`. Salary amounts are never printed.
+// Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
 import { neon } from "@neondatabase/serverless";
+
+import { addMonths } from "../src/domain/calendar.ts";
+import { zonedTime } from "../src/domain/dates.ts";
+
+const MONTHS_BACK = 6;
 
 const firms = [
   {
@@ -10,12 +15,17 @@ const firms = [
     currency: "EUR",
     timeZone: "Europe/Berlin",
     depots: ["HBW3", "HBW1", "HBW7"],
+    // One car per depot, in the same order.
     cars: ["KH I 6004", "KH I 5120", "KH I 7732"],
-    // €15.00/h from the 1st, €16.00/h from the 15th: every month shows a mid-month rate change.
+    // Months relative to the current one: a mid-month change three months ago and one in the current month.
     rates: [
-      { day: "01", hourlyMinor: 1500 },
-      { day: "15", hourlyMinor: 1600 },
+      { month: -MONTHS_BACK, day: "01", hourlyMinor: 1400 },
+      { month: -3, day: "15", hourlyMinor: 1450 },
+      { month: 0, day: "01", hourlyMinor: 1500 },
+      { month: 0, day: "15", hourlyMinor: 1600 },
     ],
+    // courier.a drives in the dispatcher's depots only, courier.c only at HBW7 (outside them).
+    depotsOf: { "courier.a": [0, 1], "courier.c": [2] },
   },
   {
     name: "Test Firm B",
@@ -23,7 +33,8 @@ const firms = [
     timeZone: "Europe/Berlin",
     depots: ["TFB1"],
     cars: ["B TF 100"],
-    rates: [{ day: "01", hourlyMinor: 1200 }],
+    rates: [{ month: -MONTHS_BACK, day: "01", hourlyMinor: 1200 }],
+    depotsOf: {},
   },
 ];
 
@@ -45,11 +56,14 @@ async function findOrg(name) {
   return org;
 }
 
-/** Member user IDs by role, e.g. { "org:courier": [...], "org:dispatcher": [...] }. */
+/** Members by role, e.g. { "org:courier": [{ id, identifier }] }, sorted by email: Clerk's own order isn't stable. */
 async function membersOf(orgId) {
   const { data } = await clerk(`/organizations/${orgId}/memberships?limit=100`);
   const byRole = {};
-  for (const m of data) (byRole[m.role] ??= []).push(m.public_user_data.user_id);
+  for (const m of data) {
+    (byRole[m.role] ??= []).push({ id: m.public_user_data.user_id, identifier: m.public_user_data.identifier ?? "" });
+  }
+  for (const list of Object.values(byRole)) list.sort((a, b) => a.identifier.localeCompare(b.identifier));
   return byRole;
 }
 
@@ -59,16 +73,31 @@ function todayIn(timeZone) {
   );
 }
 
-/** Weekdays of this month before today, newest first. */
-function pastWeekdays(today) {
+/** A stable number in [0, 1) for the text (FNV-1a plus a murmur finalizer), so reruns give the same calendar. */
+function rand(text) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0) / 2 ** 32;
+}
+
+/** Calendar days from `from` up to but not including `to`, oldest first. */
+function daysBetween(from, to) {
   const days = [];
-  const [year, month, day] = today.split("-").map(Number);
-  for (let d = day - 1; d >= 1; d--) {
-    const date = new Date(Date.UTC(year, month - 1, d, 12));
-    const weekday = date.getUTCDay();
-    if (weekday !== 0 && weekday !== 6) days.push(date.toISOString().slice(0, 10));
+  for (let d = new Date(`${from}T12:00:00Z`); d.toISOString().slice(0, 10) < to; d.setUTCDate(d.getUTCDate() + 1)) {
+    days.push(d.toISOString().slice(0, 10));
   }
   return days;
+}
+
+/** Weekdays minus about one in seven days off, plus every other Saturday (alternating between couriers). */
+function worksOn(userId, c, date) {
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  if (weekday === 0) return false;
+  if (weekday === 6) return (Math.floor(Date.parse(`${date}T12:00:00Z`) / 604_800_000) + c) % 2 === 0;
+  return rand(`off|${userId}|${date}`) >= 1 / 7;
 }
 
 for (const firm of firms) {
@@ -76,11 +105,11 @@ for (const firm of firms) {
   const firmId = org.id;
   const members = await membersOf(firmId);
   const couriers = members["org:courier"] ?? [];
-  const dispatchers = members["org:dispatcher"] ?? [];
-  // Seeded reviews are signed by the first dispatcher, or the owner when there is none.
-  const reviewer = dispatchers[0] ?? members["org:owner"]?.[0] ?? null;
+  const dispatchers = (members["org:dispatcher"] ?? []).map((m) => m.id);
+  const owner = members["org:owner"]?.[0]?.id ?? null;
   const today = todayIn(firm.timeZone);
   const month = today.slice(0, 7);
+  const lastMonth = addMonths(month, -1);
 
   await sql.transaction([
     sql`delete from shift_changes where firm_id = ${firmId}`,
@@ -106,47 +135,97 @@ for (const firm of firms) {
   }
 
   // Dispatchers manage the first two depots, so the last one (HBW7) is outside their reach.
+  const managed = depots.slice(0, 2);
   for (const userId of dispatchers) {
-    for (const depotId of depots.slice(0, 2)) {
+    for (const depotId of managed) {
       await sql`insert into dispatcher_depots (firm_id, user_id, depot_id) values (${firmId}, ${userId}, ${depotId})`;
     }
   }
+  // Reviews are signed by the first dispatcher when the depot is theirs, else by the owner.
+  const reviewerFor = (depotIndex) =>
+    dispatchers.length && depotIndex < managed.length ? dispatchers[0] : (owner ?? dispatchers[0] ?? null);
 
-  let shiftCount = 0;
-  for (const [c, userId] of couriers.entries()) {
+  for (const { id: userId } of couriers) {
     for (const rate of firm.rates) {
       await sql`
         insert into courier_rates (firm_id, user_id, effective_from, hourly_minor)
-        values (${firmId}, ${userId}, ${`${month}-${rate.day}`}, ${rate.hourlyMinor})`;
-    }
-
-    // Newest two submitted, the fourth rejected, the rest approved. Times are rough: 06:00 UTC starts.
-    const days = pastWeekdays(today);
-    for (const [i, date] of days.entries()) {
-      const day = Number(date.slice(8, 10));
-      const status = i < 2 ? "submitted" : i === 3 ? "rejected" : "approved";
-      const minutes = 420 + ((day * 37 + c * 11) % 8) * 15;
-      const km = 60 + ((day * 7 + c * 5) % 40);
-      const loaded = 120 + ((day * 13 + c * 3) % 50);
-      const returned = (day * 3 + c) % 9;
-      const startedAt = new Date(`${date}T06:00:00Z`);
-      const finishedAt = new Date(startedAt.getTime() + minutes * 60_000);
-      const reviewedAt = new Date(finishedAt.getTime() + 3 * 3_600_000);
-      // The odometer grows ~100 km a day, so newer shifts start higher.
-      const startKm = 48_000 + c * 10_000 + (days.length - i) * 100;
-      await sql`
-        insert into shifts (firm_id, user_id, date, status, depot_id, car_id, started_at, finished_at, minutes,
-          start_km, end_km, loaded, returned, pickups, rejection_reasons, rejection_note, submitted_at, reviewed_at, reviewed_by)
-        values (${firmId}, ${userId}, ${date}, ${status}, ${depots[(c + i) % depots.length]}, ${cars[(c + i) % cars.length]},
-          ${startedAt.toISOString()}, ${finishedAt.toISOString()}, ${minutes}, ${startKm}, ${startKm + km},
-          ${loaded}, ${returned}, ${day % 4}, ${status === "rejected" ? ["km"] : null},
-          ${status === "rejected" ? "Check the odometer photo." : null}, ${finishedAt.toISOString()},
-          ${status === "submitted" ? null : reviewedAt.toISOString()}, ${status === "submitted" ? null : reviewer})`;
-      shiftCount++;
+        values (${firmId}, ${userId}, ${`${addMonths(month, rate.month)}-${rate.day}`}, ${rate.hourlyMinor})`;
     }
   }
 
+  // Which days each courier works, and each day's status.
+  const days = daysBetween(`${addMonths(month, -MONTHS_BACK)}-01`, today);
+  const plans = couriers.map(({ id: userId, identifier }, c) => {
+    const depotChoices = firm.depotsOf[identifier.split("+")[0]] ?? depots.map((_, i) => i);
+    const worked = days.filter((date) => worksOn(userId, c, date));
+    const status = new Map(worked.map((date) => [date, "approved"]));
+    // Current month, newest first: the newest two waiting, the fourth rejected for km.
+    const current = worked.filter((d) => d.startsWith(month)).reverse();
+    current.slice(0, 2).forEach((d) => status.set(d, "submitted"));
+    if (current[3]) status.set(current[3], "rejected:km");
+    // Last month: one rejected for packages and never fixed, one still waiting.
+    const last = worked.filter((d) => d.startsWith(lastMonth));
+    if (last.length > 2) {
+      status.set(last[Math.floor(last.length / 2)], "rejected:packages");
+      status.set(last[last.length - 2], "submitted");
+    }
+    // Two older approved shifts were corrected by a reviewer (end km).
+    const corrected = new Set(
+      [addMonths(month, -4), addMonths(month, -2)].map((m) => worked.find((d) => d.startsWith(m))).filter(Boolean),
+    );
+    return { userId, c, depotChoices, worked: new Set(worked), status, corrected, count: 0 };
+  });
+
+  // Day by day, so each car's odometer only grows.
+  const odometer = cars.map((_, i) => 48_000 + i * 20_000);
+  const inserts = [];
+  const changes = [];
+  for (const date of days) {
+    for (const plan of plans) {
+      if (!plan.worked.has(date)) continue;
+      const { userId, c } = plan;
+      const r = (key) => rand(`${key}|${userId}|${date}`);
+      const depotIndex = plan.depotChoices[Math.floor(r("depot") * plan.depotChoices.length)];
+      const carIndex = depotIndex % cars.length;
+      const [status, reason] = plan.status.get(date).split(":");
+
+      const startMinute = 345 + Math.floor(r("start") * 8) * 15; // 05:45–07:30 local
+      const minutes = 390 + Math.floor(r("minutes") * 14) * 15; // 6:30–9:45
+      const startedAt = new Date(zonedTime(date, startMinute, firm.timeZone));
+      const finishedAt = new Date(startedAt.getTime() + minutes * 60_000);
+      const reviewedAt = new Date(finishedAt.getTime() + (2 + c) * 3_600_000);
+      const startKm = odometer[carIndex];
+      const typedEndKm = startKm + 60 + Math.floor(r("km") * 40);
+      const reviewer = status === "submitted" ? null : reviewerFor(depotIndex);
+      // A correction needs someone to sign it: Test Firm B has no reviewers.
+      const corrected = plan.corrected.has(date) && reviewer !== null;
+      const endKm = corrected ? typedEndKm + 12 : typedEndKm;
+      odometer[carIndex] = endKm + Math.floor(r("between") * 15);
+
+      inserts.push(sql`
+        insert into shifts (firm_id, user_id, date, status, depot_id, car_id, started_at, finished_at, minutes,
+          start_km, end_km, loaded, returned, pickups, rejection_reasons, rejection_note, submitted_at, reviewed_at, reviewed_by)
+        values (${firmId}, ${userId}, ${date}, ${status}, ${depots[depotIndex]}, ${cars[carIndex]},
+          ${startedAt.toISOString()}, ${finishedAt.toISOString()}, ${minutes}, ${startKm}, ${endKm},
+          ${120 + Math.floor(r("loaded") * 50)}, ${Math.floor(r("returned") * 9)}, ${Math.floor(r("pickups") * 4)},
+          ${reason ? [reason] : null}, ${reason === "km" ? "Check the odometer photo." : null}, ${finishedAt.toISOString()},
+          ${reviewer ? reviewedAt.toISOString() : null}, ${reviewer})`);
+      if (corrected) {
+        changes.push(sql`
+          insert into shift_changes (firm_id, shift_id, changed_by, changed_at, field, old_value, new_value)
+          select ${firmId}, id, ${reviewer}, ${new Date(reviewedAt.getTime() - 600_000).toISOString()}, 'endKm',
+            ${String(typedEndKm)}, ${String(endKm)}
+          from shifts where firm_id = ${firmId} and user_id = ${userId} and date = ${date}`);
+      }
+      plan.count++;
+    }
+  }
+  const queries = [...inserts, ...changes];
+  for (let i = 0; i < queries.length; i += 200) await sql.transaction(queries.slice(i, i + 200));
+
+  const perCourier = couriers.map((m, i) => `${m.identifier.split("+")[0]} ${plans[i].count}`).join(", ");
   console.log(
-    `${firm.name}: ${depots.length} depots, ${cars.length} cars, ${couriers.length} couriers, ${dispatchers.length} dispatchers, ${shiftCount} past shifts.`,
+    `${firm.name}: ${depots.length} depots, ${cars.length} cars, ${dispatchers.length} dispatchers, ` +
+      `${inserts.length} shifts since ${days[0]} (${perCourier}), ${changes.length} corrected.`,
   );
 }

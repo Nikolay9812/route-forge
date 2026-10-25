@@ -4,10 +4,11 @@ import { Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { ApiFailure } from "@/api/client";
+import { useCalendar } from "@/calendar/use-calendar";
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
+import { CalendarSection } from "@/components/calendar/calendar-section";
 import { useFormat } from "@/components/home/format";
-import { RecentShifts } from "@/components/home/recent-shifts";
 import { SectionEntrance } from "@/components/home/section-entrance";
 import { Notice } from "@/components/notice";
 import { PackagesCard } from "@/components/shifts/packages-card";
@@ -33,6 +34,7 @@ function startMessage(failure: ApiFailure): TranslationKey | null {
 }
 
 // Today's shift: pick station and bus, start, fill in km and packages (autosaved), then finish in a sheet.
+// Below it, the month calendar of the courier's shifts.
 export default function Shifts() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -41,6 +43,8 @@ export default function Shifts() {
   const format = useFormat(firm.timeZone, firm.currency);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<TranslationKey | null>(null);
+  // Today's mark follows the shift: starting or submitting it reloads the shown month.
+  const calendar = useCalendar("/api/calendar", `${shift?.id}:${shift?.status}`);
 
   const onStart = async () => {
     setStarting(true);
@@ -140,16 +144,12 @@ export default function Shifts() {
             ) : null}
           </SectionEntrance>
 
-          {load.recent.length > 0 ? (
-            <SectionEntrance index={2}>
-              <RecentShifts
-                shifts={load.recent}
-                format={format}
-                onSeeAll={() => {}}
-                onPressShift={(s) => router.push({ pathname: "/shifts/[id]", params: { id: s.id } })}
-              />
-            </SectionEntrance>
-          ) : null}
+          <SectionEntrance index={2}>
+            <CalendarSection
+              state={calendar}
+              onOpenShift={(s) => router.push({ pathname: "/shifts/[id]", params: { id: s.id } })}
+            />
+          </SectionEntrance>
         </>
       )}
     </ScrollView>

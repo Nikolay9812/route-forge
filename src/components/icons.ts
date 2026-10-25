@@ -36,6 +36,8 @@ export const icons = {
   "sign-out": { ios: "rectangle.portrait.and.arrow.right", android: "logout" },
   pin: { ios: "mappin", android: "location_on" },
   route: { ios: "point.topleft.down.to.point.bottomright.curvepath", android: "route" },
+  review: { ios: "doc.text.magnifyingglass", android: "find_in_page" },
+  team: { ios: "person.2", android: "group" },
 } as const satisfies Record<string, Symbol>;
 
 export type IconName = keyof typeof icons;

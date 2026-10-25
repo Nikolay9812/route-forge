@@ -69,6 +69,14 @@ export type Station = { id: string; name: string };
 
 export type Bus = { id: string; plate: string };
 
+/** A depot as its firm's owner manages it, with every car assigned to it (archived ones included). */
+export type FleetDepot = { id: string; name: string; archived: boolean; cars: FleetCar[] };
+
+export type FleetCar = { id: string; plate: string; depotId: string; archived: boolean };
+
+/** Every depot of the firm, active and archived, sorted by name; cars sorted by plate. */
+export type Fleet = { depots: FleetDepot[] };
+
 /** The `error` code in API error bodies. Bodies never carry details beyond the code. */
 export type ApiErrorCode =
   | "unauthorized"
@@ -82,4 +90,6 @@ export type ApiErrorCode =
   | "endKmMissing"
   | "endBelowStart"
   | "returnedAboveLoaded"
+  | "taken"
+  | "depotHasCars"
   | "server";

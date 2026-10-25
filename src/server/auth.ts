@@ -21,6 +21,8 @@ const statusOf: Record<ApiErrorCode, number> = {
   endKmMissing: 409,
   endBelowStart: 409,
   returnedAboveLoaded: 409,
+  taken: 409,
+  depotHasCars: 409,
   server: 500,
 };
 
@@ -51,6 +53,18 @@ export async function requireReviewerSession(request: Request): Promise<Reviewer
   if (orgRole === "org:dispatcher") return { firmId: orgId, userId, role: "dispatcher" };
   if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
   return apiError("role");
+}
+
+export type Owner = { firmId: string; userId: string };
+
+/** The signed-in owner of the session's active firm, or the error Response to return as is. */
+export async function requireOwner(request: Request): Promise<Owner | Response> {
+  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
+  if (!state.isAuthenticated) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = state.toAuth();
+  if (!orgId) return apiError("noFirm");
+  if (orgRole !== "org:owner") return apiError("role");
+  return { firmId: orgId, userId };
 }
 
 const NAME_TTL = 10 * 60_000;

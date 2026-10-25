@@ -162,7 +162,8 @@
     "retry": "Erneut versuchen"
   },
   "profile": {
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "firm": "Firma"
   },
   "shifts": {
     "title": "Heutige Schicht",
@@ -351,5 +352,52 @@
     "emptyBody": "Fahrer erscheinen hier, sobald sie der Firma beitreten oder in deinen Depots arbeiten.",
     "error": "Das Team konnte nicht geladen werden.",
     "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist."
+  },
+  "fleet": {
+    "title": "Depots & Fahrzeuge",
+    "addDepot": "Depot hinzufügen",
+    "addCar": "Fahrzeug hinzufügen",
+    "carCount": "Fahrzeuge: {{count}}",
+    "archived": "Archiviert",
+    "archivedTag": "Archiviert",
+    "emptyTitle": "Noch keine Depots",
+    "emptyBody": "Füge dein erstes Depot hinzu, dann seine Fahrzeuge. Kuriere wählen sie zu Schichtbeginn aus.",
+    "error": "Depots und Fahrzeuge konnten nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "archiveConfirm": "Archivieren",
+    "confirmBody": "Kuriere können es nicht mehr auswählen. Vergangene Schichten behalten es.",
+    "saveError": "Das wurde nicht gespeichert. Versuch es erneut.",
+    "saveOffline": "Keine Verbindung. Deine Eingabe bleibt erhalten.",
+    "depot": {
+      "newTitle": "Neues Depot",
+      "editTitle": "Depot bearbeiten",
+      "archivedTitle": "Archiviertes Depot",
+      "archivedBody": "Stell es wieder her, damit Kuriere es wieder auswählen können.",
+      "name": "Name",
+      "namePlaceholder": "z. B. HBW3",
+      "taken": "Ein Depot mit diesem Namen gibt es schon.",
+      "archive": "Depot archivieren",
+      "restore": "Depot wiederherstellen",
+      "hasCars": "Verschiebe oder archiviere zuerst die Fahrzeuge dieses Depots.",
+      "confirmTitle": "Dieses Depot archivieren?"
+    },
+    "car": {
+      "newTitle": "Neues Fahrzeug",
+      "editTitle": "Fahrzeug bearbeiten",
+      "archivedTitle": "Archiviertes Fahrzeug",
+      "archivedBody": "Stell es wieder her, damit Kuriere es wieder auswählen können.",
+      "plate": "Kennzeichen",
+      "platePlaceholder": "z. B. HB AB 1234",
+      "plateHint": "Wird gespeichert als {{plate}}",
+      "plateInvalid": "Nur Buchstaben, Ziffern, Leerzeichen und Bindestriche, bis zu 15.",
+      "taken": "Ein Fahrzeug mit diesem Kennzeichen gibt es schon.",
+      "depot": "Depot",
+      "archive": "Fahrzeug archivieren",
+      "restore": "Fahrzeug wiederherstellen",
+      "depotArchived": "Sein Depot {{depot}} ist archiviert. Stell zuerst das Depot wieder her.",
+      "confirmTitle": "Dieses Fahrzeug archivieren?"
+    }
   }
 }

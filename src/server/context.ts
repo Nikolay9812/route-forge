@@ -1,7 +1,7 @@
 import type { Firm } from "@/domain/types";
 
 import { scopeOf, type ReviewScope } from "./approvals";
-import { apiError, requireCourier, requireReviewerSession, type Courier } from "./auth";
+import { apiError, requireCourier, requireOwner, requireReviewerSession, type Courier, type Owner } from "./auth";
 import { firmToday, loadFirm } from "./shifts";
 
 export type CourierContext = { courier: Courier; firm: Firm; date: string };
@@ -24,4 +24,12 @@ export async function reviewerContext(request: Request): Promise<ReviewerContext
   const firm = await loadFirm(reviewer.firmId);
   if (!firm) return apiError("firmNotSetUp");
   return { scope: await scopeOf(reviewer), firm };
+}
+
+/** Session → firm → owner, once the firm is set up. Depots and cars are managed by owners only. */
+export async function ownerContext(request: Request): Promise<Owner | Response> {
+  const owner = await requireOwner(request);
+  if (owner instanceof Response) return owner;
+  if (!(await loadFirm(owner.firmId))) return apiError("firmNotSetUp");
+  return owner;
 }

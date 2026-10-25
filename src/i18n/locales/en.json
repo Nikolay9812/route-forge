@@ -162,7 +162,8 @@
     "retry": "Try again"
   },
   "profile": {
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "firm": "Firm"
   },
   "shifts": {
     "title": "Today's shift",
@@ -351,5 +352,52 @@
     "emptyBody": "Couriers show up here once they join the firm or work in your depots.",
     "error": "The team couldn't load.",
     "offline": "No connection. Try again when you're online."
+  },
+  "fleet": {
+    "title": "Depots & cars",
+    "addDepot": "Add depot",
+    "addCar": "Add car",
+    "carCount": "Cars: {{count}}",
+    "archived": "Archived",
+    "archivedTag": "Archived",
+    "emptyTitle": "No depots yet",
+    "emptyBody": "Add your first depot, then its cars. Couriers pick them when they start a shift.",
+    "error": "Depots and cars couldn't load.",
+    "offline": "No connection. Try again when you're online.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "archiveConfirm": "Archive",
+    "confirmBody": "Couriers can no longer pick it. Past shifts keep it.",
+    "saveError": "That didn't save. Try again.",
+    "saveOffline": "No connection. What you typed is still here.",
+    "depot": {
+      "newTitle": "New depot",
+      "editTitle": "Edit depot",
+      "archivedTitle": "Archived depot",
+      "archivedBody": "Restore it so couriers can pick it again.",
+      "name": "Name",
+      "namePlaceholder": "e.g. HBW3",
+      "taken": "A depot with this name already exists.",
+      "archive": "Archive depot",
+      "restore": "Restore depot",
+      "hasCars": "Move or archive this depot's cars first.",
+      "confirmTitle": "Archive this depot?"
+    },
+    "car": {
+      "newTitle": "New car",
+      "editTitle": "Edit car",
+      "archivedTitle": "Archived car",
+      "archivedBody": "Restore it so couriers can pick it again.",
+      "plate": "Plate",
+      "platePlaceholder": "e.g. CA 1234 AB",
+      "plateHint": "Saved as {{plate}}",
+      "plateInvalid": "Use letters, digits, spaces and hyphens, up to 15.",
+      "taken": "A car with this plate already exists.",
+      "depot": "Depot",
+      "archive": "Archive car",
+      "restore": "Restore car",
+      "depotArchived": "Its depot {{depot}} is archived. Restore the depot first.",
+      "confirmTitle": "Archive this car?"
+    }
   }
 }

@@ -62,7 +62,8 @@
     "db:seed": "node --env-file-if-exists=.env.local scripts/seed.mjs",
     "check:api": "node --env-file-if-exists=.env.local scripts/check-api.mjs",
     "check:approvals": "node --env-file-if-exists=.env.local scripts/check-approvals.mjs",
-    "check:calendar": "node --no-warnings --env-file-if-exists=.env.local scripts/check-calendar.mjs"
+    "check:calendar": "node --no-warnings --env-file-if-exists=.env.local scripts/check-calendar.mjs",
+    "check:fleet": "node --no-warnings --env-file-if-exists=.env.local scripts/check-fleet.mjs"
   },
   "private": true,
   "overrides": {

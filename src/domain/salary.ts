@@ -1,9 +1,10 @@
 // Salary math, shared by API routes and the app. Pure and import-free at runtime so Node can run it
 // directly (scripts/check-salary.mjs). Pay counts approved shifts only and is never stored.
-import type { Rate, Shift } from "./types";
+import type { PaySchedule, Rate, RateEntry, Shift } from "./types";
 
 export type MonthTotals = {
   approvedMinutes: number;
+  approvedShifts: number;
   payMinor: number;
   /** Delivered packages. */
   packages: number;
@@ -12,29 +13,77 @@ export type MonthTotals = {
   pendingCount: number;
 };
 
-/** The rate with the latest effectiveFrom on or before the date, so a rate change never rewrites past days. */
-export function rateFor(date: string, rates: readonly Rate[]): Rate | null {
-  let match: Rate | null = null;
-  for (const rate of rates) {
-    if (rate.effectiveFrom <= date && (!match || rate.effectiveFrom > match.effectiveFrom)) match = rate;
+/** The entry with the latest effectiveFrom on or before the date. */
+function latestOn<T extends { effectiveFrom: string }>(date: string, entries: readonly T[]): T | null {
+  let match: T | null = null;
+  for (const entry of entries) {
+    if (entry.effectiveFrom <= date && (!match || entry.effectiveFrom > match.effectiveFrom)) match = entry;
   }
   return match;
 }
 
-/** Rounded per shift, half up, in minor units. Anything but an approved shift pays 0. */
-export function shiftPay(shift: Shift, rates: readonly Rate[]): number {
-  if (shift.status !== "approved") return 0;
-  const rate = rateFor(shift.date, rates);
-  return rate ? Math.round(((shift.minutes ?? 0) * rate.hourlyMinor) / 60) : 0;
+function asRate(entry: RateEntry): Rate | null {
+  return entry.kind === "firm" || entry.amountMinor === null
+    ? null
+    : { effectiveFrom: entry.effectiveFrom, kind: entry.kind, amountMinor: entry.amountMinor };
 }
 
-export function monthTotals(shifts: readonly Shift[], rates: readonly Rate[]): MonthTotals {
-  const totals: MonthTotals = { approvedMinutes: 0, payMinor: 0, packages: 0, km: 0, pendingCount: 0 };
+/**
+ * The rate in force on a day: the courier's latest own entry on or before it, else (or when that entry says
+ * "follow the firm default") the firm default's latest. A change never rewrites days before it starts.
+ */
+export function rateFor(date: string, schedule: PaySchedule): Rate | null {
+  const own = latestOn(date, schedule.own);
+  if (own && own.kind !== "firm") return asRate(own);
+  return latestOn(date, schedule.firm);
+}
+
+/** True when the courier's pay on that day comes from the firm default (or nothing). */
+export function followsFirm(date: string, schedule: PaySchedule): boolean {
+  const own = latestOn(date, schedule.own);
+  return !own || own.kind === "firm";
+}
+
+function sameRate(a: Rate | null, b: Rate | null): boolean {
+  return a?.kind === b?.kind && a?.amountMinor === b?.amountMinor;
+}
+
+/** The first scheduled change after `today` that pays differently, dated from the day it starts. */
+export function nextRate(today: string, schedule: PaySchedule): Rate | null {
+  const current = rateFor(today, schedule);
+  const days = [...new Set([...schedule.firm, ...schedule.own].map((e) => e.effectiveFrom))]
+    .filter((day) => day > today)
+    .sort();
+  for (const day of days) {
+    const rate = rateFor(day, schedule);
+    if (!sameRate(rate, current)) return rate ? { ...rate, effectiveFrom: day } : null;
+  }
+  return null;
+}
+
+/** Rounded per shift, half up, in minor units. Anything but an approved shift pays 0. */
+export function shiftPay(shift: Shift, schedule: PaySchedule): number {
+  if (shift.status !== "approved") return 0;
+  const rate = rateFor(shift.date, schedule);
+  if (!rate) return 0;
+  return rate.kind === "daily" ? rate.amountMinor : Math.round(((shift.minutes ?? 0) * rate.amountMinor) / 60);
+}
+
+export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule): MonthTotals {
+  const totals: MonthTotals = {
+    approvedMinutes: 0,
+    approvedShifts: 0,
+    payMinor: 0,
+    packages: 0,
+    km: 0,
+    pendingCount: 0,
+  };
   for (const shift of shifts) {
     if (shift.status === "submitted") totals.pendingCount += 1;
     if (shift.status !== "approved") continue;
     totals.approvedMinutes += shift.minutes ?? 0;
-    totals.payMinor += shiftPay(shift, rates);
+    totals.approvedShifts += 1;
+    totals.payMinor += shiftPay(shift, schedule);
     // Same as delivered() and kmDriven() in shift.ts, inlined: domain files share only types at runtime.
     totals.packages += shift.loaded - (shift.returned ?? 0);
     totals.km += (shift.endKm ?? shift.startKm) - shift.startKm;

@@ -2,10 +2,10 @@
 import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, min, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
-import { cars, courierRates, depots, firmSettings, shiftChanges, shifts } from "@/db/schema";
+import { cars, depots, firmSettings, shiftChanges, shifts } from "@/db/schema";
 import { todayIn } from "@/domain/dates";
 import { finishProblem, type FinishProblem, type ShiftPatch, type StartInput } from "@/domain/shift";
-import type { Bus, Firm, Rate, RejectReason, Shift, Station } from "@/domain/types";
+import type { Bus, Firm, RejectReason, Shift, Station } from "@/domain/types";
 
 import { firmName, type Courier } from "./auth";
 
@@ -106,13 +106,6 @@ export async function shiftsBetween(courier: Courier, from: string, to: string):
 export async function firstShiftDate(courier: Courier): Promise<string | null> {
   const [row] = await db.select({ first: min(shifts.date) }).from(shifts).where(mine(courier));
   return row?.first ?? null;
-}
-
-export async function ratesOf({ firmId, userId }: Courier): Promise<Rate[]> {
-  return db
-    .select({ effectiveFrom: courierRates.effectiveFrom, hourlyMinor: courierRates.hourlyMinor })
-    .from(courierRates)
-    .where(and(eq(courierRates.firmId, firmId), eq(courierRates.userId, userId)));
 }
 
 /** True when the depot and car (whichever are given) are active ones in this firm. */

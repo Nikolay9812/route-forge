@@ -6,7 +6,7 @@ import { ShiftSummary } from "@/components/shifts/shift-summary";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
-import type { Shift, ShiftChange, ShiftField } from "@/domain/types";
+import type { PayKind, Shift, ShiftChange, ShiftField } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
 import { fieldsOf } from "@/shifts/draft";
 
@@ -38,14 +38,14 @@ export function ShiftCard({ shift, format }: { shift: Shift; format: Format }) {
   );
 }
 
-/** Hours × the rate on the shift's day. Personal data: only reviewers in scope ever receive it. */
+/** Hours × the rate on the shift's day, or the day rate. Personal data: only reviewers in scope ever receive it. */
 export function PayCard({
   shift,
   pay,
   format,
 }: {
   shift: Shift;
-  pay: { hourlyMinor: number; payMinor: number } | null;
+  pay: { kind: PayKind; amountMinor: number; payMinor: number } | null;
   format: Format;
 }) {
   const { t } = useTranslation();
@@ -56,10 +56,12 @@ export function PayCard({
         <>
           <ThemedText variant="number">{format.money(pay.payMinor)}</ThemedText>
           <ThemedText variant="footnote">
-            {t("review.payBreakdown", {
-              hours: format.hours(shift.minutes ?? 0),
-              rate: format.money(pay.hourlyMinor),
-            })}
+            {pay.kind === "daily"
+              ? t("review.payDaily")
+              : t("review.payBreakdown", {
+                  hours: format.hours(shift.minutes ?? 0),
+                  rate: format.money(pay.amountMinor),
+                })}
           </ThemedText>
         </>
       ) : (

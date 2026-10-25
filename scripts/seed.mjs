@@ -1,4 +1,4 @@
-// Development seed: firm settings, depots, cars, courier rates and six months of past shifts for the firms below.
+// Development seed: firm settings, depots, cars, pay rates and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
@@ -17,13 +17,16 @@ const firms = [
     depots: ["HBW3", "HBW1", "HBW7"],
     // One car per depot, in the same order.
     cars: ["KH I 6004", "KH I 5120", "KH I 7732"],
-    // Months relative to the current one: a mid-month change three months ago and one in the current month.
+    // The firm default (hourly), in months relative to the current one: a mid-month change three months ago and
+    // one in the current month.
     rates: [
       { month: -MONTHS_BACK, day: "01", hourlyMinor: 1400 },
       { month: -3, day: "15", hourlyMinor: 1450 },
       { month: 0, day: "01", hourlyMinor: 1500 },
       { month: 0, day: "15", hourlyMinor: 1600 },
     ],
+    // Couriers with their own rate: courier.c is on a day rate from the 1st of last month.
+    overrides: { "courier.c": [{ month: -1, day: "01", kind: "daily", amountMinor: 13000 }] },
     // courier.a drives in the dispatcher's depots only, courier.c only at HBW7 (outside them).
     depotsOf: { "courier.a": [0, 1], "courier.c": [2] },
   },
@@ -34,6 +37,7 @@ const firms = [
     depots: ["TFB1"],
     cars: ["B TF 100"],
     rates: [{ month: -MONTHS_BACK, day: "01", hourlyMinor: 1200 }],
+    overrides: {},
     depotsOf: {},
   },
 ];
@@ -115,7 +119,7 @@ for (const firm of firms) {
     sql`delete from shift_changes where firm_id = ${firmId}`,
     sql`delete from shifts where firm_id = ${firmId}`,
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
-    sql`delete from courier_rates where firm_id = ${firmId}`,
+    sql`delete from pay_rates where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
     sql`delete from firm_settings where firm_id = ${firmId}`,
@@ -145,11 +149,18 @@ for (const firm of firms) {
   const reviewerFor = (depotIndex) =>
     dispatchers.length && depotIndex < managed.length ? dispatchers[0] : (owner ?? dispatchers[0] ?? null);
 
-  for (const { id: userId } of couriers) {
-    for (const rate of firm.rates) {
+  // Rates are set by the owner (a placeholder ID for a firm without one).
+  const setBy = owner ?? "seed";
+  for (const rate of firm.rates) {
+    await sql`
+      insert into pay_rates (firm_id, user_id, effective_from, kind, amount_minor, set_by)
+      values (${firmId}, null, ${`${addMonths(month, rate.month)}-${rate.day}`}, 'hourly', ${rate.hourlyMinor}, ${setBy})`;
+  }
+  for (const { id: userId, identifier } of couriers) {
+    for (const rate of firm.overrides[identifier.split("+")[0]] ?? []) {
       await sql`
-        insert into courier_rates (firm_id, user_id, effective_from, hourly_minor)
-        values (${firmId}, ${userId}, ${`${addMonths(month, rate.month)}-${rate.day}`}, ${rate.hourlyMinor})`;
+        insert into pay_rates (firm_id, user_id, effective_from, kind, amount_minor, set_by)
+        values (${firmId}, ${userId}, ${`${addMonths(month, rate.month)}-${rate.day}`}, ${rate.kind}, ${rate.amountMinor}, ${setBy})`;
     }
   }
 

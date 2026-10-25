@@ -26,10 +26,13 @@ export async function reviewerContext(request: Request): Promise<ReviewerContext
   return { scope: await scopeOf(reviewer), firm };
 }
 
-/** Session → firm → owner, once the firm is set up. Depots and cars are managed by owners only. */
-export async function ownerContext(request: Request): Promise<Owner | Response> {
+export type OwnerContext = Owner & { firm: Firm; date: string };
+
+/** Session → firm → owner, once the firm is set up. Depots, cars and pay rates are managed by owners only. */
+export async function ownerContext(request: Request): Promise<OwnerContext | Response> {
   const owner = await requireOwner(request);
   if (owner instanceof Response) return owner;
-  if (!(await loadFirm(owner.firmId))) return apiError("firmNotSetUp");
-  return owner;
+  const firm = await loadFirm(owner.firmId);
+  if (!firm) return apiError("firmNotSetUp");
+  return { ...owner, firm, date: firmToday(firm) };
 }

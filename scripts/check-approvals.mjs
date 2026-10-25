@@ -73,10 +73,13 @@ r = await call(token.dispatcher, "GET", `/api/approvals/${todayA.id}`);
 const detail = r.json;
 const day = Number(todayA.date.slice(8, 10));
 check("detail loads with courier name", r.status === 200 && detail.courierName === "Anna Courier", r.status);
-check("rate is the one on the shift's day", detail.pay?.hourlyMinor === (day >= 15 ? 1600 : 1500));
+check(
+  "rate is the firm default on the shift's day",
+  detail.pay?.kind === "hourly" && detail.pay.amountMinor === (day >= 15 ? 1600 : 1500),
+);
 check(
   "pay = minutes × rate, rounded",
-  detail.pay?.payMinor === Math.round((detail.shift.minutes * detail.pay.hourlyMinor) / 60),
+  detail.pay?.payMinor === Math.round((detail.shift.minutes * detail.pay.amountMinor) / 60),
 );
 check("dispatcher's stations are HBW1/HBW3 only", detail.stations.map((s) => s.name).sort().join() === "HBW1,HBW3");
 
@@ -146,10 +149,12 @@ r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, {
 });
 check("correction saved and marked", r.status === 200 && r.json.corrected && r.json.minutes === 522, r.status);
 r = await call(token.dispatcher, "GET", `/api/approvals/${target.id}`);
-// 522 min at the rate in force on the shift's day (the seed changes rates mid-month), rounded half up.
-const [{ hourly_minor: hourly }] = await sql`
-  select hourly_minor from courier_rates
-  where user_id = (select user_id from shifts where id = ${target.id}) and effective_from <= ${target.date}
+// 522 min at the firm default in force on the shift's day (courier.a has no own rate; the seed changes the
+// default mid-month), rounded half up.
+const [{ amount_minor: hourly }] = await sql`
+  select amount_minor from pay_rates
+  where firm_id = (select firm_id from shifts where id = ${target.id}) and user_id is null
+    and effective_from <= ${target.date}
   order by effective_from desc limit 1`;
 const expectedPay = Math.round((522 * hourly) / 60);
 check("pay after correction matches the hand calculation", r.json.pay?.payMinor === expectedPay, r.json.pay?.payMinor);

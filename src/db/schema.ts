@@ -1,7 +1,20 @@
 // Drizzle table definitions for Neon Postgres. Columns are camelCase here and snake_case in the database.
 // Every firm-owned table has a `firmId` (the Clerk Organization ID). Changes reach the database with
 // `npm run db:push`, never migrations. Rows salary history depends on are archived, never deleted.
-import { date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  check,
+  date,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 const createdAt = () => timestamp({ withTimezone: true }).notNull().defaultNow();
 
@@ -40,19 +53,34 @@ export const cars = pgTable(
   (t) => [uniqueIndex().on(t.firmId, t.plate)],
 );
 
-/** A courier's hourly rate from `effectiveFrom` (a calendar day in the firm's timezone) until the next one. */
-export const courierRates = pgTable(
-  "courier_rates",
+export const payKind = pgEnum("pay_kind", ["hourly", "daily", "firm"]);
+
+/**
+ * Pay rates from `effectiveFrom` (a calendar day in the firm's timezone) until the target's next entry. A row
+ * with no user is the firm default; a courier's `firm` row (no amount) means "follow the firm default" again.
+ */
+export const payRates = pgTable(
+  "pay_rates",
   {
     id: uuid().primaryKey().defaultRandom(),
     firmId: text().notNull(),
-    /** Clerk user ID. */
-    userId: text().notNull(),
+    /** Clerk user ID of the courier, or null for the firm default. */
+    userId: text(),
     effectiveFrom: date({ mode: "string" }).notNull(),
-    hourlyMinor: integer().notNull(),
+    kind: payKind().notNull(),
+    /** Per hour or per shift, by kind. Null exactly for `firm`. */
+    amountMinor: integer(),
+    /** Clerk user ID of the owner who last set it, and when. */
+    setBy: text().notNull(),
+    setAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex().on(t.firmId, t.userId, t.effectiveFrom)],
+  (t) => [
+    // One entry per target per day; the firm default (null user) is unique too.
+    unique().on(t.firmId, t.userId, t.effectiveFrom).nullsNotDistinct(),
+    check("pay_rates_amount", sql`(${t.kind} = 'firm') = (${t.amountMinor} is null) and coalesce(${t.amountMinor}, 1) > 0`),
+    check("pay_rates_firm_kind", sql`${t.kind} <> 'firm' or ${t.userId} is not null`),
+  ],
 );
 
 export const shiftStatus = pgEnum("shift_status", ["draft", "submitted", "approved", "rejected"]);

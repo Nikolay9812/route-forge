@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useRef, useState, type PropsWit
 
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource } from "@/api/use-resource";
-import type { Bus, Firm, RejectReason, ReviewItem, Shift, ShiftChange, Station } from "@/domain/types";
+import type { Bus, Firm, PayKind, RejectReason, ReviewItem, Shift, ShiftChange, Station } from "@/domain/types";
 import type { EditBody } from "@/shifts/edit";
 
 export type ApprovalsView = "pending" | "reviewed";
@@ -17,7 +17,7 @@ export type ApprovalDetail = {
   shift: Shift;
   courierName: string;
   /** Pay for this shift at the rate on its day; null when the courier has no rate yet. */
-  pay: { hourlyMinor: number; payMinor: number } | null;
+  pay: { kind: PayKind; amountMinor: number; payMinor: number } | null;
   changes: ShiftChange[];
   stations: Station[];
   buses: Bus[];

@@ -50,8 +50,44 @@ export type ShiftField =
 /** A shift with its courier, as dispatchers and owners see it in the approvals list. */
 export type ReviewItem = { shift: Shift; courierName: string };
 
-/** A courier's hourly rate from `effectiveFrom` until the next rate starts. */
-export type Rate = { effectiveFrom: string; hourlyMinor: number };
+/** Hourly pays approved minutes × rate; daily pays the amount once per approved shift. */
+export type PayKind = "hourly" | "daily";
+
+/** A rate in force from `effectiveFrom` until the next entry of the same target starts. */
+export type Rate = { effectiveFrom: string; kind: PayKind; amountMinor: number };
+
+/** A courier's own entry. `firm` (no amount) means "follow the firm default" from that day. */
+export type RateEntry = { effectiveFrom: string; kind: PayKind | "firm"; amountMinor: number | null };
+
+/** Everything that decides one courier's pay: the firm default and their own entries. */
+export type PaySchedule = { firm: Rate[]; own: RateEntry[] };
+
+/** One entry as the owner sees it in a rate history. Only upcoming entries can be edited or cancelled. */
+export type PayRateEntry = RateEntry & {
+  id: string;
+  upcoming: boolean;
+  /** The entry in force today. */
+  current: boolean;
+  setByName: string;
+  setAt: string;
+};
+
+/** The firm default or one courier: today's rate, the next scheduled one, and every entry, newest first. */
+export type PayRateTarget = {
+  current: Rate | null;
+  next: Rate | null;
+  /** A courier with no own entry in force today, or a `firm` entry. Always false for the firm default. */
+  followsFirm: boolean;
+  entries: PayRateEntry[];
+};
+
+export type PayRateCourier = PayRateTarget & { userId: string; name: string };
+
+/** The owner's Pay rates screen. `today` is the firm's day, which decides upcoming vs started. */
+export type PayRates = { firm: Firm; today: string; firmDefault: PayRateTarget; couriers: PayRateCourier[] };
+
+/** A courier's own rate on Home. */
+export type CourierRate = { current: Rate | null; next: Rate | null };
 
 export type Firm = { name: string; currency: string; timeZone: string };
 

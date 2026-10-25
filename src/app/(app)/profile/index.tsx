@@ -5,13 +5,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuth, useFirm } from "@/auth";
 import { Button } from "@/components/button";
+import { Divider } from "@/components/divider";
 import { initials } from "@/components/home/format";
 import { Icon } from "@/components/icon";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "@/i18n";
 
-// Signing out flips the auth guard back to onboarding. Owners also get the firm's depots and cars.
+// Signing out flips the auth guard back to onboarding. Owners also get the firm's depots and cars and pay rates.
 export default function Profile() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
@@ -55,6 +56,18 @@ export default function Profile() {
               <Icon name="depot" color="ink" />
               <ThemedText variant="body" color="ink" className="flex-1">
                 {t("fleet.title")}
+              </ThemedText>
+              <Icon name="chevron" size="sm" color="ink-muted" />
+            </Pressable>
+            <Divider className="mx-4" />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/profile/pay-rates")}
+              className="min-h-11 flex-row items-center gap-3 px-4 py-3 active:bg-secondary-soft"
+            >
+              <Icon name="salary" color="ink" />
+              <ThemedText variant="body" color="ink" className="flex-1">
+                {t("payRates.title")}
               </ThemedText>
               <Icon name="chevron" size="sm" color="ink-muted" />
             </Pressable>

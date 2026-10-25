@@ -6,6 +6,7 @@ import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { MonthTotals } from "@/domain/salary";
+import type { CourierRate } from "@/domain/types";
 import { useTranslation } from "@/i18n";
 
 import type { useFormat } from "./format";
@@ -28,14 +29,35 @@ function StatTile({ icon, value, caption }: { icon: IconName; value: string; cap
 export function MonthSummary({
   date,
   totals,
+  rate,
   format,
 }: {
   date: string;
   totals: MonthTotals;
+  /** The courier's own rate today and the next change. */
+  rate: CourierRate;
   format: ReturnType<typeof useFormat>;
 }) {
   const { t } = useTranslation();
-  const empty = totals.approvedMinutes === 0;
+  const empty = totals.approvedShifts === 0;
+  const daily = rate.current?.kind === "daily";
+  const amount = (minor: number) => format.money(minor);
+  const caption = empty
+    ? t("home.month.empty")
+    : daily
+      ? totals.approvedShifts === 1
+        ? t("home.month.approvedShiftsOne")
+        : t("home.month.approvedShiftsOther", { count: totals.approvedShifts })
+      : t("home.month.approvedHours", { hours: format.hours(totals.approvedMinutes) });
+  const current = rate.current
+    ? t(daily ? "home.month.rateDaily" : "home.month.rateHourly", { amount: amount(rate.current.amountMinor) })
+    : t("home.month.noRate");
+  const next = rate.next
+    ? t(rate.next.kind === "daily" ? "home.month.nextDaily" : "home.month.nextHourly", {
+        date: format.shortDay(rate.next.effectiveFrom),
+        amount: amount(rate.next.amountMinor),
+      })
+    : null;
 
   return (
     <View className="gap-3">
@@ -54,8 +76,18 @@ export function MonthSummary({
           {format.money(totals.payMinor)}
         </ThemedText>
         <ThemedText variant="caption" color="on-inverse-muted">
-          {empty ? t("home.month.empty") : t("home.month.approvedHours", { hours: format.hours(totals.approvedMinutes) })}
+          {caption}
         </ThemedText>
+        <View>
+          <ThemedText variant="caption" color="on-inverse-muted">
+            {current}
+          </ThemedText>
+          {next ? (
+            <ThemedText variant="caption" color="on-inverse-muted">
+              {next}
+            </ThemedText>
+          ) : null}
+        </View>
         {totals.pendingCount > 0 ? (
           <Tag
             tone="info"

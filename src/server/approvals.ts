@@ -3,12 +3,13 @@
 import { and, asc, count, desc, eq, gte, inArray, isNull, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
-import { cars, courierRates, depots, dispatcherDepots, shiftChanges, shifts } from "@/db/schema";
+import { cars, depots, dispatcherDepots, shiftChanges, shifts } from "@/db/schema";
 import { rateFor, shiftPay } from "@/domain/salary";
 import { diffShift } from "@/domain/shift";
-import type { Bus, Rate, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Station } from "@/domain/types";
+import type { Bus, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Station } from "@/domain/types";
 
 import { userNames, type Reviewer } from "./auth";
+import { payScheduleOf } from "./pay-rates";
 import { selectShifts, toShift, type ShiftValues } from "./shifts";
 
 export type ReviewScope = Reviewer & { depotIds: string[] | "all" };
@@ -67,21 +68,14 @@ export async function shiftInScope(scope: ReviewScope, id: string): Promise<{ sh
   return row ? { shift: toShift(row), userId: row.shift.userId } : null;
 }
 
-async function ratesOfUser(firmId: string, userId: string): Promise<Rate[]> {
-  return db
-    .select({ effectiveFrom: courierRates.effectiveFrom, hourlyMinor: courierRates.hourlyMinor })
-    .from(courierRates)
-    .where(and(eq(courierRates.firmId, firmId), eq(courierRates.userId, userId)));
-}
-
 /** Everything the detail screen needs: the shift, its courier, pay at the day's rate, history and edit options. */
 export async function reviewDetail(scope: ReviewScope, id: string) {
   const found = await shiftInScope(scope, id);
   if (!found) return null;
   const { shift, userId } = found;
 
-  const [rates, changeRows, stations, buses] = await Promise.all([
-    ratesOfUser(scope.firmId, userId),
+  const [schedule, changeRows, stations, buses] = await Promise.all([
+    payScheduleOf(scope.firmId, userId),
     db
       .select()
       .from(shiftChanges)
@@ -93,9 +87,9 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
   const names = await userNames([userId, ...changeRows.map((c) => c.changedBy)]);
 
   // Pay as it will be once approved: the same per-shift math as the monthly totals.
-  const rate = rateFor(shift.date, rates);
+  const rate = rateFor(shift.date, schedule);
   const pay = rate
-    ? { hourlyMinor: rate.hourlyMinor, payMinor: shiftPay({ ...shift, status: "approved" }, rates) }
+    ? { kind: rate.kind, amountMinor: rate.amountMinor, payMinor: shiftPay({ ...shift, status: "approved" }, schedule) }
     : null;
 
   const changes: ShiftChange[] = changeRows.map((c) => ({

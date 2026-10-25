@@ -16,13 +16,13 @@ function toCar(row: { id: string; plate: string; depotId: string; archivedAt: Da
   return { id: row.id, plate: row.plate, depotId: row.depotId, archived: row.archivedAt !== null };
 }
 
-/** True for a unique-index violation, which a concurrent write with the same name or plate can still cause. */
+/** True for a unique-index violation, which a concurrent write with the same name, plate or rate day can still cause. */
 function isUniqueViolation(error: unknown): boolean {
   const code = (e: unknown) => (typeof e === "object" && e !== null && "code" in e ? e.code : undefined);
   return code(error) === "23505" || (error instanceof Error && code(error.cause) === "23505");
 }
 
-async function uniqueWrite<T>(write: () => Promise<T>): Promise<T | "taken"> {
+export async function uniqueWrite<T>(write: () => Promise<T>): Promise<T | "taken"> {
   try {
     return await write();
   } catch (error) {

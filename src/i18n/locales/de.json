@@ -151,7 +151,14 @@
       "approvedHours": "{{hours}} genehmigte Stunden",
       "pendingOne": "1 Schicht wartet auf Genehmigung",
       "pendingOther": "{{count}} Schichten warten auf Genehmigung",
-      "empty": "Diesen Monat noch keine genehmigten Schichten."
+      "empty": "Diesen Monat noch keine genehmigten Schichten.",
+      "approvedShiftsOne": "1 genehmigte Schicht",
+      "approvedShiftsOther": "{{count}} genehmigte Schichten",
+      "rateHourly": "Stundenlohn · {{amount}} / Std.",
+      "rateDaily": "Tagessatz · {{amount}} pro Schicht",
+      "noRate": "Noch kein Lohnsatz hinterlegt",
+      "nextHourly": "Ab {{date}}: {{amount}} / Std.",
+      "nextDaily": "Ab {{date}}: {{amount}} pro Schicht"
     },
     "recent": {
       "title": "Letzte Schichten",
@@ -280,7 +287,7 @@
     "pay": "Lohn",
     "payWhenApproved": "Lohn nach Freigabe",
     "payBreakdown": "{{hours}} Std. × {{rate}}/Std.",
-    "noRate": "Für diesen Fahrer ist noch kein Stundenlohn hinterlegt.",
+    "noRate": "Für diesen Fahrer ist noch kein Lohnsatz hinterlegt.",
     "changes": "Änderungen",
     "correctedBy": "Korrigiert von {{name}} · {{when}}",
     "reasons": {
@@ -310,7 +317,8 @@
     "emptyPendingTitle": "Alles erledigt",
     "emptyPendingBody": "Keine Schichten warten auf Freigabe.",
     "emptyReviewedTitle": "Noch nichts geprüft",
-    "emptyReviewedBody": "Schichten, die du in den letzten 30 Tagen freigibst oder zurückgibst, erscheinen hier."
+    "emptyReviewedBody": "Schichten, die du in den letzten 30 Tagen freigibst oder zurückgibst, erscheinen hier.",
+    "payDaily": "Tagessatz"
   },
   "placeholder": {
     "pay": {
@@ -398,6 +406,51 @@
       "restore": "Fahrzeug wiederherstellen",
       "depotArchived": "Sein Depot {{depot}} ist archiviert. Stell zuerst das Depot wieder her.",
       "confirmTitle": "Dieses Fahrzeug archivieren?"
+    }
+  },
+  "payRates": {
+    "title": "Lohnsätze",
+    "firmDefault": "Firmenstandard",
+    "couriers": "Fahrer",
+    "perHour": "{{amount}} / Std.",
+    "perShift": "{{amount}} pro Schicht",
+    "hourly": "Stundenlohn",
+    "daily": "Tagessatz",
+    "notSet": "Nicht festgelegt",
+    "upcomingChange": "Geplante Änderung",
+    "noRateTag": "Kein Satz",
+    "missingOne": "1 Fahrer hat keinen Lohnsatz. Lege einen Firmenstandard oder einen eigenen Satz fest.",
+    "missingOther": "{{count}} Fahrer haben keinen Lohnsatz. Lege einen Firmenstandard oder eigene Sätze fest.",
+    "empty": "Noch keine Fahrer",
+    "error": "Lohnsätze konnten nicht geladen werden.",
+    "currentRate": "Aktueller Satz",
+    "usesFirm": "Nutzt den Firmenstandard",
+    "schedule": "Änderung planen",
+    "history": "Verlauf",
+    "historyEmpty": "Noch keine Sätze.",
+    "setBy": "Festgelegt von {{name}} · {{date}}",
+    "upcoming": "Geplant",
+    "current": "Aktuell",
+    "sheet": {
+      "newTitle": "Neuer Satz",
+      "editTitle": "Geplanten Satz bearbeiten",
+      "amount": "Betrag",
+      "perHourHint": "Pro Stunde, in {{currency}}",
+      "perShiftHint": "Pro genehmigter Schicht, in {{currency}}",
+      "amountInvalid": "Gib einen Betrag von 0,01 bis 1.000,00 ein.",
+      "startsOn": "Gilt ab",
+      "dateInvalid": "Gib ein Datum als JJJJ-MM-TT ein.",
+      "pastWarning": "Das ändert genehmigte Bezahlung ab {{date}}, auch in vergangenen Monaten.",
+      "pastConfirmTitle": "Vergangene Bezahlung ändern?",
+      "pastConfirmBody": "Genehmigte Schichten ab {{date}} werden zum neuen Satz bezahlt.",
+      "pastConfirmAction": "Vergangene Bezahlung ändern",
+      "cancelChange": "Diese Änderung absagen",
+      "cancelConfirmTitle": "Änderung absagen?",
+      "cancelConfirmBody": "Der aktuelle Satz bleibt, wie er ist.",
+      "cancelConfirmAction": "Änderung absagen",
+      "keep": "Behalten",
+      "taken": "An diesem Tag gibt es schon eine Änderung.",
+      "notEditable": "Dieser Satz gilt bereits und kann nicht mehr geändert werden."
     }
   }
 }

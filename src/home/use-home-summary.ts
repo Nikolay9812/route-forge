@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { failureOf, useApi } from "@/api/client";
 import { hourIn } from "@/domain/dates";
 import type { MonthTotals } from "@/domain/salary";
-import type { Firm, Shift } from "@/domain/types";
+import type { CourierRate, Firm, Shift } from "@/domain/types";
 
 export type HomeData = {
   firm: Firm;
@@ -14,6 +14,8 @@ export type HomeData = {
   recent: Shift[];
   /** This month, approved shifts only (pendingCount aside). */
   totals: MonthTotals;
+  /** The courier's own pay rate today and the next scheduled change. */
+  rate: CourierRate;
 };
 
 /** hour is the firm-local hour for the greeting (the device's when the firm didn't load). `role`: the user's role has no Home of its own yet. */

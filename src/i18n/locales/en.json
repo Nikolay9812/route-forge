@@ -151,7 +151,14 @@
       "approvedHours": "{{hours}} approved hours",
       "pendingOne": "1 shift waiting for approval",
       "pendingOther": "{{count}} shifts waiting for approval",
-      "empty": "No approved shifts yet this month."
+      "empty": "No approved shifts yet this month.",
+      "approvedShiftsOne": "1 approved shift",
+      "approvedShiftsOther": "{{count}} approved shifts",
+      "rateHourly": "Hourly · {{amount}} / h",
+      "rateDaily": "Day rate · {{amount}} per shift",
+      "noRate": "No pay rate set yet",
+      "nextHourly": "From {{date}}: {{amount}} / h",
+      "nextDaily": "From {{date}}: {{amount}} per shift"
     },
     "recent": {
       "title": "Recent shifts",
@@ -280,7 +287,7 @@
     "pay": "Pay",
     "payWhenApproved": "Pay when approved",
     "payBreakdown": "{{hours}} h × {{rate}}/h",
-    "noRate": "This courier has no hourly rate yet.",
+    "noRate": "This courier has no pay rate yet.",
     "changes": "Changes",
     "correctedBy": "Corrected by {{name}} · {{when}}",
     "reasons": {
@@ -310,7 +317,8 @@
     "emptyPendingTitle": "All caught up",
     "emptyPendingBody": "No shifts are waiting for approval.",
     "emptyReviewedTitle": "Nothing reviewed yet",
-    "emptyReviewedBody": "Shifts you approve or send back in the last 30 days show up here."
+    "emptyReviewedBody": "Shifts you approve or send back in the last 30 days show up here.",
+    "payDaily": "Day rate"
   },
   "placeholder": {
     "pay": {
@@ -398,6 +406,51 @@
       "restore": "Restore car",
       "depotArchived": "Its depot {{depot}} is archived. Restore the depot first.",
       "confirmTitle": "Archive this car?"
+    }
+  },
+  "payRates": {
+    "title": "Pay rates",
+    "firmDefault": "Firm default",
+    "couriers": "Couriers",
+    "perHour": "{{amount}} / h",
+    "perShift": "{{amount}} per shift",
+    "hourly": "Hourly",
+    "daily": "Day rate",
+    "notSet": "Not set",
+    "upcomingChange": "Upcoming change",
+    "noRateTag": "No rate",
+    "missingOne": "1 courier has no pay rate. Set a firm default or a rate for them.",
+    "missingOther": "{{count}} couriers have no pay rate. Set a firm default or a rate for them.",
+    "empty": "No couriers yet",
+    "error": "Pay rates couldn't load.",
+    "currentRate": "Current rate",
+    "usesFirm": "Uses the firm default",
+    "schedule": "Schedule a change",
+    "history": "History",
+    "historyEmpty": "No rates yet.",
+    "setBy": "Set by {{name}} · {{date}}",
+    "upcoming": "Upcoming",
+    "current": "Current",
+    "sheet": {
+      "newTitle": "New rate",
+      "editTitle": "Edit upcoming rate",
+      "amount": "Amount",
+      "perHourHint": "Per hour, in {{currency}}",
+      "perShiftHint": "Per approved shift, in {{currency}}",
+      "amountInvalid": "Enter an amount from 0.01 to 1,000.00.",
+      "startsOn": "Starts on",
+      "dateInvalid": "Enter a date as YYYY-MM-DD.",
+      "pastWarning": "This changes approved pay from {{date}}, including past months.",
+      "pastConfirmTitle": "Change past pay?",
+      "pastConfirmBody": "Approved shifts from {{date}} will be paid at the new rate.",
+      "pastConfirmAction": "Change past pay",
+      "cancelChange": "Cancel this change",
+      "cancelConfirmTitle": "Cancel this change?",
+      "cancelConfirmBody": "The current rate stays as it is.",
+      "cancelConfirmAction": "Cancel change",
+      "keep": "Keep",
+      "taken": "There's already a change on this day.",
+      "notEditable": "This rate has already started and can't be changed."
     }
   }
 }

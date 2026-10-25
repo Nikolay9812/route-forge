@@ -68,7 +68,12 @@ export default function Home() {
                 <TodayCard shift={summary.data.today} format={format} onAction={goToShifts} />
               </SectionEntrance>
               <SectionEntrance index={2}>
-                <MonthSummary date={summary.data.date} totals={summary.data.totals} format={format} />
+                <MonthSummary
+                  date={summary.data.date}
+                  totals={summary.data.totals}
+                  rate={summary.data.rate}
+                  format={format}
+                />
               </SectionEntrance>
               {summary.data.recent.length > 0 ? (
                 <SectionEntrance index={3}>

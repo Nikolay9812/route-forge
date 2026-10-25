@@ -8,12 +8,13 @@ function parts(timeZone: string, now: Date) {
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
+      minute: "2-digit",
       hourCycle: "h23",
     })
       .formatToParts(now)
       .map((p) => [p.type, p.value]),
   );
-  return values as Record<"year" | "month" | "day" | "hour", string>;
+  return values as Record<"year" | "month" | "day" | "hour" | "minute", string>;
 }
 
 export function todayIn(timeZone: string, now = new Date()): string {
@@ -23,6 +24,12 @@ export function todayIn(timeZone: string, now = new Date()): string {
 
 export function hourIn(timeZone: string, now = new Date()): number {
   return Number(parts(timeZone, now).hour);
+}
+
+/** Minutes since midnight in the firm's timezone, e.g. 450 at 07:30. */
+export function minuteOfDayIn(timeZone: string, now = new Date()): number {
+  const { hour, minute } = parts(timeZone, now);
+  return Number(hour) * 60 + Number(minute);
 }
 
 /** "2026-10-25" → "2026-10". */

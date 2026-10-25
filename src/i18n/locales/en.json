@@ -163,11 +163,67 @@
   "profile": {
     "signOut": "Sign out"
   },
-  "placeholder": {
-    "shifts": {
-      "title": "Shifts",
-      "body": "Your shifts will show up here."
+  "shifts": {
+    "title": "Today's shift",
+    "phase": {
+      "notStarted": "Not started",
+      "inProgress": "In progress"
     },
+    "fields": {
+      "station": "Station",
+      "bus": "Bus",
+      "startKm": "Start km",
+      "endKm": "End km",
+      "loaded": "Loaded",
+      "delivered": "Delivered",
+      "returned": "Returned",
+      "pickups": "Pickups"
+    },
+    "start": {
+      "title": "Before you start",
+      "button": "Start shift"
+    },
+    "time": {
+      "title": "Working time",
+      "startedAt": "Started at {{time}}",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "label": "Start time",
+      "invalid": "Enter a time like 07:30.",
+      "future": "The start time can't be in the future."
+    },
+    "route": {
+      "title": "Route",
+      "driven": "Driven: {{km}} km",
+      "endBelowStart": "Must be at least the start km."
+    },
+    "packages": {
+      "title": "Packages",
+      "help": "Delivered is worked out for you: loaded − returned. Pickups are customer returns you collected.",
+      "delivered": "Delivered: {{packages}}",
+      "returnedAboveLoaded": "Can't be more than loaded."
+    },
+    "finish": {
+      "button": "Finish shift",
+      "title": "Finish shift?",
+      "body": "After you submit, the dispatcher reviews it and you can't edit it.",
+      "time": "Working time",
+      "km": "Kilometers",
+      "timeRange": "{{start}} – {{end}} · {{duration}}",
+      "kmRange": "{{start}} → {{end}} · {{km}} km",
+      "submit": "Submit shift",
+      "keepEditing": "Keep editing",
+      "offline": "No connection. Your shift is still here. Try again when you're online."
+    },
+    "submitted": {
+      "title": "Today",
+      "delivered": "delivered",
+      "waiting": "Waiting for dispatcher approval.",
+      "reset": "Reset sample shift"
+    }
+  },
+  "placeholder": {
     "pay": {
       "title": "Pay",
       "body": "Your monthly pay will show up here."

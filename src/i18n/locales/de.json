@@ -163,11 +163,67 @@
   "profile": {
     "signOut": "Abmelden"
   },
-  "placeholder": {
-    "shifts": {
-      "title": "Schichten",
-      "body": "Hier erscheinen deine Schichten."
+  "shifts": {
+    "title": "Heutige Schicht",
+    "phase": {
+      "notStarted": "Nicht begonnen",
+      "inProgress": "Läuft"
     },
+    "fields": {
+      "station": "Station",
+      "bus": "Fahrzeug",
+      "startKm": "Start-km",
+      "endKm": "End-km",
+      "loaded": "Geladen",
+      "delivered": "Zugestellt",
+      "returned": "Rückläufer",
+      "pickups": "Abholung"
+    },
+    "start": {
+      "title": "Vor dem Start",
+      "button": "Schicht starten"
+    },
+    "time": {
+      "title": "Arbeitszeit",
+      "startedAt": "Begonnen um {{time}}",
+      "edit": "Ändern",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "label": "Startzeit",
+      "invalid": "Gib eine Uhrzeit wie 07:30 ein.",
+      "future": "Die Startzeit darf nicht in der Zukunft liegen."
+    },
+    "route": {
+      "title": "Route",
+      "driven": "Gefahren: {{km}} km",
+      "endBelowStart": "Muss mindestens so hoch wie Start-km sein."
+    },
+    "packages": {
+      "title": "Pakete",
+      "help": "Zugestellt wird berechnet: geladen − Rückläufer. Abholungen sind Kundenretouren, die du abgeholt hast.",
+      "delivered": "Zugestellt: {{packages}}",
+      "returnedAboveLoaded": "Darf nicht mehr als geladen sein."
+    },
+    "finish": {
+      "button": "Schicht beenden",
+      "title": "Schicht beenden?",
+      "body": "Nach dem Senden prüft der Disponent die Schicht, und du kannst sie nicht mehr bearbeiten.",
+      "time": "Arbeitszeit",
+      "km": "Kilometer",
+      "timeRange": "{{start}} – {{end}} · {{duration}}",
+      "kmRange": "{{start}} → {{end}} · {{km}} km",
+      "submit": "Schicht senden",
+      "keepEditing": "Weiter bearbeiten",
+      "offline": "Keine Verbindung. Deine Schicht bleibt hier. Versuch es erneut, wenn du online bist."
+    },
+    "submitted": {
+      "title": "Heute",
+      "delivered": "zugestellt",
+      "waiting": "Wartet auf Freigabe durch den Disponenten.",
+      "reset": "Beispielschicht zurücksetzen"
+    }
+  },
+  "placeholder": {
     "pay": {
       "title": "Lohn",
       "body": "Hier erscheint dein Monatslohn."

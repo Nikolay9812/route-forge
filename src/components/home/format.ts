@@ -31,6 +31,7 @@ export function useFormat(timeZone: string, currency: string) {
     const longDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "long", day: "numeric", month: "long" });
     const shortDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
     const monthName = new Intl.DateTimeFormat(locale, { timeZone, month: "long" });
+    const timeOfDay = new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
     return {
       money: (minor: number) => money.format(minor / 100),
       hours: (minutes: number) => hours.format(minutes / 60),
@@ -39,6 +40,8 @@ export function useFormat(timeZone: string, currency: string) {
         t("units.duration", { hours: Math.floor(minutes / 60), minutes: minutes % 60 }),
       longDay: (date: string) => longDay.format(dateAtNoon(date)),
       shortDay: (date: string) => shortDay.format(dateAtNoon(date)),
+      /** "07:30" for a UTC timestamp, in the firm's timezone. */
+      time: (at: number) => timeOfDay.format(at),
       month: (date: string) => {
         const name = monthName.format(dateAtNoon(date));
         return name.charAt(0).toUpperCase() + name.slice(1);

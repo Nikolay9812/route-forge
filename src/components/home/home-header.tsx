@@ -15,6 +15,7 @@ export function HomeHeader({
   fullName,
   hour,
   dateLabel,
+  firmName,
   onProfilePress,
 }: {
   fullName: string;
@@ -22,6 +23,8 @@ export function HomeHeader({
   hour: number;
   /** Today, formatted. Missing when the data didn't load. */
   dateLabel?: string;
+  /** The firm the user works for. Missing when the data didn't load. */
+  firmName?: string;
   onProfilePress: () => void;
 }) {
   const { t } = useTranslation();
@@ -50,7 +53,7 @@ export function HomeHeader({
           <ThemedText variant="label">{initials(fullName)}</ThemedText>
         </PressableScale>
       </View>
-      <Tag tone="highlight" size="sm" label={t("home.sampleData")} />
+      {firmName ? <Tag tone="role" size="sm" label={firmName} /> : null}
     </View>
   );
 }

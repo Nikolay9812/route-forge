@@ -14,11 +14,16 @@ const shift = (date, status, minutes) => ({
   id: date,
   date,
   status,
+  startedAt: `${date}T06:00:00Z`,
+  finishedAt: null,
   minutes,
-  packages: 100,
-  km: 50,
-  carPlate: "CA 1234 AB",
-  depotName: "Sofia",
+  depot: { id: "d", name: "Sofia" },
+  car: { id: "c", plate: "CA 1234 AB" },
+  startKm: 1000,
+  endKm: 1050,
+  loaded: 110,
+  returned: 10,
+  pickups: 0,
 });
 
 const shifts = [

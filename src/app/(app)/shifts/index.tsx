@@ -1,48 +1,53 @@
-import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useSyncExternalStore } from "react";
+import { router } from "expo-router";
+import { useState } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { ApiFailure } from "@/api/client";
+import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { useFormat } from "@/components/home/format";
 import { RecentShifts } from "@/components/home/recent-shifts";
 import { SectionEntrance } from "@/components/home/section-entrance";
+import { Notice } from "@/components/notice";
 import { PackagesCard } from "@/components/shifts/packages-card";
 import { RouteCard } from "@/components/shifts/route-card";
+import { SaveStatus } from "@/components/shifts/save-status";
+import { ShiftsSkeleton } from "@/components/shifts/shifts-skeleton";
 import { StartCard } from "@/components/shifts/start-card";
 import { SubmittedCard } from "@/components/shifts/submitted-card";
 import { TimeCard } from "@/components/shifts/time-card";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
-import { todayIn } from "@/domain/dates";
-import { sampleFirm, sampleMonth } from "@/home/sample";
-import { useTranslation } from "@/i18n";
+import { useTranslation, type TranslationKey } from "@/i18n";
 import { canFinish } from "@/shifts/draft";
-import { sampleBuses, sampleStations } from "@/shifts/sample";
-import { useShiftDraft } from "@/shifts/shift-draft-context";
+import { useTodayShift } from "@/shifts/today-shift";
 
-const noSubscription = () => () => {};
+// Formats nothing visible: only used until the firm's own settings have loaded.
+const beforeLoad = { timeZone: "UTC", currency: "EUR" };
 
-// Today's shift: pick station and bus, start, fill in km and packages, then finish in a sheet.
-// Sample data until the shifts API exists. In development, `?sample=offline` makes submitting fail.
+function startMessage(failure: ApiFailure): TranslationKey | null {
+  if (failure === "exists") return null; // Started elsewhere: the screen reloads with that shift.
+  return failure === "offline" ? "shifts.start.offline" : "shifts.start.error";
+}
+
+// Today's shift: pick station and bus, start, fill in km and packages (autosaved), then finish in a sheet.
 export default function Shifts() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { sample } = useLocalSearchParams<{ sample?: string }>();
-  const { draft, set, start, setStartTime, reset } = useShiftDraft();
-  const firm = sampleFirm;
+  const { load, shift, phase, fields, save, set, start, setStartTime, retrySave, reload } = useTodayShift();
+  const firm = load.status === "ready" ? load.firm : beforeLoad;
   const format = useFormat(firm.timeZone, firm.currency);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<TranslationKey | null>(null);
 
-  // null on the server, so web hydration matches; the device reads today's date in the firm's timezone.
-  const date = useSyncExternalStore(
-    noSubscription,
-    () => todayIn(firm.timeZone),
-    () => null,
-  );
-  const today = useMemo(() => (date ? { date, recent: sampleMonth(date).past.slice(0, 5) } : null), [date]);
-
-  const openFinish = () =>
-    router.push({ pathname: "/shifts/finish", params: __DEV__ && sample === "offline" ? { sample } : {} });
+  const onStart = async () => {
+    setStarting(true);
+    setStartError(null);
+    const failure = await start();
+    setStarting(false);
+    if (failure) setStartError(startMessage(failure));
+  };
 
   return (
     <ScrollView
@@ -54,44 +59,95 @@ export default function Shifts() {
       keyboardDismissMode="on-drag"
       automaticallyAdjustKeyboardInsets
     >
-      <SectionEntrance index={0}>
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1 gap-1">
+      {load.status === "loading" ? (
+        <ShiftsSkeleton />
+      ) : load.status !== "ready" ? (
+        <SectionEntrance index={0}>
+          <View className="gap-3">
             <ThemedText variant="heading" accessibilityRole="header">
               {t("shifts.title")}
             </ThemedText>
-            {today ? <ThemedText variant="footnote">{format.longDay(today.date)}</ThemedText> : null}
+            {load.status === "role" ? (
+              <Notice icon="profile" title={t("firm.roleNotYet.title")} body={t("firm.roleNotYet.body")} />
+            ) : load.status === "firmNotSetUp" ? (
+              <Notice icon="settings" title={t("firm.notSetUp.title")} body={t("firm.notSetUp.body")} />
+            ) : (
+              <>
+                <Alert
+                  tone={load.status === "offline" ? "offline" : "danger"}
+                  message={load.status === "offline" ? t("shifts.offline") : t("shifts.error")}
+                />
+                <Button title={t("home.retry")} variant="secondary" onPress={reload} />
+              </>
+            )}
           </View>
-          <Tag tone="highlight" size="sm" label={t("home.sampleData")} />
-        </View>
-      </SectionEntrance>
-
-      {/* Keyed by phase so each phase fades in once when it arrives. */}
-      <SectionEntrance key={draft.phase} index={1}>
-        {draft.phase === "notStarted" ? (
-          <StartCard draft={draft} stations={sampleStations} buses={sampleBuses} onChange={set} onStart={start} />
-        ) : draft.phase === "inProgress" && draft.startedAt !== null ? (
-          <View className="gap-4">
-            <TimeCard
-              startedAt={draft.startedAt}
-              timeZone={firm.timeZone}
-              format={format}
-              onChangeStart={setStartTime}
-            />
-            <RouteCard draft={draft} stations={sampleStations} buses={sampleBuses} format={format} onChange={set} />
-            <PackagesCard draft={draft} format={format} onChange={set} />
-            <Button title={t("shifts.finish.button")} disabled={!canFinish(draft)} onPress={openFinish} />
-          </View>
-        ) : (
-          <SubmittedCard draft={draft} format={format} onReset={__DEV__ ? reset : undefined} />
-        )}
-      </SectionEntrance>
-
-      {today && today.recent.length > 0 ? (
-        <SectionEntrance index={2}>
-          <RecentShifts shifts={today.recent} format={format} onSeeAll={() => {}} onPressShift={() => {}} />
         </SectionEntrance>
-      ) : null}
+      ) : (
+        <>
+          <SectionEntrance index={0}>
+            <View className="flex-row items-start justify-between gap-3">
+              <View className="flex-1 gap-1">
+                <ThemedText variant="heading" accessibilityRole="header">
+                  {t("shifts.title")}
+                </ThemedText>
+                <ThemedText variant="footnote">{format.longDay(load.date)}</ThemedText>
+              </View>
+              <Tag tone="role" size="sm" label={load.firm.name} />
+            </View>
+          </SectionEntrance>
+
+          {/* Keyed by phase so each phase fades in once when it arrives. */}
+          <SectionEntrance key={phase} index={1}>
+            {phase === "notStarted" ? (
+              <View className="gap-3">
+                <StartCard
+                  fields={fields}
+                  stations={load.stations}
+                  buses={load.buses}
+                  starting={starting}
+                  onChange={set}
+                  onStart={() => void onStart()}
+                />
+                {startError ? <Alert tone="danger" message={t(startError)} /> : null}
+              </View>
+            ) : phase === "inProgress" && shift ? (
+              <View className="gap-4">
+                {shift.status === "rejected" && shift.rejectionReason ? (
+                  <Alert tone="danger" message={t("home.today.rejected", { reason: shift.rejectionReason })} />
+                ) : null}
+                <TimeCard
+                  startedAt={Date.parse(shift.startedAt)}
+                  timeZone={firm.timeZone}
+                  format={format}
+                  onChangeStart={setStartTime}
+                />
+                <RouteCard
+                  fields={fields}
+                  stations={load.stations}
+                  buses={load.buses}
+                  format={format}
+                  onChange={set}
+                />
+                <PackagesCard fields={fields} format={format} onChange={set} />
+                <SaveStatus state={save} onRetry={() => void retrySave()} />
+                <Button
+                  title={t("shifts.finish.button")}
+                  disabled={!canFinish(fields)}
+                  onPress={() => router.push("/shifts/finish")}
+                />
+              </View>
+            ) : shift ? (
+              <SubmittedCard shift={shift} format={format} />
+            ) : null}
+          </SectionEntrance>
+
+          {load.recent.length > 0 ? (
+            <SectionEntrance index={2}>
+              <RecentShifts shifts={load.recent} format={format} onSeeAll={() => {}} onPressShift={() => {}} />
+            </SectionEntrance>
+          ) : null}
+        </>
+      )}
     </ScrollView>
   );
 }

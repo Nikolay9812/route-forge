@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View } from "react-native";
 
 import { Alert } from "@/components/alert";
@@ -7,6 +8,7 @@ import type { IconName } from "@/components/icons";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
+import { delivered, kmDriven, minutesBetween } from "@/domain/shift";
 import type { Shift } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
 
@@ -43,6 +45,8 @@ export function TodayCard({
 }) {
   const { t } = useTranslation();
   const action = shift ? actions[shift.status] : "home.today.logShift";
+  // A shift still running has no working time yet: show it as of when Home loaded.
+  const [openedAt] = useState(Date.now);
 
   return (
     <Surface className="gap-4 p-5">
@@ -54,15 +58,19 @@ export function TodayCard({
       {shift ? (
         <>
           <View className="flex-row gap-3">
-            <Metric icon="hours" value={clock(shift.minutes)} caption={t("units.hours")} />
-            <Metric icon="packages" value={format.count(shift.packages)} caption={t("units.packages")} />
-            <Metric icon="km" value={format.count(shift.km)} caption={t("units.km")} />
+            <Metric
+              icon="hours"
+              value={clock(shift.minutes ?? minutesBetween(shift.startedAt, new Date(openedAt).toISOString()))}
+              caption={t("units.hours")}
+            />
+            <Metric icon="packages" value={format.count(delivered(shift))} caption={t("units.packages")} />
+            <Metric icon="km" value={format.count(kmDriven(shift) ?? 0)} caption={t("units.km")} />
           </View>
           <View className="flex-row items-center gap-2 border-t border-border pt-4">
             <Icon name="car" size="sm" color="ink-muted" />
-            <ThemedText variant="label">{shift.carPlate}</ThemedText>
+            <ThemedText variant="label">{shift.car.plate}</ThemedText>
             <ThemedText variant="footnote" numberOfLines={1} className="flex-1">
-              · {shift.depotName}
+              · {shift.depot.name}
             </ThemedText>
           </View>
           {shift.status === "rejected" && shift.rejectionReason ? (

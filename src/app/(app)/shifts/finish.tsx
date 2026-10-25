@@ -1,44 +1,63 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { ApiFailure } from "@/api/client";
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { useFormat } from "@/components/home/format";
 import { ShiftSummary } from "@/components/shifts/shift-summary";
 import { ThemedText } from "@/components/themed-text";
-import { sampleFirm } from "@/home/sample";
+import type { TranslationKey } from "@/i18n";
 import { useTranslation } from "@/i18n";
-import { useShiftDraft } from "@/shifts/shift-draft-context";
+import { useTodayShift } from "@/shifts/today-shift";
+
+function submitMessage(failure: ApiFailure): TranslationKey {
+  switch (failure) {
+    case "offline":
+      return "shifts.finish.offline";
+    case "invalid":
+    case "endKmMissing":
+    case "endBelowStart":
+    case "returnedAboveLoaded":
+      return "shifts.finish.invalid";
+    case "notEditable":
+      return "shifts.finish.notEditable";
+    default:
+      return "shifts.finish.error";
+  }
+}
 
 // Form sheet sized to its content, so nothing here uses flex-1. Android shows no header in sheets,
 // so the title is part of the content.
 export default function FinishShift() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { sample } = useLocalSearchParams<{ sample?: string }>();
-  const { draft, submit } = useShiftDraft();
-  const format = useFormat(sampleFirm.timeZone, sampleFirm.currency);
+  const { load, shift, phase, fields, submit } = useTodayShift();
+  const firm = load.status === "ready" ? load.firm : null;
+  const format = useFormat(firm?.timeZone ?? "UTC", firm?.currency ?? "EUR");
   const [end] = useState(Date.now);
   const [submitting, setSubmitting] = useState(false);
-  const [offline, setOffline] = useState(false);
+  const [failure, setFailure] = useState<ApiFailure | null>(null);
 
   // Opened without a running shift (e.g. a deep link): nothing to finish.
   useEffect(() => {
-    if (draft.phase !== "inProgress" && !submitting) router.back();
-  }, [draft.phase, submitting]);
+    if (phase !== "inProgress" && !submitting) router.back();
+  }, [phase, submitting]);
+
+  if (load.status !== "ready" || !shift) return null;
+
+  const stationName = load.stations.find((s) => s.id === fields.stationId)?.name ?? shift.depot.name;
+  const busPlate = load.buses.find((b) => b.id === fields.busId)?.plate ?? shift.car.plate;
 
   const onSubmit = async () => {
     setSubmitting(true);
-    setOffline(false);
-    try {
-      await submit({ offline: __DEV__ && sample === "offline" });
-      router.back();
-    } catch {
-      setOffline(true);
-      setSubmitting(false);
-    }
+    setFailure(null);
+    const result = await submit();
+    if (!result) return router.back();
+    setFailure(result);
+    setSubmitting(false);
   };
 
   return (
@@ -49,10 +68,19 @@ export default function FinishShift() {
         </ThemedText>
         <ThemedText variant="body">{t("shifts.finish.body")}</ThemedText>
       </View>
-      <ShiftSummary draft={draft} end={end} format={format} />
-      {offline ? <Alert tone="offline" message={t("shifts.finish.offline")} /> : null}
+      <ShiftSummary
+        fields={fields}
+        stationName={stationName}
+        busPlate={busPlate}
+        startedAt={Date.parse(shift.startedAt)}
+        end={end}
+        format={format}
+      />
+      {failure ? (
+        <Alert tone={failure === "offline" ? "offline" : "danger"} message={t(submitMessage(failure))} />
+      ) : null}
       <View className="gap-3">
-        <Button title={t("shifts.finish.submit")} loading={submitting} onPress={onSubmit} />
+        <Button title={t("shifts.finish.submit")} loading={submitting} onPress={() => void onSubmit()} />
         <Button
           title={t("shifts.finish.keepEditing")}
           variant="secondary"

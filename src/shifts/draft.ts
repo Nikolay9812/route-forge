@@ -1,34 +1,24 @@
-// Today's shift while the courier fills it in. Number fields stay strings so the inputs show exactly what was
-// typed; "" means not filled in yet. The shifts API plan moves the checks into src/domain/.
+// What the courier is typing on the shift form. Number fields stay strings so the inputs show exactly what was
+// typed; "" means empty. The rules themselves live in src/domain/shift.ts; these adapt the strings to them.
 import { minuteOfDayIn } from "@/domain/dates";
-
-export type ShiftPhase = "notStarted" | "inProgress" | "submitted";
+import { delivered, finishProblem, kmDriven, type ShiftPatch } from "@/domain/shift";
+import type { Shift } from "@/domain/types";
 
 export type ShiftFields = {
-  station: string | null;
-  bus: string | null;
+  stationId: string | null;
+  busId: string | null;
   startKm: string;
   endKm: string;
   loaded: string;
-  /** Delivered isn't typed: it is loaded − returned. */
   returned: string;
   pickups: string;
 };
 
-export type ShiftDraft = ShiftFields & {
-  phase: ShiftPhase;
-  /** UTC milliseconds, set by Start shift. */
-  startedAt: number | null;
-  /** UTC milliseconds, set by Submit shift. */
-  finishedAt: number | null;
-};
+export type FieldName = keyof ShiftFields;
 
-export const emptyDraft: ShiftDraft = {
-  phase: "notStarted",
-  startedAt: null,
-  finishedAt: null,
-  station: null,
-  bus: null,
+export const emptyFields: ShiftFields = {
+  stationId: null,
+  busId: null,
   startKm: "",
   endKm: "",
   loaded: "",
@@ -36,36 +26,82 @@ export const emptyDraft: ShiftDraft = {
   pickups: "",
 };
 
+const text = (value: number | null) => (value === null ? "" : String(value));
+const num = (value: string) => (value === "" ? null : Number(value));
+
+export function fieldsOf(shift: Shift): ShiftFields {
+  return {
+    stationId: shift.depot.id,
+    busId: shift.car.id,
+    startKm: text(shift.startKm),
+    endKm: text(shift.endKm),
+    loaded: text(shift.loaded),
+    returned: text(shift.returned),
+    pickups: text(shift.pickups),
+  };
+}
+
+/** The counts as the domain rules see them (empty required counts as 0). */
+function counts(fields: ShiftFields) {
+  return {
+    startKm: num(fields.startKm) ?? 0,
+    endKm: num(fields.endKm),
+    loaded: num(fields.loaded) ?? 0,
+    returned: num(fields.returned),
+  };
+}
+
+/** End km − start km, or null until both are typed. Negative when end is below start. */
+export function kmDrivenOf(fields: ShiftFields): number | null {
+  return fields.startKm === "" ? null : kmDriven(counts(fields));
+}
+
+/** Loaded − returned, or null until loaded is typed. Negative when returned is above loaded. */
+export function deliveredOf(fields: ShiftFields): number | null {
+  return fields.loaded === "" ? null : delivered(counts(fields));
+}
+
+export function canStart(fields: ShiftFields): boolean {
+  return !!fields.stationId && !!fields.busId && fields.startKm !== "" && fields.loaded !== "";
+}
+
+export function canFinish(fields: ShiftFields): boolean {
+  return canStart(fields) && finishProblem(counts(fields)) === null;
+}
+
+/**
+ * The API patch for these fields, or null while one of them can't be saved yet: a required count is empty,
+ * or returned is above loaded (the server refuses it, so it waits until the courier fixes it).
+ */
+export function patchOf(fields: ShiftFields, names: Iterable<FieldName>): ShiftPatch | null {
+  const patch: ShiftPatch = {};
+  for (const name of names) {
+    switch (name) {
+      case "stationId":
+        if (fields.stationId) patch.depotId = fields.stationId;
+        break;
+      case "busId":
+        if (fields.busId) patch.carId = fields.busId;
+        break;
+      case "startKm":
+      case "loaded":
+        if (fields[name] === "") return null;
+        patch[name] = Number(fields[name]);
+        break;
+      case "endKm":
+      case "returned":
+      case "pickups":
+        patch[name] = num(fields[name]);
+        break;
+    }
+  }
+  if ((patch.loaded !== undefined || patch.returned !== undefined) && (deliveredOf(fields) ?? 0) < 0) return null;
+  return patch;
+}
+
 /** Keeps digits only, so pasted "48 213" or "140." becomes a plain number string. */
 export function digitsOnly(text: string): string {
   return text.replace(/\D/g, "").slice(0, 7);
-}
-
-function num(value: string): number | null {
-  return value === "" ? null : Number(value);
-}
-
-/** End km − start km, or null until both are filled in. Negative when end is below start. */
-export function kmDriven(draft: ShiftFields): number | null {
-  const start = num(draft.startKm);
-  const end = num(draft.endKm);
-  return start === null || end === null ? null : end - start;
-}
-
-/** Loaded − returned (an empty returned counts as 0), or null until loaded is filled in. Negative when returned is above loaded. */
-export function delivered(draft: ShiftFields): number | null {
-  const loaded = num(draft.loaded);
-  return loaded === null ? null : loaded - (num(draft.returned) ?? 0);
-}
-
-export function canStart(draft: ShiftFields): boolean {
-  return !!draft.station && !!draft.bus && draft.startKm !== "" && draft.loaded !== "";
-}
-
-export function canFinish(draft: ShiftFields): boolean {
-  const driven = kmDriven(draft);
-  const count = delivered(draft);
-  return canStart(draft) && driven !== null && driven >= 0 && count !== null && count >= 0;
 }
 
 /** "7:30" or "07:30" → 450 minutes after midnight, or null if it isn't a valid time. */

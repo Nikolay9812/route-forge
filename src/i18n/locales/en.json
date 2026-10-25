@@ -124,7 +124,6 @@
     "km": "km"
   },
   "home": {
-    "sampleData": "Sample data",
     "greeting": {
       "morning": "Good morning, {{name}}",
       "afternoon": "Good afternoon, {{name}}",
@@ -181,7 +180,9 @@
     },
     "start": {
       "title": "Before you start",
-      "button": "Start shift"
+      "button": "Start shift",
+      "offline": "No connection. Your entries are still here. Try again when you're online.",
+      "error": "Couldn't start the shift. Try again."
     },
     "time": {
       "title": "Working time",
@@ -191,7 +192,8 @@
       "cancel": "Cancel",
       "label": "Start time",
       "invalid": "Enter a time like 07:30.",
-      "future": "The start time can't be in the future."
+      "future": "The start time can't be in the future.",
+      "offline": "No connection. The start time wasn't changed."
     },
     "route": {
       "title": "Route",
@@ -214,13 +216,42 @@
       "kmRange": "{{start}} → {{end}} · {{km}} km",
       "submit": "Submit shift",
       "keepEditing": "Keep editing",
-      "offline": "No connection. Your shift is still here. Try again when you're online."
+      "offline": "No connection. Your shift is still here. Try again when you're online.",
+      "invalid": "Some numbers need fixing. Keep editing and check the highlighted fields.",
+      "notEditable": "This shift was already submitted.",
+      "error": "Couldn't submit the shift. Try again."
     },
     "submitted": {
       "title": "Today",
       "delivered": "delivered",
-      "waiting": "Waiting for dispatcher approval.",
-      "reset": "Reset sample shift"
+      "waiting": "Waiting for dispatcher approval."
+    },
+    "error": "Couldn't load today's shift.",
+    "offline": "No connection. Try again when you're online.",
+    "save": {
+      "saving": "Saving…",
+      "saved": "Saved",
+      "offline": "Not saved, no connection",
+      "error": "Couldn't save",
+      "retry": "Retry"
+    }
+  },
+  "firm": {
+    "none": {
+      "title": "No firm yet",
+      "body": "Ask your dispatcher or the firm's owner to invite you. Invitations show up here.",
+      "invitation": "{{firm}} invited you",
+      "accept": "Accept invitation",
+      "acceptFailed": "Couldn't accept the invitation. Check your connection and try again.",
+      "refresh": "Check again"
+    },
+    "roleNotYet": {
+      "title": "Coming soon for your role",
+      "body": "Screens for dispatchers and owners are on the way. For now the app logs couriers' shifts."
+    },
+    "notSetUp": {
+      "title": "Your firm isn't set up yet",
+      "body": "Ask the firm's owner to finish setting up stations and buses."
     }
   },
   "placeholder": {

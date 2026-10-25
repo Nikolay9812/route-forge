@@ -4,22 +4,22 @@ import type { useFormat } from "@/components/home/format";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "@/i18n";
-import { delivered, type ShiftFields } from "@/shifts/draft";
+import { deliveredOf, type ShiftFields } from "@/shifts/draft";
 
 import { NumberField } from "./number-field";
 
 // Phase 2: loaded, returned and pickups are typed; delivered follows as loaded − returned.
 export function PackagesCard({
-  draft,
+  fields,
   format,
   onChange,
 }: {
-  draft: ShiftFields;
+  fields: ShiftFields;
   format: ReturnType<typeof useFormat>;
   onChange: (fields: Partial<ShiftFields>) => void;
 }) {
   const { t } = useTranslation();
-  const count = delivered(draft);
+  const count = deliveredOf(fields);
 
   return (
     <Surface className="gap-4 p-5">
@@ -36,13 +36,13 @@ export function PackagesCard({
           <NumberField
             label={t("shifts.fields.loaded")}
             icon="packages"
-            value={draft.loaded}
+            value={fields.loaded}
             onChange={(loaded) => onChange({ loaded })}
             className="flex-1"
           />
           <NumberField
             label={t("shifts.fields.returned")}
-            value={draft.returned}
+            value={fields.returned}
             onChange={(returned) => onChange({ returned })}
             error={count !== null && count < 0 ? t("shifts.packages.returnedAboveLoaded") : undefined}
             className="flex-1"
@@ -50,7 +50,7 @@ export function PackagesCard({
         </View>
         <NumberField
           label={t("shifts.fields.pickups")}
-          value={draft.pickups}
+          value={fields.pickups}
           onChange={(pickups) => onChange({ pickups })}
         />
       </View>

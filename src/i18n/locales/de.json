@@ -124,7 +124,6 @@
     "km": "km"
   },
   "home": {
-    "sampleData": "Beispieldaten",
     "greeting": {
       "morning": "Guten Morgen, {{name}}",
       "afternoon": "Guten Tag, {{name}}",
@@ -181,7 +180,9 @@
     },
     "start": {
       "title": "Vor dem Start",
-      "button": "Schicht starten"
+      "button": "Schicht starten",
+      "offline": "Keine Verbindung. Deine Eingaben bleiben hier. Versuch es erneut, wenn du online bist.",
+      "error": "Die Schicht konnte nicht gestartet werden. Versuch es erneut."
     },
     "time": {
       "title": "Arbeitszeit",
@@ -191,7 +192,8 @@
       "cancel": "Abbrechen",
       "label": "Startzeit",
       "invalid": "Gib eine Uhrzeit wie 07:30 ein.",
-      "future": "Die Startzeit darf nicht in der Zukunft liegen."
+      "future": "Die Startzeit darf nicht in der Zukunft liegen.",
+      "offline": "Keine Verbindung. Die Startzeit wurde nicht geändert."
     },
     "route": {
       "title": "Route",
@@ -214,13 +216,42 @@
       "kmRange": "{{start}} → {{end}} · {{km}} km",
       "submit": "Schicht senden",
       "keepEditing": "Weiter bearbeiten",
-      "offline": "Keine Verbindung. Deine Schicht bleibt hier. Versuch es erneut, wenn du online bist."
+      "offline": "Keine Verbindung. Deine Schicht bleibt hier. Versuch es erneut, wenn du online bist.",
+      "invalid": "Einige Zahlen müssen korrigiert werden. Bearbeite weiter und prüfe die markierten Felder.",
+      "notEditable": "Diese Schicht wurde bereits gesendet.",
+      "error": "Die Schicht konnte nicht gesendet werden. Versuch es erneut."
     },
     "submitted": {
       "title": "Heute",
       "delivered": "zugestellt",
-      "waiting": "Wartet auf Freigabe durch den Disponenten.",
-      "reset": "Beispielschicht zurücksetzen"
+      "waiting": "Wartet auf Freigabe durch den Disponenten."
+    },
+    "error": "Die heutige Schicht konnte nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+    "save": {
+      "saving": "Wird gespeichert…",
+      "saved": "Gespeichert",
+      "offline": "Nicht gespeichert, keine Verbindung",
+      "error": "Speichern fehlgeschlagen",
+      "retry": "Erneut versuchen"
+    }
+  },
+  "firm": {
+    "none": {
+      "title": "Noch keine Firma",
+      "body": "Bitte deinen Disponenten oder den Inhaber der Firma, dich einzuladen. Einladungen erscheinen hier.",
+      "invitation": "{{firm}} hat dich eingeladen",
+      "accept": "Einladung annehmen",
+      "acceptFailed": "Die Einladung konnte nicht angenommen werden. Prüfe die Verbindung und versuch es erneut.",
+      "refresh": "Erneut prüfen"
+    },
+    "roleNotYet": {
+      "title": "Bald auch für deine Rolle",
+      "body": "Ansichten für Disponenten und Inhaber sind in Arbeit. Im Moment erfasst die App die Schichten der Fahrer."
+    },
+    "notSetUp": {
+      "title": "Deine Firma ist noch nicht eingerichtet",
+      "body": "Bitte den Inhaber, Stationen und Fahrzeuge anzulegen."
     }
   },
   "placeholder": {

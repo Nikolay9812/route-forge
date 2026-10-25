@@ -5,6 +5,7 @@ import type { Rate, Shift } from "./types";
 export type MonthTotals = {
   approvedMinutes: number;
   payMinor: number;
+  /** Delivered packages. */
   packages: number;
   km: number;
   /** Submitted shifts still waiting for a dispatcher. */
@@ -24,7 +25,7 @@ export function rateFor(date: string, rates: readonly Rate[]): Rate | null {
 export function shiftPay(shift: Shift, rates: readonly Rate[]): number {
   if (shift.status !== "approved") return 0;
   const rate = rateFor(shift.date, rates);
-  return rate ? Math.round((shift.minutes * rate.hourlyMinor) / 60) : 0;
+  return rate ? Math.round(((shift.minutes ?? 0) * rate.hourlyMinor) / 60) : 0;
 }
 
 export function monthTotals(shifts: readonly Shift[], rates: readonly Rate[]): MonthTotals {
@@ -32,10 +33,11 @@ export function monthTotals(shifts: readonly Shift[], rates: readonly Rate[]): M
   for (const shift of shifts) {
     if (shift.status === "submitted") totals.pendingCount += 1;
     if (shift.status !== "approved") continue;
-    totals.approvedMinutes += shift.minutes;
+    totals.approvedMinutes += shift.minutes ?? 0;
     totals.payMinor += shiftPay(shift, rates);
-    totals.packages += shift.packages;
-    totals.km += shift.km;
+    // Same as delivered() and kmDriven() in shift.ts, inlined: domain files share only types at runtime.
+    totals.packages += shift.loaded - (shift.returned ?? 0);
+    totals.km += (shift.endKm ?? shift.startKm) - shift.startKm;
   }
   return totals;
 }

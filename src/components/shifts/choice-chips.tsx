@@ -15,9 +15,9 @@ export function ChoiceChips({
 }: {
   label: string;
   icon: IconName;
-  options: string[];
+  options: { id: string; label: string }[];
   selected: string | null;
-  onSelect: (option: string) => void;
+  onSelect: (id: string) => void;
 }) {
   return (
     <View className="gap-2" accessibilityRole="radiogroup" accessibilityLabel={label}>
@@ -31,12 +31,12 @@ export function ChoiceChips({
       >
         {options.map((option) => (
           <Chip
-            key={option}
-            label={option}
+            key={option.id}
+            label={option.label}
             icon={icon}
             tone="primary"
-            selected={option === selected}
-            onPress={() => onSelect(option)}
+            selected={option.id === selected}
+            onPress={() => onSelect(option.id)}
           />
         ))}
       </ScrollView>

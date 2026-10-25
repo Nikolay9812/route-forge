@@ -1,11 +1,11 @@
 import { Stack } from "expo-router";
 
-import { ShiftDraftProvider } from "@/shifts/shift-draft-context";
+import { TodayShiftProvider } from "@/shifts/today-shift";
 
-// Today's shift form and its finish sheet share the in-memory draft.
+// Today's shift form and its finish sheet share one loaded, autosaving shift.
 export default function ShiftsLayout() {
   return (
-    <ShiftDraftProvider>
+    <TodayShiftProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen
@@ -18,6 +18,6 @@ export default function ShiftsLayout() {
           }}
         />
       </Stack>
-    </ShiftDraftProvider>
+    </TodayShiftProvider>
   );
 }

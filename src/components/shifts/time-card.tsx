@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
+import type { ApiFailure } from "@/api/client";
 import { Button } from "@/components/button";
 import { clock, type useFormat } from "@/components/home/format";
 import { Icon } from "@/components/icon";
@@ -31,19 +32,24 @@ export function TimeCard({
   startedAt: number;
   timeZone: string;
   format: ReturnType<typeof useFormat>;
-  onChangeStart: (at: number) => void;
+  /** Saves the new start time; resolves the failure, or null once saved. */
+  onChangeStart: (at: number) => Promise<ApiFailure | null>;
 }) {
   const { t } = useTranslation();
   const now = useNow();
   const [editing, setEditing] = useState<string | null>(null);
   const [error, setError] = useState<string>();
+  const [saving, setSaving] = useState(false);
 
-  const save = () => {
+  const save = async () => {
     const minute = parseClock(editing ?? "");
     if (minute === null) return setError(t("shifts.time.invalid"));
     const at = todayAt(minute, timeZone);
     if (at === null) return setError(t("shifts.time.future"));
-    onChangeStart(at);
+    setSaving(true);
+    const failure = await onChangeStart(at);
+    setSaving(false);
+    if (failure) return setError(t(failure === "offline" ? "shifts.time.offline" : "shifts.time.invalid"));
     setEditing(null);
     setError(undefined);
   };
@@ -87,12 +93,12 @@ export function TimeCard({
             keyboardType="numbers-and-punctuation"
             placeholder="07:30"
             autoFocus
-            onSubmitEditing={save}
+            onSubmitEditing={() => void save()}
             error={error}
           />
           <View className="flex-row gap-3">
             <Button title={t("shifts.time.cancel")} variant="secondary" onPress={cancel} className="flex-1" />
-            <Button title={t("shifts.time.save")} onPress={save} className="flex-1" />
+            <Button title={t("shifts.time.save")} loading={saving} onPress={() => void save()} className="flex-1" />
           </View>
         </View>
       )}

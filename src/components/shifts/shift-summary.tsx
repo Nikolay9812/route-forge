@@ -5,45 +5,51 @@ import { Divider } from "@/components/divider";
 import type { useFormat } from "@/components/home/format";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "@/i18n";
-import { delivered, elapsedMinutes, kmDriven, type ShiftDraft } from "@/shifts/draft";
+import { deliveredOf, elapsedMinutes, kmDrivenOf, type ShiftFields } from "@/shifts/draft";
 
 // Grouped label/value rows for the finish sheet. `end` is the finish time shown (now, until submitted).
 export function ShiftSummary({
-  draft,
+  fields,
+  stationName,
+  busPlate,
+  startedAt,
   end,
   format,
 }: {
-  draft: ShiftDraft;
+  fields: ShiftFields;
+  stationName: string;
+  busPlate: string;
+  /** UTC milliseconds. */
+  startedAt: number;
   end: number;
   format: ReturnType<typeof useFormat>;
 }) {
   const { t } = useTranslation();
-  const start = draft.startedAt ?? end;
   const count = (value: string) => format.count(Number(value || 0));
 
   const rows = [
     {
       label: t("shifts.finish.time"),
       value: t("shifts.finish.timeRange", {
-        start: format.time(start),
+        start: format.time(startedAt),
         end: format.time(end),
-        duration: format.duration(elapsedMinutes(start, end)),
+        duration: format.duration(elapsedMinutes(startedAt, end)),
       }),
     },
-    { label: t("shifts.fields.station"), value: draft.station ?? "" },
-    { label: t("shifts.fields.bus"), value: draft.bus ?? "" },
+    { label: t("shifts.fields.station"), value: stationName },
+    { label: t("shifts.fields.bus"), value: busPlate },
     {
       label: t("shifts.finish.km"),
       value: t("shifts.finish.kmRange", {
-        start: count(draft.startKm),
-        end: count(draft.endKm),
-        km: format.count(kmDriven(draft) ?? 0),
+        start: count(fields.startKm),
+        end: count(fields.endKm),
+        km: format.count(kmDrivenOf(fields) ?? 0),
       }),
     },
-    { label: t("shifts.fields.loaded"), value: count(draft.loaded) },
-    { label: t("shifts.fields.delivered"), value: format.count(delivered(draft) ?? 0) },
-    { label: t("shifts.fields.returned"), value: count(draft.returned) },
-    { label: t("shifts.fields.pickups"), value: count(draft.pickups) },
+    { label: t("shifts.fields.loaded"), value: count(fields.loaded) },
+    { label: t("shifts.fields.delivered"), value: format.count(deliveredOf(fields) ?? 0) },
+    { label: t("shifts.fields.returned"), value: count(fields.returned) },
+    { label: t("shifts.fields.pickups"), value: count(fields.pickups) },
   ];
 
   return (

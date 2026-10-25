@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@clerk/backend": "^3.26.2",
     "@clerk/expo": "^4.14.0",
     "@expo/ui": "~58.0.22",
     "@neon/config": "^1.9.4",
@@ -57,7 +58,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "db:push": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs push --force"
+    "db:push": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs push --force",
+    "db:seed": "node --env-file-if-exists=.env.local scripts/seed.mjs",
+    "check:api": "node --env-file-if-exists=.env.local scripts/check-api.mjs"
   },
   "private": true,
   "overrides": {

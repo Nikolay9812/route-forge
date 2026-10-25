@@ -44,6 +44,7 @@ const swatchClasses: Record<(typeof colorTokens)[number], string> = {
   "neutral-soft": "bg-neutral-soft",
   inverse: "bg-inverse",
   "on-inverse": "bg-on-inverse",
+  "on-inverse-muted": "bg-on-inverse-muted",
   white: "bg-white",
 };
 

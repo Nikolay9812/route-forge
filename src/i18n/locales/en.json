@@ -105,8 +105,72 @@
       "unknown": "Something went wrong. Try again."
     }
   },
+  "tabs": {
+    "home": "Home",
+    "shifts": "Shifts",
+    "pay": "Pay",
+    "profile": "Profile"
+  },
+  "status": {
+    "draft": "Draft",
+    "submitted": "Submitted",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "units": {
+    "duration": "{{hours}} h {{minutes}} min",
+    "hours": "hours",
+    "packages": "packages",
+    "km": "km"
+  },
   "home": {
-    "signedInAs": "Signed in as {{name}}",
+    "sampleData": "Sample data",
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "greetingNoName": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "today": {
+      "title": "Today",
+      "noShiftTitle": "No shift logged yet",
+      "noShiftBody": "Log your hours, packages and kilometers when you finish.",
+      "logShift": "Log today's shift",
+      "continueShift": "Continue shift",
+      "fixShift": "Fix and resubmit",
+      "rejected": "Sent back: {{reason}}"
+    },
+    "month": {
+      "approvedOnly": "Approved shifts only",
+      "estimatedPay": "Estimated pay",
+      "approvedHours": "{{hours}} approved hours",
+      "pendingOne": "1 shift waiting for approval",
+      "pendingOther": "{{count}} shifts waiting for approval",
+      "empty": "No approved shifts yet this month."
+    },
+    "recent": {
+      "title": "Recent shifts",
+      "seeAll": "See all"
+    },
+    "error": "Couldn't load your shifts.",
+    "offline": "No connection. Try again when you're online.",
+    "retry": "Try again"
+  },
+  "profile": {
     "signOut": "Sign out"
+  },
+  "placeholder": {
+    "shifts": {
+      "title": "Shifts",
+      "body": "Your shifts will show up here."
+    },
+    "pay": {
+      "title": "Pay",
+      "body": "Your monthly pay will show up here."
+    }
   }
 }

@@ -105,8 +105,72 @@
       "unknown": "Нещо се обърка. Опитай отново."
     }
   },
+  "tabs": {
+    "home": "Начало",
+    "shifts": "Смени",
+    "pay": "Заплата",
+    "profile": "Профил"
+  },
+  "status": {
+    "draft": "Чернова",
+    "submitted": "Изпратена",
+    "approved": "Одобрена",
+    "rejected": "Върната"
+  },
+  "units": {
+    "duration": "{{hours}} ч {{minutes}} мин",
+    "hours": "часа",
+    "packages": "пратки",
+    "km": "км"
+  },
   "home": {
-    "signedInAs": "Влязъл си като {{name}}",
+    "sampleData": "Примерни данни",
+    "greeting": {
+      "morning": "Добро утро, {{name}}",
+      "afternoon": "Добър ден, {{name}}",
+      "evening": "Добър вечер, {{name}}"
+    },
+    "greetingNoName": {
+      "morning": "Добро утро",
+      "afternoon": "Добър ден",
+      "evening": "Добър вечер"
+    },
+    "today": {
+      "title": "Днес",
+      "noShiftTitle": "Още няма смяна",
+      "noShiftBody": "Запиши часовете, пратките и километрите, когато приключиш.",
+      "logShift": "Запиши днешната смяна",
+      "continueShift": "Продължи смяната",
+      "fixShift": "Поправи и изпрати",
+      "rejected": "Върната: {{reason}}"
+    },
+    "month": {
+      "approvedOnly": "Само одобрени смени",
+      "estimatedPay": "Очаквана заплата",
+      "approvedHours": "{{hours}} одобрени часа",
+      "pendingOne": "1 смяна чака одобрение",
+      "pendingOther": "{{count}} смени чакат одобрение",
+      "empty": "Още няма одобрени смени този месец."
+    },
+    "recent": {
+      "title": "Последни смени",
+      "seeAll": "Всички"
+    },
+    "error": "Смените не се заредиха.",
+    "offline": "Няма връзка. Опитай отново, когато си онлайн.",
+    "retry": "Опитай отново"
+  },
+  "profile": {
     "signOut": "Изход"
+  },
+  "placeholder": {
+    "shifts": {
+      "title": "Смени",
+      "body": "Тук ще виждаш смените си."
+    },
+    "pay": {
+      "title": "Заплата",
+      "body": "Тук ще виждаш месечната си заплата."
+    }
   }
 }

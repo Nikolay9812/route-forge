@@ -22,6 +22,7 @@ export const colorTokens = [
   "neutral-soft",
   "inverse",
   "on-inverse",
+  "on-inverse-muted",
   "white",
 ] as const;
 

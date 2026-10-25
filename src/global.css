@@ -44,6 +44,7 @@
   --color-neutral-soft: #eef0f3;
   --color-inverse: #11141c;
   --color-on-inverse: #ffffff;
+  --color-on-inverse-muted: #a3a9b6;
   --color-white: #ffffff;
   --color-transparent: transparent;
 
@@ -130,6 +131,7 @@
     --color-neutral-soft: #23272f;
     --color-inverse: #f1f3f7;
     --color-on-inverse: #11141c;
+    --color-on-inverse-muted: #5b6270;
   }
 }
 

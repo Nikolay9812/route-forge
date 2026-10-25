@@ -105,8 +105,72 @@
       "unknown": "Etwas ist schiefgelaufen. Versuche es erneut."
     }
   },
+  "tabs": {
+    "home": "Start",
+    "shifts": "Schichten",
+    "pay": "Lohn",
+    "profile": "Profil"
+  },
+  "status": {
+    "draft": "Entwurf",
+    "submitted": "Eingereicht",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt"
+  },
+  "units": {
+    "duration": "{{hours}} Std. {{minutes}} Min.",
+    "hours": "Stunden",
+    "packages": "Pakete",
+    "km": "km"
+  },
   "home": {
-    "signedInAs": "Angemeldet als {{name}}",
+    "sampleData": "Beispieldaten",
+    "greeting": {
+      "morning": "Guten Morgen, {{name}}",
+      "afternoon": "Guten Tag, {{name}}",
+      "evening": "Guten Abend, {{name}}"
+    },
+    "greetingNoName": {
+      "morning": "Guten Morgen",
+      "afternoon": "Guten Tag",
+      "evening": "Guten Abend"
+    },
+    "today": {
+      "title": "Heute",
+      "noShiftTitle": "Noch keine Schicht erfasst",
+      "noShiftBody": "Erfasse Stunden, Pakete und Kilometer, wenn du fertig bist.",
+      "logShift": "Heutige Schicht erfassen",
+      "continueShift": "Schicht fortsetzen",
+      "fixShift": "Korrigieren und erneut senden",
+      "rejected": "Zurückgeschickt: {{reason}}"
+    },
+    "month": {
+      "approvedOnly": "Nur genehmigte Schichten",
+      "estimatedPay": "Voraussichtlicher Lohn",
+      "approvedHours": "{{hours}} genehmigte Stunden",
+      "pendingOne": "1 Schicht wartet auf Genehmigung",
+      "pendingOther": "{{count}} Schichten warten auf Genehmigung",
+      "empty": "Diesen Monat noch keine genehmigten Schichten."
+    },
+    "recent": {
+      "title": "Letzte Schichten",
+      "seeAll": "Alle"
+    },
+    "error": "Deine Schichten konnten nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+    "retry": "Erneut versuchen"
+  },
+  "profile": {
     "signOut": "Abmelden"
+  },
+  "placeholder": {
+    "shifts": {
+      "title": "Schichten",
+      "body": "Hier erscheinen deine Schichten."
+    },
+    "pay": {
+      "title": "Lohn",
+      "body": "Hier erscheint dein Monatslohn."
+    }
   }
 }

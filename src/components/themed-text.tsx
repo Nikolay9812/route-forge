@@ -47,6 +47,7 @@ export const textColors = {
   "neutral-soft": "text-neutral-soft",
   inverse: "text-inverse",
   "on-inverse": "text-on-inverse",
+  "on-inverse-muted": "text-on-inverse-muted",
   white: "text-white",
 } as const satisfies Record<ColorToken, string>;
 

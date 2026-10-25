@@ -7,6 +7,8 @@
     "@expo/ui": "~58.0.22",
     "@neon/config": "^1.9.4",
     "@neon/env": "^1.6.5",
+    "@neondatabase/serverless": "^1.2.0",
+    "drizzle-orm": "^0.45.4",
     "expo": "~58.0.17",
     "expo-auth-session": "~58.0.14",
     "expo-constants": "~58.0.13",
@@ -40,6 +42,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "4.1.12",
     "@types/react": "~19.3.0",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",
     "lightningcss": "1.30.1",
@@ -53,7 +56,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "db:push": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs push --force"
   },
   "private": true,
   "overrides": {

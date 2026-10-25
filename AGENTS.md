@@ -14,6 +14,7 @@ npx tsc --noEmit            # type check
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of bare `eas`)
+npm run db:push             # push the Drizzle schema to the Neon branch in .env.local
 ```
 
 ## Expo
@@ -39,7 +40,7 @@ npx eas-cli@latest <cmd>    # EAS builds, submits, and updates (use instead of b
 Each tool has one job. Ask before moving a responsibility to a different tool.
 
 - **Auth, firms, and roles:** Clerk is the source of truth. Each firm is a Clerk Organization. A user's role in that firm is a Clerk org role: `owner`, `dispatcher`, or `courier`. The app keeps its own custom auth screens. They import auth only from `src/auth/`, which adapts `@clerk/expo`'s current custom-flow API (`{ error }` results, `finalize()`) and maps Clerk error codes to translation keys, so screens never show raw Clerk messages. Sessions persist through Clerk's `tokenCache` (`expo-secure-store`). Change Clerk instance settings through the Clerk MCP server (`.mcp.json`) or the Clerk CLI, and use the Clerk skills for current Expo patterns.
-- **Data:** Neon Postgres holds depots, cars, shifts, pay rates, and firm settings. Only API routes reach it, through `DATABASE_URL`. The app never talks to the database directly.
+- **Data:** Neon Postgres holds depots, cars, shifts, pay rates, and firm settings. Only API routes reach it, through `DATABASE_URL`. The app never talks to the database directly. Access goes through Drizzle ORM over Neon's HTTP driver. Tables live in `src/db/schema.ts` (camelCase in TS, snake_case columns) and the `db` client in `src/db/index.ts`, imported only by API routes and scripts. Atomic multi-statement writes use `db.batch`. `npm run db:push` uses the direct `DATABASE_URL_UNPOOLED`. `src/app/api/health+api.ts` is a dev-only `select 1` check: delete it when the first real API route exists.
 - **Business logic** (permissions, approvals, salary math): code in API routes and shared utils, never in the client alone. Shared domain code lives in `src/domain/` (types, `salary.ts`, `dates.ts`): pure, no React, only type imports between files, so API routes, the app and Node scripts (`node --no-warnings scripts/check-salary.mjs`) all run it.
 - **Home data** comes from `useHomeSummary()` in `src/home/`, which returns sample data (`src/home/sample.ts`, "Sample data" tag on screen) until a shifts API exists. That plan replaces the hook's body and deletes the sample. In dev, `?sample=empty|error|offline` switches state.
 - **Languages:** English, Bulgarian, and German. Every UI string comes from translation files, never hardcoded in a screen. The device language picks the default.
@@ -66,13 +67,14 @@ Each tool has one job. Ask before moving a responsibility to a different tool.
 - **Tenant isolation:** every firm-owned table has a `firm_id`, and every query filters by it. The firm and role come from the verified Clerk session, never from the request body or URL.
 - API routes verify the Clerk session, then check role and depot access, before doing any work. Hiding a button in the UI doesn't count as a permission check.
 - SQL always uses parameters. Never build queries by joining strings with user input.
-- Schema changes are migration files in `db/migrations/`, checked into git. Try each one on a Neon branch before running it on the main branch.
+- Schema changes go to the database only with `drizzle-kit push`, from the Drizzle schema in git. Never generate, write, or run migration files (no `drizzle-kit generate` or `migrate`, no migrations folder or migration scripts). Push to a Neon branch first, then to the main branch.
+- **Development project:** there is no backwards compatibility and the data is worthless. Prefer data loss: never backfill, migrate, or preserve existing rows, and never spend effort keeping old data working. Every schema change means a clean state.
 - Money is stored as integers in minor units (stotinki, cents) with the firm's currency code. Working time is stored in minutes. Never store money in floats.
 - Calendar days and months follow the firm's timezone. Store timestamps in UTC.
 - Never hard-delete couriers, cars, depots, or shifts that salary history depends on. Archive them instead.
 - Salaries are personal data. Never log them, and never return them to roles that can't see them.
 - Secret keys (Clerk secret key, `DATABASE_URL`) never reach the app bundle. Use them only in API routes and local scripts such as seeding. Never put them behind `EXPO_PUBLIC_`, which is bundled into the app. Never commit `.env`. Keep variable names, without values, in `.env.example`.
-- Ask before adding a dependency or service, changing a table that already holds real data, or deleting data. Prefer Expo modules over third-party libraries.
+- Ask before adding a dependency or service. Prefer Expo modules over third-party libraries.
 - Whenever you need input from the user, ask through your tool's built-in question panel so they pick from options instead of typing. Give two to four clear options with the recommended one first. Fall back to plain text only if no such panel exists.
 
 ## How we build features

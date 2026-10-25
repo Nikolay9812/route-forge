@@ -109,7 +109,8 @@
     "home": "Start",
     "shifts": "Schichten",
     "pay": "Lohn",
-    "profile": "Profil"
+    "profile": "Profil",
+    "approvals": "Freigaben"
   },
   "status": {
     "draft": "Entwurf",
@@ -234,6 +235,14 @@
       "offline": "Nicht gespeichert, keine Verbindung",
       "error": "Speichern fehlgeschlagen",
       "retry": "Erneut versuchen"
+    },
+    "fix": {
+      "title": "Schicht korrigieren",
+      "resubmit": "Erneut senden",
+      "offline": "Keine Verbindung. Deine Änderungen bleiben hier. Versuch es erneut, wenn du online bist.",
+      "notEditable": "Diese Schicht kann nicht mehr geändert werden.",
+      "error": "Die Schicht konnte nicht gesendet werden. Versuch es erneut.",
+      "loadError": "Diese Schicht konnte nicht geladen werden."
     }
   },
   "firm": {
@@ -253,6 +262,53 @@
       "title": "Deine Firma ist noch nicht eingerichtet",
       "body": "Bitte den Inhaber, Stationen und Fahrzeuge anzulegen."
     }
+  },
+  "edit": {
+    "start": "Beginn",
+    "finish": "Ende",
+    "finishBeforeStart": "Muss nach dem Beginn liegen.",
+    "required": "Pflichtfeld."
+  },
+  "review": {
+    "title": "Freigaben",
+    "pending": "Offen",
+    "pendingCount": "Offen ({{count}})",
+    "reviewed": "Geprüft",
+    "corrected": "Korrigiert",
+    "pay": "Lohn",
+    "payWhenApproved": "Lohn nach Freigabe",
+    "payBreakdown": "{{hours}} Std. × {{rate}}/Std.",
+    "noRate": "Für diesen Fahrer ist noch kein Stundenlohn hinterlegt.",
+    "changes": "Änderungen",
+    "correctedBy": "Korrigiert von {{name}} · {{when}}",
+    "reasons": {
+      "km": "Kilometer stimmen nicht",
+      "packages": "Paketanzahl ist falsch",
+      "busOrStation": "Falsches Fahrzeug oder Station",
+      "time": "Arbeitszeit ist falsch"
+    },
+    "approve": "Freigeben",
+    "reject": "Zurückgeben",
+    "correct": "Korrigieren",
+    "correctTitle": "Schicht korrigieren",
+    "saveCorrection": "Korrektur speichern",
+    "waitingForCourier": "Zurückgegeben. Wartet darauf, dass der Fahrer korrigiert und erneut sendet.",
+    "rejectTitle": "An den Fahrer zurückgeben",
+    "rejectBody": "Wähle, was nicht stimmt, und füge bei Bedarf eine Notiz hinzu. Der Fahrer korrigiert und sendet erneut.",
+    "note": "Notiz",
+    "notePlaceholder": "Optional",
+    "send": "Zurückgeben",
+    "actionOffline": "Keine Verbindung. Es wurde nichts geändert. Versuch es erneut, wenn du online bist.",
+    "actionError": "Etwas ist schiefgelaufen. Versuch es erneut.",
+    "changedMeanwhile": "Jemand anderes hat diese Schicht geändert. Sie wurde neu geladen.",
+    "invalid": "Einige Werte passen nicht zusammen. Prüfe die Felder.",
+    "notFound": "Diese Schicht gehört nicht zu deinen Stationen.",
+    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+    "error": "Die Schichten konnten nicht geladen werden.",
+    "emptyPendingTitle": "Alles erledigt",
+    "emptyPendingBody": "Keine Schichten warten auf Freigabe.",
+    "emptyReviewedTitle": "Noch nichts geprüft",
+    "emptyReviewedBody": "Schichten, die du in den letzten 30 Tagen freigibst oder zurückgibst, erscheinen hier."
   },
   "placeholder": {
     "pay": {

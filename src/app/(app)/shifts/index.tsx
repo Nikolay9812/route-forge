@@ -11,6 +11,7 @@ import { RecentShifts } from "@/components/home/recent-shifts";
 import { SectionEntrance } from "@/components/home/section-entrance";
 import { Notice } from "@/components/notice";
 import { PackagesCard } from "@/components/shifts/packages-card";
+import { RejectionAlert } from "@/components/shifts/rejection-alert";
 import { RouteCard } from "@/components/shifts/route-card";
 import { SaveStatus } from "@/components/shifts/save-status";
 import { ShiftsSkeleton } from "@/components/shifts/shifts-skeleton";
@@ -112,9 +113,7 @@ export default function Shifts() {
               </View>
             ) : phase === "inProgress" && shift ? (
               <View className="gap-4">
-                {shift.status === "rejected" && shift.rejectionReason ? (
-                  <Alert tone="danger" message={t("home.today.rejected", { reason: shift.rejectionReason })} />
-                ) : null}
+                <RejectionAlert rejection={shift.rejection} />
                 <TimeCard
                   startedAt={Date.parse(shift.startedAt)}
                   timeZone={firm.timeZone}
@@ -143,7 +142,12 @@ export default function Shifts() {
 
           {load.recent.length > 0 ? (
             <SectionEntrance index={2}>
-              <RecentShifts shifts={load.recent} format={format} onSeeAll={() => {}} onPressShift={() => {}} />
+              <RecentShifts
+                shifts={load.recent}
+                format={format}
+                onSeeAll={() => {}}
+                onPressShift={(s) => router.push({ pathname: "/shifts/[id]", params: { id: s.id } })}
+              />
             </SectionEntrance>
           ) : null}
         </>

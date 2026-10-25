@@ -60,7 +60,8 @@
     "lint": "expo lint",
     "db:push": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs push --force",
     "db:seed": "node --env-file-if-exists=.env.local scripts/seed.mjs",
-    "check:api": "node --env-file-if-exists=.env.local scripts/check-api.mjs"
+    "check:api": "node --env-file-if-exists=.env.local scripts/check-api.mjs",
+    "check:approvals": "node --env-file-if-exists=.env.local scripts/check-approvals.mjs"
   },
   "private": true,
   "overrides": {

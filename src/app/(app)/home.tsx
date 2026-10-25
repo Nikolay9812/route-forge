@@ -76,7 +76,7 @@ export default function Home() {
                     shifts={summary.data.recent}
                     format={format}
                     onSeeAll={goToShifts}
-                    onPressShift={goToShifts}
+                    onPressShift={(shift) => router.navigate({ pathname: "/shifts/[id]", params: { id: shift.id } })}
                   />
                 </SectionEntrance>
               ) : null}

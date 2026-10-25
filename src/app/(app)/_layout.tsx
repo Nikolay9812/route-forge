@@ -1,18 +1,25 @@
 import { NativeTabs } from "expo-router/native-tabs";
 import { ActivityIndicator, View } from "react-native";
 
-import { useAuth, useFirm } from "@/auth";
+import { isReviewer, useAuth, useFirm } from "@/auth";
 import { icons, type IconName } from "@/components/icons";
 import { NoFirm } from "@/components/no-firm";
 import { useTranslation, type TranslationKey } from "@/i18n";
 import { useFontScript, useThemeColor, type FontScript } from "@/theme";
 
+// Couriers log their own work; dispatchers and owners review it. Profile is everyone's.
 const tabs = [
-  { name: "home", icon: "home", label: "tabs.home" },
-  { name: "shifts", icon: "shifts", label: "tabs.shifts" },
-  { name: "pay", icon: "salary", label: "tabs.pay" },
-  { name: "profile", icon: "profile", label: "tabs.profile" },
-] as const satisfies readonly { name: string; icon: IconName; label: TranslationKey }[];
+  { name: "home", icon: "home", label: "tabs.home", for: "courier" },
+  { name: "shifts", icon: "shifts", label: "tabs.shifts", for: "courier" },
+  { name: "pay", icon: "salary", label: "tabs.pay", for: "courier" },
+  { name: "approvals", icon: "approvals", label: "tabs.approvals", for: "reviewer" },
+  { name: "profile", icon: "profile", label: "tabs.profile", for: "everyone" },
+] as const satisfies readonly {
+  name: string;
+  icon: IconName;
+  label: TranslationKey;
+  for: "courier" | "reviewer" | "everyone";
+}[];
 
 const labelFont: Record<FontScript, string> = {
   latin: "PlusJakartaSans-SemiBold",
@@ -41,6 +48,7 @@ export default function AppLayout() {
   if (firm.status === "none") {
     return <NoFirm invitations={firm.invitations} onAccept={accept} onRefresh={refresh} onSignOut={signOut} />;
   }
+  const audience = isReviewer(firm.role) ? "reviewer" : "courier";
 
   return (
     <NativeTabs
@@ -51,7 +59,7 @@ export default function AppLayout() {
       indicatorColor={indicator}
     >
       {tabs.map((tab) => (
-        <NativeTabs.Trigger key={tab.name} name={tab.name}>
+        <NativeTabs.Trigger key={tab.name} name={tab.name} hidden={tab.for !== "everyone" && tab.for !== audience}>
           <NativeTabs.Trigger.Icon sf={icons[tab.icon].ios} md={icons[tab.icon].android} />
           <NativeTabs.Trigger.Label>{t(tab.label)}</NativeTabs.Trigger.Label>
         </NativeTabs.Trigger>

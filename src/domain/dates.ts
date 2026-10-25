@@ -41,3 +41,41 @@ export function monthOf(date: string): string {
 export function dateAtNoon(date: string): Date {
   return new Date(`${date}T12:00:00Z`);
 }
+
+/** "7:30" or "07:30" → 450 minutes after midnight, or null if it isn't a valid time. */
+export function parseClock(text: string): number | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(text.trim());
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  return hours < 24 && minutes < 60 ? hours * 60 + minutes : null;
+}
+
+/** How far the timezone's wall clock is ahead of UTC at an instant, in milliseconds. */
+function offsetAt(timeZone: string, instant: number): number {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(instant))
+      .map((part) => [part.type, part.value]),
+  );
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  return wall - (instant - (instant % 1000));
+}
+
+/** The UTC instant (ISO) when the firm's wall clock shows `minuteOfDay` on `date`. Twice-checked for DST changes. */
+export function zonedTime(date: string, minuteOfDay: number, timeZone: string): string {
+  const [year, month, day] = date.split("-").map(Number);
+  const wall = Date.UTC(year, month - 1, day, 0, minuteOfDay);
+  let instant = wall - offsetAt(timeZone, wall);
+  instant = wall - offsetAt(timeZone, instant);
+  return new Date(instant).toISOString();
+}

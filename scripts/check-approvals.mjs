@@ -1,0 +1,166 @@
+// Approvals checks against a running dev server: depot scope for dispatchers, the whole firm for owners, approve,
+// reject and resubmit, corrections with history, pay for one shift, and isolation from couriers and other firms.
+// Uses the seeded data plus today's shifts it creates itself. Run with `npm run check:approvals` (after db:seed).
+import { call, check, finish, orgByName, sql, tokenFor, userByEmail } from "./lib/api-test.mjs";
+
+const ivanov = await orgByName("Ivanov Transport");
+const firmB = await orgByName("Test Firm B");
+const users = {
+  a: await userByEmail("courier.a+clerk_test@example.com"),
+  c: await userByEmail("courier.c+clerk_test@example.com"),
+  b: await userByEmail("courier.b+clerk_test@example.com"),
+  dispatcher: await userByEmail("dispatcher+clerk_test@example.com"),
+  owner: await userByEmail("owner+clerk_test@example.com"),
+};
+
+// Today's shifts are created fresh: A at HBW3 (in the dispatcher's depots), C at HBW7 (outside), B in firm B.
+const testCouriers = [users.a, users.c, users.b];
+await sql`delete from shift_changes where shift_id in (select id from shifts where user_id = any(${testCouriers}) and date >= current_date - 1)`;
+await sql`delete from shifts where user_id = any(${testCouriers}) and date >= current_date - 1`;
+
+const token = {
+  a: await tokenFor(users.a, ivanov),
+  c: await tokenFor(users.c, ivanov),
+  b: await tokenFor(users.b, firmB),
+  dispatcher: await tokenFor(users.dispatcher, ivanov),
+  owner: await tokenFor(users.owner, ivanov),
+};
+
+async function startAndSubmit(courierToken, depotName, busPlate) {
+  const today = (await call(courierToken, "GET", "/api/shifts/today")).json;
+  const depotId = today.stations.find((s) => s.name === depotName).id;
+  const carId = today.buses.find((b) => b.plate === busPlate).id;
+  await call(courierToken, "POST", "/api/shifts/today", { depotId, carId, startKm: 1000, loaded: 100 });
+  await call(courierToken, "PATCH", "/api/shifts/today", { endKm: 1080, returned: 4 });
+  return (await call(courierToken, "POST", "/api/shifts/today/submit")).json;
+}
+
+const todayA = await startAndSubmit(token.a, "HBW3", "KH I 6004");
+const todayC = await startAndSubmit(token.c, "HBW7", "KH I 7732");
+const todayB = await startAndSubmit(token.b, "TFB1", "B TF 100");
+check("test shifts submitted", [todayA, todayC, todayB].every((s) => s?.status === "submitted"));
+
+// Who may use approvals at all.
+let r = await call(token.a, "GET", "/api/approvals");
+check("courier → 403", r.status === 403 && r.json?.error === "role", r.status);
+r = await call(null, "GET", "/api/approvals");
+check("no token → 401", r.status === 401, r.status);
+r = await call(token.dispatcher, "GET", "/api/approvals?view=everything");
+check("unknown view → 400", r.status === 400, r.status);
+
+// Depot scope.
+const pending = await call(token.dispatcher, "GET", "/api/approvals?view=pending");
+const pendingIds = new Set(pending.json.items.map((i) => i.shift.id));
+check("dispatcher sees A's HBW3 shift", pendingIds.has(todayA.id));
+check("dispatcher doesn't see C's HBW7 shift", !pendingIds.has(todayC.id));
+check(
+  "dispatcher list only has HBW3/HBW1",
+  pending.json.items.every((i) => ["HBW3", "HBW1"].includes(i.shift.depot.name)),
+);
+check("pending count matches the list", pending.json.pendingCount === pending.json.items.length);
+check("courier names come from Clerk", pending.json.items.some((i) => i.courierName === "Anna Courier"));
+r = await call(token.dispatcher, "GET", `/api/approvals/${todayC.id}`);
+check("dispatcher opens HBW7 shift → 404", r.status === 404, r.status);
+r = await call(token.dispatcher, "POST", `/api/approvals/${todayC.id}`, { action: "approve" });
+check("dispatcher approves HBW7 shift → 404", r.status === 404, r.status);
+r = await call(token.dispatcher, "GET", `/api/approvals/${todayB.id}`);
+check("another firm's shift → 404", r.status === 404, r.status);
+const ownerList = await call(token.owner, "GET", "/api/approvals?view=pending");
+check("owner sees HBW7 too", ownerList.json.items.some((i) => i.shift.id === todayC.id));
+
+// Detail and pay at the day's rate.
+r = await call(token.dispatcher, "GET", `/api/approvals/${todayA.id}`);
+const detail = r.json;
+const day = Number(todayA.date.slice(8, 10));
+check("detail loads with courier name", r.status === 200 && detail.courierName === "Anna Courier", r.status);
+check("rate is the one on the shift's day", detail.pay?.hourlyMinor === (day >= 15 ? 1600 : 1500));
+check(
+  "pay = minutes × rate, rounded",
+  detail.pay?.payMinor === Math.round((detail.shift.minutes * detail.pay.hourlyMinor) / 60),
+);
+check("dispatcher's stations are HBW1/HBW3 only", detail.stations.map((s) => s.name).sort().join() === "HBW1,HBW3");
+
+// Approve.
+r = await call(token.dispatcher, "POST", `/api/approvals/${todayA.id}`, { action: "approve" });
+check("approve → approved", r.status === 200 && r.json.status === "approved", r.status);
+r = await call(token.dispatcher, "POST", `/api/approvals/${todayA.id}`, { action: "approve" });
+check("approve again → 409", r.status === 409, r.status);
+const reviewed = await call(token.dispatcher, "GET", "/api/approvals?view=reviewed");
+check("approved shift is in Reviewed", reviewed.json.items.some((i) => i.shift.id === todayA.id));
+r = await call(token.owner, "POST", `/api/approvals/${todayC.id}`, { action: "approve" });
+check("owner approves HBW7 shift", r.status === 200 && r.json.status === "approved", r.status);
+
+// Reject and the courier's fix.
+// Reject one of courier A's past shifts (A's token checks the fix); correct any other pending one in scope.
+const toReject = pending.json.items.find((i) => i.courierName === "Anna Courier" && i.shift.id !== todayA.id);
+const toCorrect = pending.json.items.find((i) => i.shift.id !== todayA.id && i.shift.id !== toReject?.shift.id);
+check("seed has past pending shifts to work with", Boolean(toReject && toCorrect));
+r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, { action: "reject" });
+check("reject with no reason or note → 400", r.status === 400, r.status);
+r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, { action: "reject", reasons: ["nope"] });
+check("unknown reason → 400", r.status === 400, r.status);
+r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, {
+  action: "reject",
+  reasons: ["km", "time"],
+  note: "Check the odometer",
+});
+check("reject → rejected", r.status === 200 && r.json.status === "rejected", r.status);
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${toReject.shift.id}`, { endKm: 999999 });
+check("correcting a rejected shift → 409", r.status === 409, r.status);
+
+r = await call(token.a, "GET", `/api/shifts/${toReject.shift.id}`);
+check(
+  "courier sees the reasons and note",
+  r.json?.shift.rejection?.reasons.join() === "km,time" && r.json.shift.rejection.note === "Check the odometer",
+);
+const minutesBefore = r.json.shift.minutes;
+r = await call(token.c, "GET", `/api/shifts/${toReject.shift.id}`);
+check("another courier can't open it → 404", r.status === 404, r.status);
+r = await call(token.c, "PATCH", `/api/shifts/${toReject.shift.id}`, { pickups: 1 });
+check("another courier can't fix it → 404", r.status === 404, r.status);
+r = await call(token.a, "PATCH", `/api/shifts/${toReject.shift.id}`, { pickups: 5 });
+check("courier fixes the rejected shift", r.status === 200 && r.json.pickups === 5, r.status);
+r = await call(token.a, "POST", `/api/shifts/${toReject.shift.id}/submit`);
+check(
+  "resubmit keeps the times and clears the rejection",
+  r.status === 200 && r.json.status === "submitted" && r.json.minutes === minutesBefore && !r.json.rejection,
+  `${r.status} ${r.json?.minutes} vs ${minutesBefore}`,
+);
+r = await call(token.a, "PATCH", `/api/shifts/${toReject.shift.id}`, { pickups: 6 });
+check("fixing after resubmit → 409", r.status === 409, r.status);
+
+// Corrections with history.
+const target = toCorrect.shift;
+const hbw7 = ownerList.json.items.find((i) => i.shift.id === todayC.id).shift.depot.id;
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, { depotId: hbw7 });
+check("dispatcher moves a shift to HBW7 → 400", r.status === 400, r.status);
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, { startTime: "10:00", finishTime: "09:00" });
+check("finish before start → 400", r.status === 400, r.status);
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, { firmId: firmB });
+check("unknown field → 400", r.status === 400, r.status);
+// Hand-checked: 07:30–16:12 is 8 h 42 min = 522 min; at €16.00/h that's €139.20, at €15.00/h €130.50.
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, {
+  startTime: "07:30",
+  finishTime: "16:12",
+  endKm: target.startKm + 120,
+});
+check("correction saved and marked", r.status === 200 && r.json.corrected && r.json.minutes === 522, r.status);
+r = await call(token.dispatcher, "GET", `/api/approvals/${target.id}`);
+const expectedPay = Number(target.date.slice(8, 10)) >= 15 ? 13920 : 13050;
+check("pay after correction matches the hand calculation", r.json.pay?.payMinor === expectedPay, r.json.pay?.payMinor);
+check(
+  "history records who changed which fields",
+  r.json.changes.length === 3 &&
+    r.json.changes.every((c) => c.byName === "Dora Dispatcher") &&
+    r.json.changes.map((c) => c.field).sort().join() === "endKm,finishedAt,startedAt",
+);
+check("still submitted after a correction", r.json.shift.status === "submitted");
+
+// Correcting an approved shift moves the courier's month totals.
+const homeBefore = (await call(token.a, "GET", "/api/home")).json.totals;
+r = await call(token.dispatcher, "PATCH", `/api/approvals/${todayA.id}`, { endKm: todayA.endKm + 25 });
+check("approved shift can be corrected", r.status === 200 && r.json.status === "approved", r.status);
+const homeAfter = (await call(token.a, "GET", "/api/home")).json.totals;
+check("courier's approved km went up by 25", homeAfter.km - homeBefore.km === 25, homeAfter.km - homeBefore.km);
+
+finish("approvals");

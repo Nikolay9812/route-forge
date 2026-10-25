@@ -40,6 +40,39 @@ export async function requireCourier(request: Request): Promise<Courier | Respon
   return { firmId: orgId, userId };
 }
 
+export type Reviewer = { firmId: string; userId: string; role: "dispatcher" | "owner" };
+
+/** A signed-in dispatcher or owner of the session's active firm, or the error Response to return as is. */
+export async function requireReviewerSession(request: Request): Promise<Reviewer | Response> {
+  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
+  if (!state.isAuthenticated) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = state.toAuth();
+  if (!orgId) return apiError("noFirm");
+  if (orgRole === "org:dispatcher") return { firmId: orgId, userId, role: "dispatcher" };
+  if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
+  return apiError("role");
+}
+
+const NAME_TTL = 10 * 60_000;
+const names = new Map<string, { name: string; at: number }>();
+
+/** Display names for Clerk user IDs ("First Last", else the email), cached for ten minutes per process. */
+export async function userNames(ids: string[]): Promise<Map<string, string>> {
+  const now = Date.now();
+  const missing = [...new Set(ids)].filter((id) => {
+    const hit = names.get(id);
+    return !hit || now - hit.at > NAME_TTL;
+  });
+  if (missing.length > 0) {
+    const { data } = await clerk.users.getUserList({ userId: missing, limit: missing.length });
+    for (const user of data) {
+      const full = [user.firstName, user.lastName].filter(Boolean).join(" ");
+      names.set(user.id, { name: full || user.primaryEmailAddress?.emailAddress || user.id, at: now });
+    }
+  }
+  return new Map(ids.map((id) => [id, names.get(id)?.name ?? ""]));
+}
+
 const firmNames = new Map<string, string>();
 
 /** The firm's display name from its Clerk Organization, cached per server process. */

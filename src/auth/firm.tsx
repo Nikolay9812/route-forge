@@ -12,6 +12,11 @@ export type FirmState =
   | { status: "none"; invitations: FirmInvitation[] }
   | { status: "ready"; firmId: string; role: FirmRole | null };
 
+/** Dispatchers and owners review shifts; everyone else logs their own. */
+export function isReviewer(role: FirmRole | null): boolean {
+  return role === "dispatcher" || role === "owner";
+}
+
 const roles: Record<string, FirmRole> = { "org:owner": "owner", "org:dispatcher": "dispatcher", "org:courier": "courier" };
 
 export function useFirm() {

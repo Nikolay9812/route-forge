@@ -45,9 +45,12 @@ async function findOrg(name) {
   return org;
 }
 
-async function couriersOf(orgId) {
+/** Member user IDs by role, e.g. { "org:courier": [...], "org:dispatcher": [...] }. */
+async function membersOf(orgId) {
   const { data } = await clerk(`/organizations/${orgId}/memberships?limit=100`);
-  return data.filter((m) => m.role === "org:courier").map((m) => m.public_user_data.user_id);
+  const byRole = {};
+  for (const m of data) (byRole[m.role] ??= []).push(m.public_user_data.user_id);
+  return byRole;
 }
 
 function todayIn(timeZone) {
@@ -71,12 +74,18 @@ function pastWeekdays(today) {
 for (const firm of firms) {
   const org = await findOrg(firm.name);
   const firmId = org.id;
-  const couriers = await couriersOf(firmId);
+  const members = await membersOf(firmId);
+  const couriers = members["org:courier"] ?? [];
+  const dispatchers = members["org:dispatcher"] ?? [];
+  // Seeded reviews are signed by the first dispatcher, or the owner when there is none.
+  const reviewer = dispatchers[0] ?? members["org:owner"]?.[0] ?? null;
   const today = todayIn(firm.timeZone);
   const month = today.slice(0, 7);
 
   await sql.transaction([
+    sql`delete from shift_changes where firm_id = ${firmId}`,
     sql`delete from shifts where firm_id = ${firmId}`,
+    sql`delete from dispatcher_depots where firm_id = ${firmId}`,
     sql`delete from courier_rates where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
@@ -94,6 +103,13 @@ for (const firm of firms) {
     const [row] = await sql`
       insert into cars (firm_id, plate, depot_id) values (${firmId}, ${plate}, ${depots[i % depots.length]}) returning id`;
     cars.push(row.id);
+  }
+
+  // Dispatchers manage the first two depots, so the last one (HBW7) is outside their reach.
+  for (const userId of dispatchers) {
+    for (const depotId of depots.slice(0, 2)) {
+      await sql`insert into dispatcher_depots (firm_id, user_id, depot_id) values (${firmId}, ${userId}, ${depotId})`;
+    }
   }
 
   let shiftCount = 0;
@@ -115,20 +131,22 @@ for (const firm of firms) {
       const returned = (day * 3 + c) % 9;
       const startedAt = new Date(`${date}T06:00:00Z`);
       const finishedAt = new Date(startedAt.getTime() + minutes * 60_000);
+      const reviewedAt = new Date(finishedAt.getTime() + 3 * 3_600_000);
       // The odometer grows ~100 km a day, so newer shifts start higher.
       const startKm = 48_000 + c * 10_000 + (days.length - i) * 100;
       await sql`
         insert into shifts (firm_id, user_id, date, status, depot_id, car_id, started_at, finished_at, minutes,
-          start_km, end_km, loaded, returned, pickups, rejection_reason, submitted_at)
-        values (${firmId}, ${userId}, ${date}, ${status}, ${depots[c % depots.length]}, ${cars[(c + i) % cars.length]},
+          start_km, end_km, loaded, returned, pickups, rejection_reasons, rejection_note, submitted_at, reviewed_at, reviewed_by)
+        values (${firmId}, ${userId}, ${date}, ${status}, ${depots[(c + i) % depots.length]}, ${cars[(c + i) % cars.length]},
           ${startedAt.toISOString()}, ${finishedAt.toISOString()}, ${minutes}, ${startKm}, ${startKm + km},
-          ${loaded}, ${returned}, ${day % 4}, ${status === "rejected" ? "Kilometers don't match the odometer. Check and resend." : null},
-          ${finishedAt.toISOString()})`;
+          ${loaded}, ${returned}, ${day % 4}, ${status === "rejected" ? ["km"] : null},
+          ${status === "rejected" ? "Check the odometer photo." : null}, ${finishedAt.toISOString()},
+          ${status === "submitted" ? null : reviewedAt.toISOString()}, ${status === "submitted" ? null : reviewer})`;
       shiftCount++;
     }
   }
 
   console.log(
-    `${firm.name}: ${depots.length} depots, ${cars.length} cars, ${couriers.length} couriers, ${shiftCount} past shifts.`,
+    `${firm.name}: ${depots.length} depots, ${cars.length} cars, ${couriers.length} couriers, ${dispatchers.length} dispatchers, ${shiftCount} past shifts.`,
   );
 }

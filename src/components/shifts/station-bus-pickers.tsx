@@ -1,20 +1,21 @@
 import type { Bus, Station } from "@/domain/types";
 import { useTranslation } from "@/i18n";
-import type { ShiftFields } from "@/shifts/draft";
 
 import { ChoiceChips } from "./choice-chips";
 
-// Station and bus chips, shared by the start card and the route card.
+// Station and bus chips, shared by the start card, the route card and the edit form.
 export function StationBusPickers({
-  fields,
+  stationId,
+  busId,
   stations,
   buses,
   onChange,
 }: {
-  fields: ShiftFields;
+  stationId: string | null;
+  busId: string | null;
   stations: Station[];
   buses: Bus[];
-  onChange: (fields: Partial<ShiftFields>) => void;
+  onChange: (change: { stationId: string } | { busId: string }) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -23,15 +24,15 @@ export function StationBusPickers({
         label={t("shifts.fields.station")}
         icon="depot"
         options={stations.map((s) => ({ id: s.id, label: s.name }))}
-        selected={fields.stationId}
-        onSelect={(stationId) => onChange({ stationId })}
+        selected={stationId}
+        onSelect={(id) => onChange({ stationId: id })}
       />
       <ChoiceChips
         label={t("shifts.fields.bus")}
         icon="car"
         options={buses.map((b) => ({ id: b.id, label: b.plate }))}
-        selected={fields.busId}
-        onSelect={(busId) => onChange({ busId })}
+        selected={busId}
+        onSelect={(id) => onChange({ busId: id })}
       />
     </>
   );

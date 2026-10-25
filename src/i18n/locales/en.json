@@ -109,7 +109,8 @@
     "home": "Home",
     "shifts": "Shifts",
     "pay": "Pay",
-    "profile": "Profile"
+    "profile": "Profile",
+    "approvals": "Approvals"
   },
   "status": {
     "draft": "Draft",
@@ -234,6 +235,14 @@
       "offline": "Not saved, no connection",
       "error": "Couldn't save",
       "retry": "Retry"
+    },
+    "fix": {
+      "title": "Fix your shift",
+      "resubmit": "Resubmit",
+      "offline": "No connection. Your changes are still here. Try again when you're online.",
+      "notEditable": "This shift can't be changed any more.",
+      "error": "Couldn't resubmit the shift. Try again.",
+      "loadError": "Couldn't load this shift."
     }
   },
   "firm": {
@@ -253,6 +262,53 @@
       "title": "Your firm isn't set up yet",
       "body": "Ask the firm's owner to finish setting up stations and buses."
     }
+  },
+  "edit": {
+    "start": "Start",
+    "finish": "Finish",
+    "finishBeforeStart": "Must be after the start.",
+    "required": "Required."
+  },
+  "review": {
+    "title": "Approvals",
+    "pending": "Pending",
+    "pendingCount": "Pending ({{count}})",
+    "reviewed": "Reviewed",
+    "corrected": "Corrected",
+    "pay": "Pay",
+    "payWhenApproved": "Pay when approved",
+    "payBreakdown": "{{hours}} h × {{rate}}/h",
+    "noRate": "This courier has no hourly rate yet.",
+    "changes": "Changes",
+    "correctedBy": "Corrected by {{name}} · {{when}}",
+    "reasons": {
+      "km": "Kilometers don't match",
+      "packages": "Package count is wrong",
+      "busOrStation": "Wrong bus or station",
+      "time": "Working time is wrong"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "correct": "Correct",
+    "correctTitle": "Correct this shift",
+    "saveCorrection": "Save correction",
+    "waitingForCourier": "Sent back. Waiting for the courier to fix and resubmit.",
+    "rejectTitle": "Send back to courier",
+    "rejectBody": "Pick what's wrong, add a note if it helps. The courier fixes it and resubmits.",
+    "note": "Note",
+    "notePlaceholder": "Optional",
+    "send": "Send back",
+    "actionOffline": "No connection. Nothing was changed. Try again when you're online.",
+    "actionError": "Something went wrong. Try again.",
+    "changedMeanwhile": "Someone else changed this shift. It has been reloaded.",
+    "invalid": "Some values don't fit together. Check the fields.",
+    "notFound": "This shift isn't in your depots.",
+    "offline": "No connection. Try again when you're online.",
+    "error": "Couldn't load the shifts.",
+    "emptyPendingTitle": "All caught up",
+    "emptyPendingBody": "No shifts are waiting for approval.",
+    "emptyReviewedTitle": "Nothing reviewed yet",
+    "emptyReviewedBody": "Shifts you approve or send back in the last 30 days show up here."
   },
   "placeholder": {
     "pay": {

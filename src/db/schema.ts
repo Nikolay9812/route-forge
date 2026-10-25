@@ -1,7 +1,7 @@
 // Drizzle table definitions for Neon Postgres. Columns are camelCase here and snake_case in the database.
 // Every firm-owned table has a `firmId` (the Clerk Organization ID). Changes reach the database with
 // `npm run db:push`, never migrations. Rows salary history depends on are archived, never deleted.
-import { date, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 const createdAt = () => timestamp({ withTimezone: true }).notNull().defaultNow();
 
@@ -84,11 +84,52 @@ export const shifts = pgTable(
     returned: integer(),
     /** Customer returns collected (Abholung). */
     pickups: integer(),
-    rejectionReason: text(),
+    /** Reason codes (RejectReason) when rejected. */
+    rejectionReasons: text().array(),
+    rejectionNote: text(),
     submittedAt: timestamp({ withTimezone: true }),
+    /** Set by approve and reject. */
+    reviewedAt: timestamp({ withTimezone: true }),
+    /** Clerk user ID of the dispatcher or owner who reviewed it. */
+    reviewedBy: text(),
     createdAt: createdAt(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   // Also serves "newest first" reads for one courier (scanned backwards).
   (t) => [uniqueIndex().on(t.firmId, t.userId, t.date)],
+);
+
+/** The depots a dispatcher manages. Owners manage every depot and need no rows here. */
+export const dispatcherDepots = pgTable(
+  "dispatcher_depots",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    /** Clerk user ID of the dispatcher. */
+    userId: text().notNull(),
+    depotId: uuid()
+      .notNull()
+      .references(() => depots.id),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.userId, t.depotId)],
+);
+
+/** One row per field a dispatcher or owner corrected: who changed what, and when. */
+export const shiftChanges = pgTable(
+  "shift_changes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    shiftId: uuid()
+      .notNull()
+      .references(() => shifts.id),
+    /** Clerk user ID. */
+    changedBy: text().notNull(),
+    changedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    field: text().notNull(),
+    oldValue: text(),
+    newValue: text(),
+  },
+  (t) => [index().on(t.firmId, t.shiftId)],
 );

@@ -2,20 +2,25 @@
 import { and, desc, eq, gte, inArray, isNull, lt, lte, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
-import { cars, courierRates, depots, firmSettings, shifts } from "@/db/schema";
+import { cars, courierRates, depots, firmSettings, shiftChanges, shifts } from "@/db/schema";
 import { todayIn } from "@/domain/dates";
 import { finishProblem, type FinishProblem, type ShiftPatch, type StartInput } from "@/domain/shift";
-import type { Bus, Firm, Rate, Shift, Station } from "@/domain/types";
+import type { Bus, Firm, Rate, RejectReason, Shift, Station } from "@/domain/types";
 
 import { firmName, type Courier } from "./auth";
 
 const editable = ["draft", "rejected"] as const;
 
-const shiftSelect = { shift: shifts, depotName: depots.name, carPlate: cars.plate };
+const shiftSelect = {
+  shift: shifts,
+  depotName: depots.name,
+  carPlate: cars.plate,
+  corrected: sql<boolean>`exists (select 1 from ${shiftChanges} where ${shiftChanges.shiftId} = ${shifts.id})`,
+};
 
-type ShiftRow = { shift: typeof shifts.$inferSelect; depotName: string; carPlate: string };
+type ShiftRow = { shift: typeof shifts.$inferSelect; depotName: string; carPlate: string; corrected: boolean };
 
-function toShift({ shift: s, depotName, carPlate }: ShiftRow): Shift {
+export function toShift({ shift: s, depotName, carPlate, corrected }: ShiftRow): Shift {
   return {
     id: s.id,
     date: s.date,
@@ -30,7 +35,10 @@ function toShift({ shift: s, depotName, carPlate }: ShiftRow): Shift {
     loaded: s.loaded,
     returned: s.returned,
     pickups: s.pickups,
-    ...(s.status === "rejected" && s.rejectionReason ? { rejectionReason: s.rejectionReason } : {}),
+    corrected,
+    ...(s.status === "rejected"
+      ? { rejection: { reasons: (s.rejectionReasons ?? []) as RejectReason[], note: s.rejectionNote } }
+      : {}),
   };
 }
 
@@ -39,7 +47,8 @@ function mine({ firmId, userId }: Courier, ...extra: SQL[]) {
   return and(eq(shifts.firmId, firmId), eq(shifts.userId, userId), ...extra);
 }
 
-function selectShifts() {
+/** Shifts joined with their depot and car, plus whether anyone corrected them. Add a firm-scoped where. */
+export function selectShifts() {
   return db
     .select(shiftSelect)
     .from(shifts)
@@ -156,14 +165,7 @@ export async function submitShift(
 
   const updated = await db
     .update(shifts)
-    .set({
-      status: "submitted",
-      finishedAt: sql`now()`,
-      submittedAt: sql`now()`,
-      minutes: sql`greatest(0, floor(extract(epoch from (now() - ${shifts.startedAt})) / 60))::int`,
-      rejectionReason: null,
-      updatedAt: sql`now()`,
-    })
+    .set(submitted)
     .where(
       mine(
         courier,
@@ -178,6 +180,64 @@ export async function submitShift(
   if (!updated.length) return "notEditable";
   return (await shiftOn(courier, date))!;
 }
+
+/**
+ * The update that submits a shift. A draft finishes now; a rejected shift being resubmitted keeps the times it
+ * already has, so fixing it days later doesn't inflate its hours. Clears the previous review.
+ */
+const submitted = {
+  status: "submitted" as const,
+  finishedAt: sql`coalesce(${shifts.finishedAt}, now())`,
+  submittedAt: sql`now()`,
+  minutes: sql`greatest(0, floor(extract(epoch from (coalesce(${shifts.finishedAt}, now()) - ${shifts.startedAt})) / 60))::int`,
+  rejectionReasons: null,
+  rejectionNote: null,
+  reviewedAt: null,
+  reviewedBy: null,
+  updatedAt: sql`now()`,
+};
+
+/** One of the courier's own shifts by id, or null (also when it belongs to someone else). */
+export async function ownShift(courier: Courier, id: string): Promise<Shift | null> {
+  const [row] = await selectShifts().where(mine(courier, eq(shifts.id, id)));
+  return row ? toShift(row) : null;
+}
+
+/** Applies a courier's fix to their own rejected shift. Null when it isn't theirs or isn't rejected any more. */
+export async function fixShift(courier: Courier, id: string, values: ShiftValues): Promise<Shift | null> {
+  const updated = await db
+    .update(shifts)
+    .set({ ...values, updatedAt: new Date() })
+    .where(mine(courier, eq(shifts.id, id), eq(shifts.status, "rejected")))
+    .returning({ id: shifts.id });
+  return updated.length ? ownShift(courier, id) : null;
+}
+
+/** Resubmits the courier's own rejected shift after it passes the finish checks. */
+export async function resubmitShift(
+  courier: Courier,
+  id: string,
+): Promise<Shift | "notFound" | "notEditable" | FinishProblem> {
+  const current = await ownShift(courier, id);
+  if (!current) return "notFound";
+  if (current.status !== "rejected") return "notEditable";
+  const problem = finishProblem(current);
+  if (problem) return problem;
+  const updated = await db
+    .update(shifts)
+    .set(submitted)
+    .where(mine(courier, eq(shifts.id, id), eq(shifts.status, "rejected")))
+    .returning({ id: shifts.id });
+  return updated.length ? (await ownShift(courier, id))! : "notEditable";
+}
+
+/** Column values a correction or fix writes. */
+export type ShiftValues = Partial<
+  Pick<
+    typeof shifts.$inferInsert,
+    "depotId" | "carId" | "startedAt" | "finishedAt" | "minutes" | "startKm" | "endKm" | "loaded" | "returned" | "pickups"
+  >
+>;
 
 /** Today in the firm's timezone. */
 export function firmToday(firm: Firm): string {

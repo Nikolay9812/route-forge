@@ -35,7 +35,13 @@ export function StartCard({
         <ThemedText variant="label">{t("shifts.start.title")}</ThemedText>
         <Tag tone="draft" size="sm" label={t("shifts.phase.notStarted")} />
       </View>
-      <StationBusPickers fields={fields} stations={stations} buses={buses} onChange={onChange} />
+      <StationBusPickers
+        stationId={fields.stationId}
+        busId={fields.busId}
+        stations={stations}
+        buses={buses}
+        onChange={onChange}
+      />
       <View className="flex-row gap-3">
         <NumberField
           label={t("shifts.fields.startKm")}

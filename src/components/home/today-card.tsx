@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { View } from "react-native";
 
-import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { Icon } from "@/components/icon";
 import type { IconName } from "@/components/icons";
+import { RejectionAlert } from "@/components/shifts/rejection-alert";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
@@ -73,9 +73,7 @@ export function TodayCard({
               · {shift.depot.name}
             </ThemedText>
           </View>
-          {shift.status === "rejected" && shift.rejectionReason ? (
-            <Alert tone="danger" message={t("home.today.rejected", { reason: shift.rejectionReason })} />
-          ) : null}
+          <RejectionAlert rejection={shift.rejection} />
         </>
       ) : (
         <View className="gap-2">

@@ -4,6 +4,8 @@ import { minuteOfDayIn } from "@/domain/dates";
 import { delivered, finishProblem, kmDriven, type ShiftPatch } from "@/domain/shift";
 import type { Shift } from "@/domain/types";
 
+export { parseClock } from "@/domain/dates";
+
 export type ShiftFields = {
   stationId: string | null;
   busId: string | null;
@@ -102,15 +104,6 @@ export function patchOf(fields: ShiftFields, names: Iterable<FieldName>): ShiftP
 /** Keeps digits only, so pasted "48 213" or "140." becomes a plain number string. */
 export function digitsOnly(text: string): string {
   return text.replace(/\D/g, "").slice(0, 7);
-}
-
-/** "7:30" or "07:30" → 450 minutes after midnight, or null if it isn't a valid time. */
-export function parseClock(text: string): number | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(text.trim());
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  return hours < 24 && minutes < 60 ? hours * 60 + minutes : null;
 }
 
 /** Today at the given firm-local minute of day, as UTC milliseconds, or null if that is in the future. */

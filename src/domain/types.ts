@@ -22,8 +22,32 @@ export type Shift = {
   /** Customer returns collected (Abholung). */
   pickups: number | null;
   /** Set when status is rejected. */
-  rejectionReason?: string;
+  rejection?: Rejection;
+  /** A dispatcher or owner changed a value after the courier submitted it. */
+  corrected: boolean;
 };
+
+/** Why a dispatcher sent a shift back. Codes are translated in the app. */
+export type RejectReason = "km" | "packages" | "busOrStation" | "time";
+
+export type Rejection = { reasons: RejectReason[]; note: string | null };
+
+/** One corrected field. Values are as stored: numbers as text, times as ISO, depot and car as names. */
+export type ShiftChange = { field: ShiftField; from: string | null; to: string | null; byName: string; at: string };
+
+export type ShiftField =
+  | "depot"
+  | "car"
+  | "startedAt"
+  | "finishedAt"
+  | "startKm"
+  | "endKm"
+  | "loaded"
+  | "returned"
+  | "pickups";
+
+/** A shift with its courier, as dispatchers and owners see it in the approvals list. */
+export type ReviewItem = { shift: Shift; courierName: string };
 
 /** A courier's hourly rate from `effectiveFrom` until the next rate starts. */
 export type Rate = { effectiveFrom: string; hourlyMinor: number };

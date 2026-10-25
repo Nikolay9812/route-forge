@@ -2,60 +2,7 @@
 // courier of a second firm. Mints short-lived session tokens for the `+clerk_test` users through the Clerk Backend
 // API, and clears those users' shifts for today first (dev branch only). Salary amounts are never printed.
 // Run with `npm run check:api` (API_BASE overrides http://localhost:8081).
-import { neon } from "@neondatabase/serverless";
-
-const { CLERK_SECRET_KEY, DATABASE_URL, NEON_BRANCH, API_BASE = "http://localhost:8081" } = process.env;
-if (!CLERK_SECRET_KEY || !DATABASE_URL) throw new Error("CLERK_SECRET_KEY and DATABASE_URL must be set (.env.local).");
-if (NEON_BRANCH !== "dev") throw new Error("check-api deletes test shifts: run it only against the Neon dev branch.");
-
-async function clerk(path, body) {
-  const res = await fetch(`https://api.clerk.com/v1${path}`, {
-    method: body ? "POST" : "GET",
-    headers: { Authorization: `Bearer ${CLERK_SECRET_KEY}`, "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(`Clerk ${path}: ${res.status}`);
-  return res.json();
-}
-
-async function userByEmail(email) {
-  const [user] = await clerk(`/users?email_address=${encodeURIComponent(email)}`);
-  if (!user) throw new Error(`No Clerk user ${email}. Create the test users first.`);
-  return user.id;
-}
-
-async function orgByName(name) {
-  const { data } = await clerk(`/organizations?query=${encodeURIComponent(name)}`);
-  const org = data.find((o) => o.name === name);
-  if (!org) throw new Error(`No Clerk organization "${name}".`);
-  return org.id;
-}
-
-/** A fresh session token for the user with the firm active. */
-async function tokenFor(userId, orgId) {
-  const session = await clerk("/sessions", { user_id: userId });
-  const { jwt } = await clerk(`/sessions/${session.id}/tokens`, { organization_id: orgId });
-  return jwt;
-}
-
-async function call(token, method, path, body) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const json = await res.json().catch(() => null);
-  return { status: res.status, json };
-}
-
-let failures = 0;
-function check(name, ok, detail = "") {
-  if (!ok) failures++;
-  console.log(`${ok ? "✅" : "❌"} ${name}${!ok && detail ? ` (${detail})` : ""}`);
-}
+import { call, check, finish, orgByName, sql, tokenFor, userByEmail } from "./lib/api-test.mjs";
 
 const ivanov = await orgByName("Ivanov Transport");
 const firmB = await orgByName("Test Firm B");
@@ -67,7 +14,7 @@ const users = {
 };
 
 // Start clean: today's shifts for the test couriers (any date >= yesterday covers timezone edges).
-const sql = neon(DATABASE_URL);
+await sql`delete from shift_changes where shift_id in (select id from shifts where user_id = any(${[users.a, users.c, users.b]}) and date >= current_date - 1)`;
 await sql`delete from shifts where user_id = any(${[users.a, users.c, users.b]}) and date >= current_date - 1`;
 
 const tokens = {
@@ -156,5 +103,4 @@ check("A's home totals are numbers", Number.isInteger(r.json?.totals.payMinor) &
 r = await call(tokens.b, "GET", "/api/home");
 check("firm B home only has TFB1 shifts", r.status === 200 && r.json.recent.every((s) => s.depot.name === "TFB1"));
 
-console.log(failures ? `\n${failures} check(s) failed.` : "\nAll API checks passed.");
-process.exitCode = failures ? 1 : 0;
+finish("API");

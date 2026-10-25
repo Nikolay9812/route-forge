@@ -32,7 +32,13 @@ export function RouteCard({
       <ThemedText variant="title" accessibilityRole="header">
         {t("shifts.route.title")}
       </ThemedText>
-      <StationBusPickers fields={fields} stations={stations} buses={buses} onChange={onChange} />
+      <StationBusPickers
+        stationId={fields.stationId}
+        busId={fields.busId}
+        stations={stations}
+        buses={buses}
+        onChange={onChange}
+      />
       <View className="flex-row items-start gap-3">
         <NumberField
           label={t("shifts.fields.startKm")}

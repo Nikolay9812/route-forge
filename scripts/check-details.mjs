@@ -1,6 +1,8 @@
 // Courier document checks against a running dev server: a courier reads and saves only their own documents, the
 // owner reads and edits every courier of the firm, dispatchers and other firms get nothing, and bad input is
-// refused. Saves the seeded values back at the end. Run with `npm run check:details` (after db:seed).
+// refused; then document photos in R2 (prompts/17). Restores the seeded values and removes test photos at the end.
+// Run with `npm run check:details` (after db:seed).
+import { deleteObject, headObject } from "../src/server/storage.ts";
 import { call, check, finish, orgByName, sql, tokenFor, userByEmail } from "./lib/api-test.mjs";
 
 const ivanov = await orgByName("Ivanov Transport");
@@ -141,11 +143,129 @@ try {
     r = await call(token.a, "PATCH", "/api/details", body);
     check(`${name} → invalid`, r.status === 400 && r.json?.error === "invalid", r.status);
   }
+
+  await checkPhotos();
 } finally {
+  // Photos the checks left behind (rows and files), then the seeded values.
+  for (const userId of [users.a, users.c]) {
+    for (const row of await sql`select object_key from document_photos where firm_id = ${ivanov} and user_id = ${userId}`) {
+      await deleteObject(row.object_key);
+    }
+    await sql`delete from document_photos where firm_id = ${ivanov} and user_id = ${userId}`;
+  }
   if (seededContacts) await call(await tokenFor(users.a, ivanov), "PATCH", "/api/details", { section: "contacts", values: seededContacts });
   if (seededBank) {
     await call(await tokenFor(users.owner, ivanov), "PATCH", `/api/couriers/${users.c}`, { section: "bank", values: seededBank });
   }
+}
+
+/** Document photos in R2 (prompts/17-document-photos.md). Tokens last about a minute, so this block gets fresh ones. */
+async function checkPhotos() {
+  const t = {
+    a: await tokenFor(users.a, ivanov),
+    b: await tokenFor(users.b, firmB),
+    dispatcher: await tokenFor(users.dispatcher, ivanov),
+    owner: await tokenFor(users.owner, ivanov),
+  };
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46, 0xff, 0xd9]);
+  const upload = (url, type = "image/jpeg") => fetch(url, { method: "PUT", body: jpeg, headers: { "Content-Type": type } });
+  const front = { section: "idCard", slot: "front" };
+
+  // Courier: start, upload, keep, show.
+  let r = await call(t.a, "POST", "/api/details/photos", { ...front, contentType: "image/jpeg" });
+  check("courier starts an upload", r.status === 200 && typeof r.json?.uploadUrl === "string", r.status);
+  const first = r.json.key;
+  check("the key sits under the courier's own prefix", first.startsWith(`firms/${ivanov}/couriers/${users.a}/idCard/front/`));
+  check("the file goes straight to R2", (await upload(r.json.uploadUrl)).status === 200);
+  r = await call(t.a, "PUT", "/api/details/photos", { ...front, key: first });
+  const shown = r.json?.photos?.idCard?.front;
+  check("courier keeps the photo", r.status === 200 && shown?.key === first, r.status);
+  const view = await fetch(shown.url);
+  check("the signed URL shows the same bytes", view.status === 200 && (await view.arrayBuffer()).byteLength === jpeg.length);
+  check("the bucket itself is private", (await fetch(shown.url.split("?")[0])).status !== 200);
+  r = await call(t.a, "GET", "/api/details");
+  check("GET lists the photo", r.json?.photos?.idCard?.front?.key === first);
+  const [row] = await sql`select uploaded_by, size from document_photos where firm_id = ${ivanov} and user_id = ${users.a}`;
+  check("the row records the courier and the size", row?.uploaded_by === users.a && row?.size === jpeg.length);
+
+  // Replacing deletes the old file.
+  r = await call(t.a, "POST", "/api/details/photos", { ...front, contentType: "image/png" });
+  await upload(r.json.uploadUrl, "image/png");
+  const second = r.json.key;
+  r = await call(t.a, "PUT", "/api/details/photos", { ...front, key: second });
+  check("a new photo replaces the old one", r.json?.photos?.idCard?.front?.key === second);
+  check("the replaced file is deleted", (await headObject(first)) === null);
+
+  // Front and back of one section both come back.
+  const back = { section: "idCard", slot: "back" };
+  r = await call(t.a, "POST", "/api/details/photos", { ...back, contentType: "image/jpeg" });
+  await upload(r.json.uploadUrl);
+  await call(t.a, "PUT", "/api/details/photos", { ...back, key: r.json.key });
+  r = await call(t.a, "GET", "/api/details");
+  check("both sides of the ID card are listed", Boolean(r.json?.photos?.idCard?.front && r.json?.photos?.idCard?.back));
+  await call(t.a, "DELETE", "/api/details/photos?section=idCard&slot=back");
+
+  // What a courier can't do.
+  r = await call(t.a, "POST", "/api/details/photos", { ...front, contentType: "image/jpeg" });
+  check("an upload with another type than signed → R2 refuses", (await upload(r.json.uploadUrl, "text/plain")).status === 403);
+  r = await call(t.a, "PUT", "/api/details/photos", { ...front, key: r.json.key });
+  check("keeping a photo that was never uploaded → invalid", r.status === 400, r.status);
+  const foreign = `firms/${ivanov}/couriers/${users.c}/idCard/front/${crypto.randomUUID()}`;
+  r = await call(t.a, "PUT", "/api/details/photos", { ...front, key: foreign });
+  check("keeping a key under courier.c's prefix → invalid", r.status === 400, r.status);
+  r = await call(t.a, "PUT", "/api/details/photos", { section: "idCard", slot: "back", key: second });
+  check("keeping another slot's key → invalid", r.status === 400, r.status);
+  r = await call(t.a, "POST", "/api/details/photos", { section: "social", slot: "front", contentType: "image/jpeg" });
+  check("a slot the section doesn't have → invalid", r.status === 400, r.status);
+  r = await call(t.a, "POST", "/api/details/photos", { ...front, contentType: "application/pdf" });
+  check("a type that isn't an image → invalid", r.status === 400, r.status);
+  r = await call(t.a, "POST", "/api/details/photos", { ...front, contentType: "image/jpeg", userId: users.c });
+  check("a user ID in the body → invalid", r.status === 400, r.status);
+
+  // Remove.
+  r = await call(t.a, "DELETE", "/api/details/photos?section=idCard&slot=front");
+  check("courier removes the photo", r.status === 200 && !r.json?.photos?.idCard?.front, r.status);
+  check("the removed file is deleted", (await headObject(second)) === null);
+  r = await call(t.a, "DELETE", "/api/details/photos?section=idCard&slot=nope");
+  check("removing a slot that doesn't exist → invalid", r.status === 400, r.status);
+
+  // Owner: courier.c's photos.
+  const licence = { section: "licence", slot: "back" };
+  r = await call(t.owner, "POST", `/api/couriers/${users.c}/photos`, { ...licence, contentType: "image/jpeg" });
+  check("owner starts an upload for courier.c", r.status === 200 && r.json.key.includes(`/couriers/${users.c}/`), r.status);
+  await upload(r.json.uploadUrl);
+  const owners = r.json.key;
+  r = await call(t.owner, "PUT", `/api/couriers/${users.c}/photos`, { ...licence, key: owners });
+  check("owner keeps it and sees it", r.status === 200 && r.json.photos?.licence?.back?.key === owners, r.status);
+  const [ownerRow] = await sql`select uploaded_by from document_photos where firm_id = ${ivanov} and user_id = ${users.c}`;
+  check("the row records the owner as uploader", ownerRow?.uploaded_by === users.owner);
+  r = await call(t.owner, "GET", `/api/couriers/${users.c}`);
+  check("owner reads courier.c's photo with a signed URL", typeof r.json?.photos?.licence?.back?.url === "string");
+
+  // Roles.
+  for (const [method, path, body] of [
+    ["POST", "/api/details/photos", { ...front, contentType: "image/jpeg" }],
+    ["POST", `/api/couriers/${users.c}/photos`, { ...licence, contentType: "image/jpeg" }],
+    ["DELETE", `/api/couriers/${users.c}/photos?section=licence&slot=back`],
+  ]) {
+    r = await call(t.dispatcher, method, path, body);
+    check(`dispatcher ${method} ${path.split("?")[0]} → role`, r.status === 403 && r.json?.error === "role", r.status);
+  }
+  r = await call(t.a, "DELETE", `/api/couriers/${users.c}/photos?section=licence&slot=back`);
+  check("a courier can't remove courier.c's photo", r.status === 403 && r.json?.error === "role", r.status);
+  r = await call(t.owner, "POST", "/api/details/photos", { ...front, contentType: "image/jpeg" });
+  check("an owner has no own photos route", r.status === 403 && r.json?.error === "role", r.status);
+  check("courier.c's photo survived", (await headObject(owners)) !== null);
+
+  // Tenant isolation.
+  r = await call(t.owner, "POST", `/api/couriers/${users.b}/photos`, { ...front, contentType: "image/jpeg" });
+  check("Ivanov owner can't upload for a Firm B courier", r.status === 404, r.status);
+  r = await call(t.owner, "DELETE", `/api/couriers/${users.b}/photos?section=idCard&slot=front`);
+  check("Ivanov owner can't remove a Firm B photo", r.status === 404, r.status);
+  r = await call(t.b, "PUT", "/api/details/photos", { ...licence, key: owners });
+  check("a Firm B courier can't claim an Ivanov key", r.status === 400, r.status);
+  r = await call(t.b, "GET", "/api/details");
+  check("courier.b sees no photos of Ivanov", r.status === 200 && Object.keys(r.json.photos).length === 0, r.status);
 }
 
 finish("courier document");

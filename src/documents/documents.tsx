@@ -1,23 +1,29 @@
 // Couriers' personal documents under Profile: a courier's own (`/api/details`) and, for owners, any courier's
 // (`/api/couriers/:userId`). The provider wraps the Profile stack, so a section list and its form share one copy;
-// a save swaps in the answer. Photos live only in this provider's memory until there is file storage.
+// a save swaps in the answer. Photos are saved right away: the API hands out an upload URL, the file goes straight
+// to the private bucket, and keeping it answers the updated documents.
+import { File, UploadType } from "expo-file-system";
 import { useFocusEffect } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from "react";
 
-import { failureOf, useApi, type ApiFailure } from "@/api/client";
+import { ApiError, failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource, type Resource } from "@/api/use-resource";
-import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection } from "@/domain/types";
+import { PHOTO_TYPES, type PhotoType } from "@/domain/courier-details";
+import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection, PhotoSlot } from "@/domain/types";
 
-export type PhotoSlot = "front" | "back" | "photo" | "page1" | "page2" | "page3";
-type Photos = Partial<Record<DetailsSection, Partial<Record<PhotoSlot, string>>>>;
 type Entry = { resource: Resource<CourierDocuments>; refreshing: boolean };
+/** A picked image: its local file and type, as the image picker gives them. */
+export type PickedPhoto = { uri: string; mimeType?: string | null };
+/** Local previews of photos still uploading, per documents key, section and slot. */
+type Uploading = Record<string, Partial<Record<DetailsSection, Partial<Record<PhotoSlot, string>>>>>;
 
 type DocumentsValue = {
   entries: Record<string, Entry>;
   load: (userId: string | undefined, quiet: boolean) => void;
   save: (userId: string | undefined, section: DetailsSection, values: Record<string, unknown>) => Promise<ApiFailure | null>;
-  photos: Photos;
-  setPhoto: (section: DetailsSection, slot: PhotoSlot, uri: string | null) => void;
+  uploading: Uploading;
+  addPhoto: (userId: string | undefined, section: DetailsSection, slot: PhotoSlot, photo: PickedPhoto) => Promise<ApiFailure | null>;
+  removePhoto: (userId: string | undefined, section: DetailsSection, slot: PhotoSlot) => Promise<ApiFailure | null>;
 };
 
 const DocumentsContext = createContext<DocumentsValue | null>(null);
@@ -30,7 +36,7 @@ const pathOf = (userId: string | undefined) => (userId ? `/api/couriers/${userId
 export function DocumentsProvider({ children }: PropsWithChildren) {
   const api = useApi();
   const [entries, setEntries] = useState<Record<string, Entry>>({});
-  const [photos, setPhotos] = useState<Photos>({});
+  const [uploading, setUploading] = useState<Uploading>({});
 
   const load = useCallback(
     (userId: string | undefined, quiet: boolean) => {
@@ -57,30 +63,84 @@ export function DocumentsProvider({ children }: PropsWithChildren) {
     [api],
   );
 
+  const show = useCallback((userId: string | undefined, data: CourierDocuments) => {
+    setEntries((previous) => ({ ...previous, [keyOf(userId)]: { resource: { status: "ready", data }, refreshing: false } }));
+  }, []);
+
   const save = useCallback<DocumentsValue["save"]>(
     async (userId, section, values) => {
       try {
-        const data = await api<CourierDocuments>(pathOf(userId), { method: "PATCH", body: { section, values } });
-        setEntries((previous) => ({ ...previous, [keyOf(userId)]: { resource: { status: "ready", data }, refreshing: false } }));
+        show(userId, await api<CourierDocuments>(pathOf(userId), { method: "PATCH", body: { section, values } }));
         return null;
       } catch (error) {
         return failureOf(error);
       }
     },
-    [api],
+    [api, show],
   );
 
-  const setPhoto = useCallback((section: DetailsSection, slot: PhotoSlot, uri: string | null) => {
-    setPhotos((previous) => {
-      const slots = { ...previous[section] };
+  const setPreview = useCallback((userId: string | undefined, section: DetailsSection, slot: PhotoSlot, uri: string | null) => {
+    setUploading((previous) => {
+      const key = keyOf(userId);
+      const slots = { ...previous[key]?.[section] };
       if (uri) slots[slot] = uri;
       else delete slots[slot];
-      return { ...previous, [section]: slots };
+      return { ...previous, [key]: { ...previous[key], [section]: slots } };
     });
   }, []);
 
+  const addPhoto = useCallback<DocumentsValue["addPhoto"]>(
+    async (userId, section, slot, photo) => {
+      const path = `${pathOf(userId)}/photos`;
+      const contentType: PhotoType = PHOTO_TYPES.includes(photo.mimeType as PhotoType)
+        ? (photo.mimeType as PhotoType)
+        : "image/jpeg";
+      setPreview(userId, section, slot, photo.uri);
+      try {
+        const { key, uploadUrl } = await api<{ key: string; uploadUrl: string }>(path, {
+          method: "POST",
+          body: { section, slot, contentType },
+        });
+        let status: number;
+        try {
+          ({ status } = await new File(photo.uri).upload(uploadUrl, {
+            httpMethod: "PUT",
+            uploadType: UploadType.BINARY_CONTENT,
+            mimeType: contentType,
+            headers: { "Content-Type": contentType },
+          }));
+        } catch {
+          throw new ApiError("offline");
+        }
+        if (status < 200 || status >= 300) throw new ApiError("server");
+        show(userId, await api<CourierDocuments>(path, { method: "PUT", body: { section, slot, key } }));
+        return null;
+      } catch (error) {
+        return failureOf(error);
+      } finally {
+        setPreview(userId, section, slot, null);
+      }
+    },
+    [api, setPreview, show],
+  );
+
+  const removePhoto = useCallback<DocumentsValue["removePhoto"]>(
+    async (userId, section, slot) => {
+      try {
+        const query = new URLSearchParams({ section, slot }).toString();
+        show(userId, await api<CourierDocuments>(`${pathOf(userId)}/photos?${query}`, { method: "DELETE" }));
+        return null;
+      } catch (error) {
+        return failureOf(error);
+      }
+    },
+    [api, show],
+  );
+
   return (
-    <DocumentsContext.Provider value={{ entries, load, save, photos, setPhoto }}>{children}</DocumentsContext.Provider>
+    <DocumentsContext.Provider value={{ entries, load, save, uploading, addPhoto, removePhoto }}>
+      {children}
+    </DocumentsContext.Provider>
   );
 }
 
@@ -119,12 +179,14 @@ export function useDocuments(userId?: string) {
   };
 }
 
-/** Photos picked for one section on this phone (front/back or one photo), gone when the app closes. */
-export function useSectionPhotos(section: DetailsSection) {
-  const { photos, setPhoto } = useDocumentsContext();
+/** One section's photos: what's stored, local previews of uploads in flight, and adding or removing one. */
+export function useSectionPhotos(userId: string | undefined, section: DetailsSection, documents: CourierDocuments) {
+  const { uploading, addPhoto, removePhoto } = useDocumentsContext();
   return {
-    photos: photos[section] ?? {},
-    setPhoto: (slot: PhotoSlot, uri: string | null) => setPhoto(section, slot, uri),
+    stored: documents.photos[section] ?? {},
+    uploading: uploading[keyOf(userId)]?.[section] ?? {},
+    add: (slot: PhotoSlot, photo: PickedPhoto) => addPhoto(userId, section, slot, photo),
+    remove: (slot: PhotoSlot) => removePhoto(userId, section, slot),
   };
 }
 

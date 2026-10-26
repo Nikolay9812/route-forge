@@ -195,6 +195,14 @@ export type SectionWarning = "expired" | "expiresSoon" | "tooOld";
 
 export type SectionState = { state: "missing" | "incomplete" | "complete"; warning: SectionWarning | null };
 
+/** A photo slot of a document section (which sections have which slots: `sectionPhotos`). */
+export type PhotoSlot = "front" | "back" | "photo" | "page1" | "page2" | "page3";
+
+/** A stored document photo: its object key (stable, for caching) and a short-lived signed URL to show it. */
+export type DocumentPhoto = { key: string; url: string };
+
+export type DocumentPhotos = Partial<Record<DetailsSection, Partial<Record<PhotoSlot, DocumentPhoto>>>>;
+
 /** One courier's documents, for the courier themselves or their firm's owner. */
 export type CourierDocuments = {
   userId: string;
@@ -202,6 +210,7 @@ export type CourierDocuments = {
   today: string;
   details: CourierDetails;
   sections: Record<DetailsSection, SectionState>;
+  photos: DocumentPhotos;
 };
 
 /** A courier in the owner's Couriers list. `expiring` counts both `expiresSoon` and `tooOld` sections. */

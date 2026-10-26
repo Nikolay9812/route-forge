@@ -1,4 +1,4 @@
-// Development seed: firm settings, depots, cars, pay rates, courier documents and six months of past shifts for the firms below.
+// Development seed: firm settings, depots, cars, pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
@@ -7,6 +7,7 @@ import { neon } from "@neondatabase/serverless";
 import { addMonths } from "../src/domain/calendar.ts";
 import { addDays } from "../src/domain/courier-details.ts";
 import { zonedTime } from "../src/domain/dates.ts";
+import { deletePrefix } from "../src/server/storage.ts";
 
 const MONTHS_BACK = 6;
 
@@ -168,11 +169,14 @@ for (const firm of firms) {
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
     sql`delete from pay_rates where firm_id = ${firmId}`,
     sql`delete from courier_details where firm_id = ${firmId}`,
+    sql`delete from document_photos where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
     sql`delete from firm_settings where firm_id = ${firmId}`,
     sql`insert into firm_settings (firm_id, currency, time_zone) values (${firmId}, ${firm.currency}, ${firm.timeZone})`,
   ]);
+  // The firm's document photos in R2 go with their rows; no photos are seeded.
+  await deletePrefix(`firms/${firmId}/`);
 
   const depots = [];
   for (const name of firm.depots) {

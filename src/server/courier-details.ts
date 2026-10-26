@@ -3,11 +3,25 @@
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { courierDetails } from "@/db/schema";
-import { documentSummary, emptyDetails, sectionStates } from "@/domain/courier-details";
-import type { CourierDetails, CourierDocuments, CourierDocumentsList } from "@/domain/types";
+import { courierDetails, documentPhotos } from "@/db/schema";
+import {
+  documentSummary,
+  emptyDetails,
+  isPhotoKey,
+  PHOTO_MAX_BYTES,
+  PHOTO_TYPES,
+  parsePhotoConfirm,
+  parsePhotoQuery,
+  parsePhotoRequest,
+  photoPrefix,
+  sectionStates,
+  type PhotoTarget,
+  type PhotoType,
+} from "@/domain/courier-details";
+import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection, DocumentPhotos, PhotoSlot } from "@/domain/types";
 
-import { firmCouriers, userNames } from "./auth";
+import { apiError, firmCouriers, readJson, userNames } from "./auth";
+import { deleteObject, headObject, presignGet, presignPut } from "./storage";
 
 type Row = typeof courierDetails.$inferSelect;
 
@@ -30,9 +44,120 @@ async function rowOf(firmId: string, userId: string): Promise<Row | undefined> {
 
 /** One courier's documents with each section's state; all fields null until their first save. */
 export async function documentsOf(firmId: string, userId: string, today: string): Promise<CourierDocuments> {
-  const [row, names] = await Promise.all([rowOf(firmId, userId), userNames([userId])]);
+  const [row, names, photos] = await Promise.all([rowOf(firmId, userId), userNames([userId]), photosOf(firmId, userId)]);
   const details = toDetails(row);
-  return { userId, name: names.get(userId) ?? "", today, details, sections: sectionStates(details, today) };
+  return { userId, name: names.get(userId) ?? "", today, details, sections: sectionStates(details, today), photos };
+}
+
+function photoRows(firmId: string, userId: string) {
+  return db
+    .select()
+    .from(documentPhotos)
+    .where(and(eq(documentPhotos.firmId, firmId), eq(documentPhotos.userId, userId)));
+}
+
+/** The courier's stored photos with an hour-long signed URL each. */
+async function photosOf(firmId: string, userId: string): Promise<DocumentPhotos> {
+  const rows = await photoRows(firmId, userId);
+  // Sign every URL first, then fill the map: merging while awaiting would let one slot overwrite another.
+  const urls = await Promise.all(rows.map((row) => presignGet(row.objectKey)));
+  const photos: DocumentPhotos = {};
+  rows.forEach((row, i) => {
+    const section = row.section as DetailsSection;
+    photos[section] = { ...photos[section], [row.slot as PhotoSlot]: { key: row.objectKey, url: urls[i] } };
+  });
+  return photos;
+}
+
+function slotRow(firmId: string, userId: string, { section, slot }: PhotoTarget) {
+  return and(
+    eq(documentPhotos.firmId, firmId),
+    eq(documentPhotos.userId, userId),
+    eq(documentPhotos.section, section),
+    eq(documentPhotos.slot, slot),
+  );
+}
+
+/** A fresh key for the slot and a 5-minute URL to upload the photo to; nothing is stored until it's confirmed. */
+export async function startPhoto(firmId: string, userId: string, target: PhotoTarget, contentType: PhotoType) {
+  const key = photoPrefix(firmId, userId, target) + crypto.randomUUID();
+  return { key, uploadUrl: await presignPut(key, contentType) };
+}
+
+/**
+ * Keeps an uploaded photo: the key must be one this slot hands out and the file must exist, be an allowed size
+ * and have been uploaded with a type. The slot's previous file is deleted. False when any of that fails (the
+ * rejected file is deleted too).
+ */
+export async function confirmPhoto(
+  firmId: string,
+  userId: string,
+  editorId: string,
+  target: PhotoTarget,
+  key: string,
+): Promise<boolean> {
+  if (!isPhotoKey(key, photoPrefix(firmId, userId, target))) return false;
+  const object = await headObject(key);
+  if (!object) return false;
+  if (object.size === 0 || object.size > PHOTO_MAX_BYTES || !PHOTO_TYPES.includes(object.contentType as PhotoType)) {
+    await deleteObject(key);
+    return false;
+  }
+  const [previous] = await db.select().from(documentPhotos).where(slotRow(firmId, userId, target));
+  const set = {
+    objectKey: key,
+    contentType: object.contentType as PhotoType,
+    size: object.size,
+    uploadedBy: editorId,
+    uploadedAt: new Date(),
+  };
+  await db
+    .insert(documentPhotos)
+    .values({ firmId, userId, ...target, ...set })
+    .onConflictDoUpdate({
+      target: [documentPhotos.firmId, documentPhotos.userId, documentPhotos.section, documentPhotos.slot],
+      set,
+    });
+  if (previous && previous.objectKey !== key) await deleteObject(previous.objectKey);
+  return true;
+}
+
+/**
+ * The photo routes for one courier, once the caller may work on them (the courier themselves, or the owner):
+ * `POST { section, slot, contentType }` → `{ key, uploadUrl }`; `PUT { section, slot, key }` and
+ * `DELETE ?section=&slot=` → the updated documents.
+ */
+export async function photoRoute(
+  request: Request,
+  { firmId, userId, editorId, today }: { firmId: string; userId: string; editorId: string; today: string },
+): Promise<Response> {
+  switch (request.method) {
+    case "POST": {
+      const body = parsePhotoRequest(await readJson(request));
+      if (!body.ok) return apiError("invalid");
+      const { contentType, ...target } = body.value;
+      return Response.json(await startPhoto(firmId, userId, target, contentType));
+    }
+    case "PUT": {
+      const body = parsePhotoConfirm(await readJson(request));
+      if (!body.ok) return apiError("invalid");
+      const { key, ...target } = body.value;
+      if (!(await confirmPhoto(firmId, userId, editorId, target, key))) return apiError("invalid");
+      break;
+    }
+    default: {
+      const query = parsePhotoQuery(new URL(request.url).searchParams);
+      if (!query.ok) return apiError("invalid");
+      await removePhoto(firmId, userId, query.value);
+    }
+  }
+  return Response.json(await documentsOf(firmId, userId, today));
+}
+
+/** Removes the slot's photo, the file and its row; removing an empty slot is fine. */
+export async function removePhoto(firmId: string, userId: string, target: PhotoTarget): Promise<void> {
+  const [row] = await db.delete(documentPhotos).where(slotRow(firmId, userId, target)).returning();
+  if (row) await deleteObject(row.objectKey);
 }
 
 /** Saves one section (the values already checked), creating the row on the first save. */

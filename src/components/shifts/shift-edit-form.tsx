@@ -1,5 +1,6 @@
 import { View } from "react-native";
 
+import { Icon } from "@/components/icon";
 import { TextField } from "@/components/text-field";
 import { ThemedText } from "@/components/themed-text";
 import type { Bus, Station } from "@/domain/types";
@@ -14,17 +15,22 @@ function TimeField({
   value,
   onChange,
   error,
+  locked,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
+  /** Shown but not editable, with a lock. */
+  locked?: boolean;
 }) {
   return (
     <TextField
       label={label}
       accessibilityLabel={label}
       icon="hours"
+      editable={!locked}
+      trailing={locked ? <Icon name="lock" size="sm" color="ink-muted" /> : undefined}
       value={value}
       onChangeText={(text) => onChange(text.replace(/[^\d:]/g, "").slice(0, 5))}
       keyboardType="numbers-and-punctuation"
@@ -35,18 +41,21 @@ function TimeField({
   );
 }
 
-// Every value of a finished shift, editable: a dispatcher's correction and a courier's fix use the same form.
+// Every value of a finished shift: a dispatcher's correction and a courier's fix use the same form. A courier
+// fixing a sent-back shift can't change its times (`lockTimes`); only reviewers correct those.
 export function ShiftEditForm({
   fields,
   errors,
   stations,
   buses,
+  lockTimes = false,
   onChange,
 }: {
   fields: EditFields;
   errors: EditErrors;
   stations: Station[];
   buses: Bus[];
+  lockTimes?: boolean;
   onChange: (change: Partial<EditFields>) => void;
 }) {
   const { t } = useTranslation();
@@ -69,14 +78,17 @@ export function ShiftEditForm({
             value={fields.startTime}
             onChange={(startTime) => onChange({ startTime })}
             error={error("startTime")}
+            locked={lockTimes}
           />
           <TimeField
             label={t("edit.finish")}
             value={fields.finishTime}
             onChange={(finishTime) => onChange({ finishTime })}
             error={error("finishTime")}
+            locked={lockTimes}
           />
         </View>
+        {lockTimes ? <ThemedText variant="footnote">{t("shifts.fix.timesLocked")}</ThemedText> : null}
       </View>
       <View className="flex-row items-start gap-3">
         <NumberField

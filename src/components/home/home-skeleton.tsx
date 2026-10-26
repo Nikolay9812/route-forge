@@ -12,7 +12,6 @@ export function HomeSkeleton() {
         <View className="size-icon-button rounded-full bg-border" />
       </View>
       <View className="h-40 rounded-lg bg-border" />
-      <View className="h-32 rounded-lg bg-border" />
       <View className="gap-3">
         <View className="h-14 rounded-md bg-border" />
         <View className="h-14 rounded-md bg-border" />

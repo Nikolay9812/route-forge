@@ -1,4 +1,4 @@
-// One courier's month calendar, paged by month. Months already loaded stay in memory, so paging back and forth
+// One courier's month (calendar or pay), paged by month. Months already loaded stay in memory, so paging back and forth
 // doesn't refetch; coming back to the screen or a new `revision` reloads the shown month quietly.
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -6,9 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { addMonths } from "@/domain/calendar";
 import { monthOf } from "@/domain/dates";
-import type { CalendarMonth } from "@/domain/types";
 
-export type CalendarState<T extends CalendarMonth> = {
+/** What paging needs from any month answer. */
+export type PagedMonth = { month: string; today: string; firstMonth: string };
+
+export type CalendarState<T extends PagedMonth> = {
   /** The shown month, null until the first answer says which month is current. */
   month: string | null;
   data: T | null;
@@ -18,12 +20,14 @@ export type CalendarState<T extends CalendarMonth> = {
   canPrev: boolean;
   canNext: boolean;
   prev: () => void;
+  /** Shows that month ("YYYY-MM"); ignored outside firstMonth…the current month. */
+  goTo: (month: string) => void;
   next: () => void;
   retry: () => void;
 };
 
-/** `base` is the API path without the month, e.g. "/api/calendar" or "/api/team/<userId>". */
-export function useCalendar<T extends CalendarMonth>(base: string, revision: unknown = 0): CalendarState<T> {
+/** `base` is the API path without the month, e.g. "/api/calendar", "/api/team/<userId>" or "/api/pay". */
+export function useCalendar<T extends PagedMonth>(base: string, revision: unknown = 0): CalendarState<T> {
   const api = useApi();
   const [month, setMonth] = useState<string | null>(null);
   const [months, setMonths] = useState<Record<string, T>>({});
@@ -77,6 +81,12 @@ export function useCalendar<T extends CalendarMonth>(base: string, revision: unk
     canNext,
     prev: useCallback(() => setMonth((m) => (m ? addMonths(m, -1) : m)), []),
     next: useCallback(() => setMonth((m) => (m ? addMonths(m, 1) : m)), []),
+    goTo: useCallback(
+      (target: string) => {
+        if (latest && target >= latest.firstMonth && target <= monthOf(latest.today)) setMonth(target);
+      },
+      [latest],
+    ),
     retry: useCallback(() => setAttempt((a) => a + 1), []),
   };
 }

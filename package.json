@@ -64,6 +64,7 @@
     "check:approvals": "node --env-file-if-exists=.env.local scripts/check-approvals.mjs",
     "check:calendar": "node --no-warnings --env-file-if-exists=.env.local scripts/check-calendar.mjs",
     "check:fleet": "node --no-warnings --env-file-if-exists=.env.local scripts/check-fleet.mjs",
+    "check:pay": "node --no-warnings --env-file-if-exists=.env.local scripts/check-pay.mjs",
     "check:pay-rates": "node --no-warnings --env-file-if-exists=.env.local scripts/check-pay-rates.mjs"
   },
   "private": true,

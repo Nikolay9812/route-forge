@@ -90,9 +90,10 @@ try {
   check("courier.c has an approved shift this month (seed)", Boolean(shiftC));
   r = await call(token.owner, "GET", `/api/approvals/${shiftC?.id}`);
   check("review pay for a day-rate shift is the day rate", r.json?.pay?.kind === "daily" && r.json.pay.payMinor === 13000, r.status);
-  r = await call(token.c, "GET", "/api/home");
+  r = await call(token.c, "GET", "/api/pay");
   const homeBefore = r.json?.totals.payMinor;
-  check("courier.c's Home shows their own day rate", r.json?.rate.current?.kind === "daily" && r.json.rate.current.amountMinor === 13000);
+  const rateC = r.json?.rates.at(-1);
+  check("courier.c's Pay tab shows their own day rate", rateC?.kind === "daily" && rateC.amountMinor === 13000);
 
   // Backdating: hourly 20.00 from that shift's day reaches its approved pay and the month total.
   r = await call(token.owner, "POST", "/api/pay-rates", { userId: users.c, effectiveFrom: shiftC?.date, kind: "hourly", amountMinor: 2000 });
@@ -100,18 +101,18 @@ try {
   backdatedId = r.json?.entries.find((e) => e.effectiveFrom === shiftC?.date)?.id ?? null;
   r = await call(token.owner, "GET", `/api/approvals/${shiftC?.id}`);
   check("backdated rate reaches the approved shift's pay", r.json?.pay?.kind === "hourly" && r.json.pay.payMinor === Math.round((shiftC.minutes * 2000) / 60));
-  r = await call(token.c, "GET", "/api/home");
+  r = await call(token.c, "GET", "/api/pay");
   check("backdated rate changes the month total", r.json?.totals.payMinor !== homeBefore);
   await sql`delete from pay_rates where id = ${backdatedId}`;
   backdatedId = null;
-  r = await call(token.c, "GET", "/api/home");
+  r = await call(token.c, "GET", "/api/pay");
   check("removing it restores the month total", r.json?.totals.payMinor === homeBefore);
 
-  // courier.a's Home: own rate only, with the scheduled firm change.
-  r = await call(token.a, "GET", "/api/home");
-  check("courier.a's Home rate follows the firm default", r.json?.rate.current?.amountMinor === seededHourly);
-  check("courier.a sees the upcoming firm change", r.json?.rate.next?.effectiveFrom === "2090-01-01" && r.json.rate.next.amountMinor === 1700);
-  check("Home rate carries only current and next", Object.keys(r.json?.rate ?? {}).sort().join() === "current,next");
+  // courier.a's Pay tab: own rate only, with the scheduled firm change.
+  r = await call(token.a, "GET", "/api/pay");
+  check("courier.a's rate follows the firm default", r.json?.rates.at(-1)?.amountMinor === seededHourly);
+  check("courier.a sees the upcoming firm change", r.json?.next?.effectiveFrom === "2090-01-01" && r.json.next.amountMinor === 1700);
+  check("Pay tab carries no rate lists", !("entries" in r.json) && r.json.rates.every((x) => Object.keys(x).sort().join() === "amountMinor,effectiveFrom,kind"));
 
   // Roles: every pay-rate route is owner-only.
   for (const [who, t] of [["dispatcher", token.dispatcher], ["courier.a", token.a], ["courier.b (Firm B)", token.b]]) {

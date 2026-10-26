@@ -8,7 +8,6 @@ import { Button } from "@/components/button";
 import { useFormat } from "@/components/home/format";
 import { HomeHeader } from "@/components/home/home-header";
 import { HomeSkeleton } from "@/components/home/home-skeleton";
-import { MonthSummary } from "@/components/home/month-summary";
 import { RecentShifts } from "@/components/home/recent-shifts";
 import { SectionEntrance } from "@/components/home/section-entrance";
 import { TodayCard } from "@/components/home/today-card";
@@ -17,8 +16,7 @@ import { useHomeSummary } from "@/home/use-home-summary";
 import { useTranslation } from "@/i18n";
 import { useThemeColor } from "@/theme";
 
-// Courier home: today's shift, this month's approved totals and pay, recent shifts.
-// Shift detail is a later plan, so its entry points open the Shifts tab.
+// Courier home: today's shift and recent shifts. Pay and month totals live on the Pay tab.
 
 // Formats nothing visible: only used until the firm's own settings have loaded.
 const beforeLoad = { timeZone: "UTC", currency: "EUR" };
@@ -67,16 +65,8 @@ export default function Home() {
               <SectionEntrance index={1}>
                 <TodayCard shift={summary.data.today} format={format} onAction={goToShifts} />
               </SectionEntrance>
-              <SectionEntrance index={2}>
-                <MonthSummary
-                  date={summary.data.date}
-                  totals={summary.data.totals}
-                  rate={summary.data.rate}
-                  format={format}
-                />
-              </SectionEntrance>
               {summary.data.recent.length > 0 ? (
-                <SectionEntrance index={3}>
+                <SectionEntrance index={2}>
                   <RecentShifts
                     shifts={summary.data.recent}
                     format={format}

@@ -15,6 +15,11 @@ export function monthRange(month: string): [string, string] {
 }
 
 /** Paging back stops at the month of the first shift, or at the current month when there are none. */
+export function firstMonthOf(today: string, firstDate: string | null): string {
+  const current = monthOf(today);
+  return firstDate && monthOf(firstDate) < current ? monthOf(firstDate) : current;
+}
+
 export function calendarMonth(
   firm: Firm,
   today: string,
@@ -22,7 +27,5 @@ export function calendarMonth(
   shifts: Shift[],
   firstDate: string | null,
 ): CalendarMonth {
-  const current = monthOf(today);
-  const firstMonth = firstDate && monthOf(firstDate) < current ? monthOf(firstDate) : current;
-  return { firm, today, month, firstMonth, shifts, stats: monthStats(shifts) };
+  return { firm, today, month, firstMonth: firstMonthOf(today, firstDate), shifts, stats: monthStats(shifts) };
 }

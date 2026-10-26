@@ -145,6 +145,15 @@
       "fixShift": "Korrigieren und erneut senden",
       "rejected": "Zurückgeschickt: {{reason}}"
     },
+    "recent": {
+      "title": "Letzte Schichten",
+      "seeAll": "Alle"
+    },
+    "error": "Deine Schichten konnten nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+    "retry": "Erneut versuchen"
+  },
+  "pay": {
     "month": {
       "approvedOnly": "Nur genehmigte Schichten",
       "estimatedPay": "Voraussichtlicher Lohn",
@@ -152,6 +161,7 @@
       "pendingOne": "1 Schicht wartet auf Genehmigung",
       "pendingOther": "{{count}} Schichten warten auf Genehmigung",
       "empty": "Diesen Monat noch keine genehmigten Schichten.",
+      "emptyPast": "In diesem Monat keine genehmigten Schichten.",
       "approvedShiftsOne": "1 genehmigte Schicht",
       "approvedShiftsOther": "{{count}} genehmigte Schichten",
       "rateHourly": "Stundenlohn · {{amount}} / Std.",
@@ -160,13 +170,36 @@
       "nextHourly": "Ab {{date}}: {{amount}} / Std.",
       "nextDaily": "Ab {{date}}: {{amount}} pro Schicht"
     },
-    "recent": {
-      "title": "Letzte Schichten",
-      "seeAll": "Alle"
+    "pending": "Ausstehend",
+    "error": "Dein Lohn konnte nicht geladen werden.",
+    "offline": "Keine Verbindung. Zieh nach unten oder tippe auf Erneut versuchen, wenn du online bist.",
+    "open": {
+      "pay": "Lohn pro Tag",
+      "hours": "Stunden pro Tag",
+      "packages": "Pakete pro Tag",
+      "km": "Kilometer pro Tag"
     },
-    "error": "Deine Schichten konnten nicht geladen werden.",
-    "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
-    "retry": "Erneut versuchen"
+    "breakdown": {
+      "title": {
+        "pay": "Lohn · {{month}}",
+        "hours": "Stunden · {{month}}",
+        "packages": "Pakete · {{month}}",
+        "km": "Kilometer · {{month}}"
+      },
+      "day": "Tag",
+      "hours": "Stunden",
+      "pay": "Lohn",
+      "delivered": "Zugestellt",
+      "total": "Gesamt (genehmigt)",
+      "empty": "In diesem Monat keine genehmigten oder ausstehenden Schichten.",
+      "openDay": "Schicht am {{day}} öffnen"
+    },
+    "recent": {
+      "title": "Letzte Monate",
+      "summaryOne": "{{hours}} Std. · 1 Schicht",
+      "summaryOther": "{{hours}} Std. · {{count}} Schichten",
+      "open": "{{month}} anzeigen"
+    }
   },
   "profile": {
     "signOut": "Abmelden",
@@ -251,7 +284,8 @@
       "offline": "Keine Verbindung. Deine Änderungen bleiben hier. Versuch es erneut, wenn du online bist.",
       "notEditable": "Diese Schicht kann nicht mehr geändert werden.",
       "error": "Die Schicht konnte nicht gesendet werden. Versuch es erneut.",
-      "loadError": "Diese Schicht konnte nicht geladen werden."
+      "loadError": "Diese Schicht konnte nicht geladen werden.",
+      "timesLocked": "Nur dein Disponent kann die Zeiten ändern."
     }
   },
   "firm": {
@@ -293,8 +327,7 @@
     "reasons": {
       "km": "Kilometer stimmen nicht",
       "packages": "Paketanzahl ist falsch",
-      "busOrStation": "Falsches Fahrzeug oder Station",
-      "time": "Arbeitszeit ist falsch"
+      "busOrStation": "Falsches Fahrzeug oder Station"
     },
     "approve": "Freigeben",
     "reject": "Zurückgeben",
@@ -319,12 +352,6 @@
     "emptyReviewedTitle": "Noch nichts geprüft",
     "emptyReviewedBody": "Schichten, die du in den letzten 30 Tagen freigibst oder zurückgibst, erscheinen hier.",
     "payDaily": "Tagessatz"
-  },
-  "placeholder": {
-    "pay": {
-      "title": "Lohn",
-      "body": "Hier erscheint dein Monatslohn."
-    }
   },
   "calendar": {
     "list": "Liste",

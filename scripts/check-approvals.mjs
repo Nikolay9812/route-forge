@@ -102,9 +102,11 @@ r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, 
 check("reject with no reason or note → 400", r.status === 400, r.status);
 r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, { action: "reject", reasons: ["nope"] });
 check("unknown reason → 400", r.status === 400, r.status);
+r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, { action: "reject", reasons: ["time"] });
+check("the time reason is gone → 400", r.status === 400, r.status);
 r = await call(token.dispatcher, "POST", `/api/approvals/${toReject.shift.id}`, {
   action: "reject",
-  reasons: ["km", "time"],
+  reasons: ["km", "packages"],
   note: "Check the odometer",
 });
 check("reject → rejected", r.status === 200 && r.json.status === "rejected", r.status);
@@ -114,13 +116,20 @@ check("correcting a rejected shift → 409", r.status === 409, r.status);
 r = await call(token.a, "GET", `/api/shifts/${toReject.shift.id}`);
 check(
   "courier sees the reasons and note",
-  r.json?.shift.rejection?.reasons.join() === "km,time" && r.json.shift.rejection.note === "Check the odometer",
+  r.json?.shift.rejection?.reasons.join() === "km,packages" && r.json.shift.rejection.note === "Check the odometer",
 );
 const minutesBefore = r.json.shift.minutes;
+const startedBefore = r.json.shift.startedAt;
 r = await call(token.c, "GET", `/api/shifts/${toReject.shift.id}`);
 check("another courier can't open it → 404", r.status === 404, r.status);
 r = await call(token.c, "PATCH", `/api/shifts/${toReject.shift.id}`, { pickups: 1 });
 check("another courier can't fix it → 404", r.status === 404, r.status);
+r = await call(token.a, "PATCH", `/api/shifts/${toReject.shift.id}`, { startTime: "05:00" });
+check("courier can't change the times of a sent-back shift → 400", r.status === 400 && r.json.error === "invalid", r.status);
+r = await call(token.a, "PATCH", `/api/shifts/${toReject.shift.id}`, { finishTime: "23:00", pickups: 5 });
+check("…not even alongside other fields → 400", r.status === 400, r.status);
+r = await call(token.a, "GET", `/api/shifts/${toReject.shift.id}`);
+check("the times are unchanged", r.json?.shift.startedAt === startedBefore && r.json.shift.minutes === minutesBefore);
 r = await call(token.a, "PATCH", `/api/shifts/${toReject.shift.id}`, { pickups: 5 });
 check("courier fixes the rejected shift", r.status === 200 && r.json.pickups === 5, r.status);
 r = await call(token.a, "POST", `/api/shifts/${toReject.shift.id}/submit`);
@@ -167,10 +176,10 @@ check(
 check("still submitted after a correction", r.json.shift.status === "submitted");
 
 // Correcting an approved shift moves the courier's month totals.
-const homeBefore = (await call(token.a, "GET", "/api/home")).json.totals;
+const homeBefore = (await call(token.a, "GET", "/api/pay")).json.totals;
 r = await call(token.dispatcher, "PATCH", `/api/approvals/${todayA.id}`, { endKm: todayA.endKm + 25 });
 check("approved shift can be corrected", r.status === 200 && r.json.status === "approved", r.status);
-const homeAfter = (await call(token.a, "GET", "/api/home")).json.totals;
+const homeAfter = (await call(token.a, "GET", "/api/pay")).json.totals;
 check("courier's approved km went up by 25", homeAfter.km - homeBefore.km === 25, homeAfter.km - homeBefore.km);
 
 finish("approvals");

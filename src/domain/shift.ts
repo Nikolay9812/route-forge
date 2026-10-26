@@ -105,7 +105,7 @@ export function parsePatch(body: unknown): Parsed<ShiftPatch> {
 }
 
 /** Every reject reason, in the order the app shows them. */
-export const rejectReasons: readonly RejectReason[] = ["km", "packages", "busOrStation", "time"];
+export const rejectReasons: readonly RejectReason[] = ["km", "packages", "busOrStation"];
 
 /** The longest rejection note accepted. */
 export const MAX_NOTE = 300;

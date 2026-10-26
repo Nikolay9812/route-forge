@@ -99,7 +99,7 @@ check("submit twice → 409", r.status === 409, r.status);
 // Home.
 r = await call(tokens.a, "GET", "/api/home");
 check("A's home shows today submitted", r.status === 200 && r.json.today?.status === "submitted");
-check("A's home totals are numbers", Number.isInteger(r.json?.totals.payMinor) && Number.isInteger(r.json?.totals.approvedMinutes));
+check("A's home carries no pay (it lives on the Pay tab)", r.status === 200 && !("totals" in r.json) && !("rate" in r.json));
 r = await call(tokens.b, "GET", "/api/home");
 check("firm B home only has TFB1 shifts", r.status === 200 && r.json.recent.every((s) => s.depot.name === "TFB1"));
 

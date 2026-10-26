@@ -1,6 +1,7 @@
 // Domain shapes shared by API routes and the app. Dates are calendar days ("YYYY-MM-DD") in the firm's
 // timezone, timestamps are ISO strings in UTC, working time is minutes, money is integer minor units.
 import type { MonthStats } from "./calendar";
+import type { MonthTotals } from "./salary";
 
 export type ShiftStatus = "draft" | "submitted" | "approved" | "rejected";
 
@@ -29,7 +30,7 @@ export type Shift = {
 };
 
 /** Why a dispatcher sent a shift back. Codes are translated in the app. */
-export type RejectReason = "km" | "packages" | "busOrStation" | "time";
+export type RejectReason = "km" | "packages" | "busOrStation";
 
 export type Rejection = { reasons: RejectReason[]; note: string | null };
 
@@ -86,9 +87,6 @@ export type PayRateCourier = PayRateTarget & { userId: string; name: string };
 /** The owner's Pay rates screen. `today` is the firm's day, which decides upcoming vs started. */
 export type PayRates = { firm: Firm; today: string; firmDefault: PayRateTarget; couriers: PayRateCourier[] };
 
-/** A courier's own rate on Home. */
-export type CourierRate = { current: Rate | null; next: Rate | null };
-
 export type Firm = { name: string; currency: string; timeZone: string };
 
 /** One month of a courier's shifts, oldest day first. `firstMonth` is where paging back stops. */
@@ -99,6 +97,38 @@ export type CalendarMonth = {
   firstMonth: string;
   shifts: Shift[];
   stats: MonthStats;
+};
+
+/** One approved or submitted shift in the Pay tab's tables. Pay is null until the shift is approved. */
+export type PayDay = {
+  shiftId: string;
+  date: string;
+  status: "approved" | "submitted";
+  minutes: number;
+  /** Delivered packages. */
+  packages: number;
+  km: number;
+  payMinor: number | null;
+};
+
+/** One earlier month in the Pay tab's recent months list: approved shifts only. */
+export type MonthPay = { month: string; payMinor: number; approvedMinutes: number; approvedShifts: number };
+
+/**
+ * One month of the courier's own pay. Totals count approved shifts only; `rates` are the rates in force during
+ * the month (up to today), and `next` is the upcoming change, only for the current month. Days newest first.
+ * `recentMonths` are the 5 months before the current one (from `firstMonth`), newest first, the same in every answer.
+ */
+export type PayMonth = {
+  firm: Firm;
+  today: string;
+  month: string;
+  firstMonth: string;
+  totals: MonthTotals;
+  rates: Rate[];
+  next: Rate | null;
+  days: PayDay[];
+  recentMonths: MonthPay[];
 };
 
 export type Station = { id: string; name: string };

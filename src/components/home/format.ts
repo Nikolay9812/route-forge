@@ -27,6 +27,7 @@ export function useFormat(timeZone: string, currency: string) {
     const locale = locales[language];
     const money = new Intl.NumberFormat(locale, { style: "currency", currency });
     const hours = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+    const tenths = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const count = new Intl.NumberFormat(locale);
     const longDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "long", day: "numeric", month: "long" });
     const shortDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
@@ -37,6 +38,8 @@ export function useFormat(timeZone: string, currency: string) {
     return {
       money: (minor: number) => money.format(minor / 100),
       hours: (minutes: number) => hours.format(minutes / 60),
+      /** Always one decimal ("7,0"), so a column of hours lines up. */
+      hoursTenths: (minutes: number) => tenths.format(minutes / 60),
       count: (value: number) => count.format(value),
       duration: (minutes: number) =>
         t("units.duration", { hours: Math.floor(minutes / 60), minutes: minutes % 60 }),

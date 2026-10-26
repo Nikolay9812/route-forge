@@ -3,7 +3,7 @@
 // rejected and a submitted shift). B: prompts/13-pay-rates.md, a courier override to a day rate and back.
 import assert from "node:assert/strict";
 
-import { monthTotals, nextRate, rateFor, shiftPay } from "../src/domain/salary.ts";
+import { monthTotals, nextRate, payDays, rateFor, ratesIn, shiftPay } from "../src/domain/salary.ts";
 
 const hourly = (effectiveFrom, amountMinor) => ({ effectiveFrom, kind: "hourly", amountMinor });
 
@@ -79,5 +79,30 @@ assert.deepEqual(nextRate("2026-10-05", b), { effectiveFrom: "2026-10-10", kind:
 // The firm's change on the 15th doesn't reach a day-rate courier; following the firm again on the 20th does.
 assert.deepEqual(nextRate("2026-10-12", b), hourly("2026-10-20", 905));
 assert.equal(nextRate("2026-10-21", b), null);
+
+// The Pay tab: rates in force in October, and its rows (the rejected shift is left out; pending has no pay).
+assert.deepEqual(ratesIn("2026-10-01", "2026-10-31", a), [hourly("2026-10-01", 800), hourly("2026-10-15", 900)]);
+assert.deepEqual(ratesIn("2026-10-01", "2026-10-31", b), [
+  hourly("2026-10-01", 800),
+  { effectiveFrom: "2026-10-10", kind: "daily", amountMinor: 12000 },
+  hourly("2026-10-20", 905),
+]);
+assert.deepEqual(ratesIn("2026-08-01", "2026-08-31", b), []);
+const rows = payDays(shifts, b);
+assert.deepEqual(
+  rows.map((d) => [d.date, d.status, d.payMinor]),
+  [
+    ["2026-10-21", "approved", 6109],
+    ["2026-10-20", "submitted", null],
+    ["2026-10-15", "approved", 12000],
+    ["2026-10-13", "approved", 12000],
+    ["2026-10-06", "approved", 6400],
+  ],
+);
+assert.equal(
+  rows.reduce((sum, d) => sum + (d.payMinor ?? 0), 0),
+  monthTotals(shifts, b).payMinor,
+);
+assert.deepEqual([rows[0].packages, rows[0].km, rows[0].minutes], [100, 50, 405]);
 
 console.log("Salary check OK: A 25900 and B 36509 minor units over 1830 min, 4 approved, 1 pending.");

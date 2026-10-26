@@ -145,6 +145,15 @@
       "fixShift": "Fix and resubmit",
       "rejected": "Sent back: {{reason}}"
     },
+    "recent": {
+      "title": "Recent shifts",
+      "seeAll": "See all"
+    },
+    "error": "Couldn't load your shifts.",
+    "offline": "No connection. Try again when you're online.",
+    "retry": "Try again"
+  },
+  "pay": {
     "month": {
       "approvedOnly": "Approved shifts only",
       "estimatedPay": "Estimated pay",
@@ -152,6 +161,7 @@
       "pendingOne": "1 shift waiting for approval",
       "pendingOther": "{{count}} shifts waiting for approval",
       "empty": "No approved shifts yet this month.",
+      "emptyPast": "No approved shifts this month.",
       "approvedShiftsOne": "1 approved shift",
       "approvedShiftsOther": "{{count}} approved shifts",
       "rateHourly": "Hourly · {{amount}} / h",
@@ -160,13 +170,36 @@
       "nextHourly": "From {{date}}: {{amount}} / h",
       "nextDaily": "From {{date}}: {{amount}} per shift"
     },
-    "recent": {
-      "title": "Recent shifts",
-      "seeAll": "See all"
+    "pending": "Pending",
+    "error": "Couldn't load your pay.",
+    "offline": "No connection. Pull down or tap Retry when you're online.",
+    "open": {
+      "pay": "Pay per day",
+      "hours": "Hours per day",
+      "packages": "Packages per day",
+      "km": "Kilometers per day"
     },
-    "error": "Couldn't load your shifts.",
-    "offline": "No connection. Try again when you're online.",
-    "retry": "Try again"
+    "breakdown": {
+      "title": {
+        "pay": "Pay · {{month}}",
+        "hours": "Hours · {{month}}",
+        "packages": "Packages · {{month}}",
+        "km": "Kilometers · {{month}}"
+      },
+      "day": "Day",
+      "hours": "Hours",
+      "pay": "Pay",
+      "delivered": "Delivered",
+      "total": "Total (approved)",
+      "empty": "No approved or pending shifts this month.",
+      "openDay": "Open the shift on {{day}}"
+    },
+    "recent": {
+      "title": "Recent months",
+      "summaryOne": "{{hours}} h · 1 shift",
+      "summaryOther": "{{hours}} h · {{count}} shifts",
+      "open": "Show {{month}}"
+    }
   },
   "profile": {
     "signOut": "Sign out",
@@ -251,7 +284,8 @@
       "offline": "No connection. Your changes are still here. Try again when you're online.",
       "notEditable": "This shift can't be changed any more.",
       "error": "Couldn't resubmit the shift. Try again.",
-      "loadError": "Couldn't load this shift."
+      "loadError": "Couldn't load this shift.",
+      "timesLocked": "Only your dispatcher can change the times."
     }
   },
   "firm": {
@@ -293,8 +327,7 @@
     "reasons": {
       "km": "Kilometers don't match",
       "packages": "Package count is wrong",
-      "busOrStation": "Wrong bus or station",
-      "time": "Working time is wrong"
+      "busOrStation": "Wrong bus or station"
     },
     "approve": "Approve",
     "reject": "Reject",
@@ -319,12 +352,6 @@
     "emptyReviewedTitle": "Nothing reviewed yet",
     "emptyReviewedBody": "Shifts you approve or send back in the last 30 days show up here.",
     "payDaily": "Day rate"
-  },
-  "placeholder": {
-    "pay": {
-      "title": "Pay",
-      "body": "Your monthly pay will show up here."
-    }
   },
   "calendar": {
     "list": "List",

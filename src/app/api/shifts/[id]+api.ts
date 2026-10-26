@@ -1,5 +1,5 @@
-// One of the courier's own shifts by id: read it (any status), or fix it while it's rejected. Someone else's shift
-// answers 404.
+// One of the courier's own shifts by id: read it (any status), or fix it while it's rejected (all but its times).
+// Someone else's shift answers 404.
 import { isId, parseCorrection } from "@/domain/shift";
 import { apiError, handle, readJson } from "@/server/auth";
 import { courierContext } from "@/server/context";
@@ -29,6 +29,8 @@ export function PATCH(request: Request, { id }: Record<string, string>) {
     const { courier, firm } = ctx;
     const edit = parseCorrection(await readJson(request));
     if (!edit.ok) return apiError("invalid");
+    // Times are the reviewer's to correct: a courier fixing a sent-back shift can't change them.
+    if (edit.value.startTime !== undefined || edit.value.finishTime !== undefined) return apiError("invalid");
 
     const current = await ownShift(courier, id);
     if (!current) return apiError("notFound");

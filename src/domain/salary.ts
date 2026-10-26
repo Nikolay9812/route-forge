@@ -1,6 +1,6 @@
 // Salary math, shared by API routes and the app. Pure and import-free at runtime so Node can run it
 // directly (scripts/check-salary.mjs). Pay counts approved shifts only and is never stored.
-import type { PaySchedule, Rate, RateEntry, Shift } from "./types";
+import type { PayDay, PaySchedule, Rate, RateEntry, Shift } from "./types";
 
 export type MonthTotals = {
   approvedMinutes: number;
@@ -61,6 +61,24 @@ export function nextRate(today: string, schedule: PaySchedule): Rate | null {
   return null;
 }
 
+/**
+ * The rates in force from `first` to `last` (calendar days): the one on `first`, then each day it changes, dated
+ * from that day. Days with no rate are skipped.
+ */
+export function ratesIn(first: string, last: string, schedule: PaySchedule): Rate[] {
+  const days = [...new Set([...schedule.firm, ...schedule.own].map((e) => e.effectiveFrom))]
+    .filter((day) => day > first && day <= last)
+    .sort();
+  const rates: Rate[] = [];
+  let previous: Rate | null = null;
+  for (const day of [first, ...days]) {
+    const rate = rateFor(day, schedule);
+    if (rate && !sameRate(rate, previous)) rates.push({ ...rate, effectiveFrom: day });
+    previous = rate;
+  }
+  return rates;
+}
+
 /** Rounded per shift, half up, in minor units. Anything but an approved shift pays 0. */
 export function shiftPay(shift: Shift, schedule: PaySchedule): number {
   if (shift.status !== "approved") return 0;
@@ -89,4 +107,22 @@ export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule): Mo
     totals.km += (shift.endKm ?? shift.startKm) - shift.startKm;
   }
   return totals;
+}
+
+/** The Pay tab's rows: approved and submitted shifts, newest first. Only approved ones carry pay. */
+export function payDays(shifts: readonly Shift[], schedule: PaySchedule): PayDay[] {
+  const days: PayDay[] = [];
+  for (const shift of shifts) {
+    if (shift.status !== "approved" && shift.status !== "submitted") continue;
+    days.push({
+      shiftId: shift.id,
+      date: shift.date,
+      status: shift.status,
+      minutes: shift.minutes ?? 0,
+      packages: shift.loaded - (shift.returned ?? 0),
+      km: (shift.endKm ?? shift.startKm) - shift.startKm,
+      payMinor: shift.status === "approved" ? shiftPay(shift, schedule) : null,
+    });
+  }
+  return days.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }

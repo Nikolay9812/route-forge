@@ -118,7 +118,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 /** Horizontal swipes page months; vertical drags stay with the screen's scroll view. */
-function Swipe({ onPrev, onNext, children }: { onPrev?: () => void; onNext?: () => void; children: ReactNode }) {
+export function Swipe({ onPrev, onNext, children }: { onPrev?: () => void; onNext?: () => void; children: ReactNode }) {
   const responder = useMemo(
     () =>
       PanResponder.create({
@@ -265,7 +265,7 @@ function Pager({ state }: { state: CalendarState<CalendarMonth> }) {
   );
 }
 
-function Chevron({ icon, label, disabled, onPress }: { icon: IconName; label: string; disabled: boolean; onPress: () => void }) {
+export function Chevron({ icon, label, disabled, onPress }: { icon: IconName; label: string; disabled: boolean; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"

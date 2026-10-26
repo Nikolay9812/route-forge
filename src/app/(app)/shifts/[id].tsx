@@ -90,6 +90,7 @@ export default function OwnShift() {
               errors={errors}
               stations={stations}
               buses={buses}
+              lockTimes
               onChange={(change) => setEdit({ fields: { ...fields, ...change }, original: edit?.original ?? original })}
             />
           </Surface>

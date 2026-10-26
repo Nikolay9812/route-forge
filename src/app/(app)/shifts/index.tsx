@@ -21,6 +21,7 @@ import { SubmittedCard } from "@/components/shifts/submitted-card";
 import { TimeCard } from "@/components/shifts/time-card";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
+import type { CalendarMonth } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
 import { canFinish } from "@/shifts/draft";
 import { useTodayShift } from "@/shifts/today-shift";
@@ -44,7 +45,7 @@ export default function Shifts() {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<TranslationKey | null>(null);
   // Today's mark follows the shift: starting or submitting it reloads the shown month.
-  const calendar = useCalendar("/api/calendar", `${shift?.id}:${shift?.status}`);
+  const calendar = useCalendar<CalendarMonth>("/api/calendar", `${shift?.id}:${shift?.status}`);
 
   const onStart = async () => {
     setStarting(true);

@@ -10,6 +10,7 @@ import { Button } from "@/components/button";
 import { useFormat } from "@/components/home/format";
 import { RejectionAlert } from "@/components/shifts/rejection-alert";
 import { ShiftEditForm } from "@/components/shifts/shift-edit-form";
+import { VehicleCheckCard } from "@/components/shifts/vehicle-check-card";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation, type TranslationKey } from "@/i18n";
@@ -22,7 +23,8 @@ function failureMessage(failure: ApiFailure): TranslationKey {
   return "review.actionError";
 }
 
-// One shift for a dispatcher or owner: everything the courier entered, pay, history, and the decision.
+// One shift for a dispatcher or owner: everything the courier entered, pay, history, vehicle check photos, and the
+// decision.
 // Shown in the Approvals and Team stacks; each has its own reject sheet so Back stays in that stack.
 export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/reject" | "/team/shift/reject" }) {
   const { t } = useTranslation();
@@ -55,7 +57,7 @@ export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/rej
     );
   }
 
-  const { shift, courierName, pay, changes, stations, buses, firm } = resource.data;
+  const { shift, courierName, pay, changes, stations, buses, photos, firm } = resource.data;
   const errors = editing ? editErrors(editing.fields) : {};
 
   const onApprove = async () => {
@@ -109,6 +111,7 @@ export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/rej
           <RejectionAlert rejection={shift.rejection} />
           <PayCard shift={shift} pay={pay} format={format} />
           {changes.length > 0 ? <ChangesCard changes={changes} format={format} /> : null}
+          <VehicleCheckCard plate={shift.car.plate} photos={photos} />
         </>
       )}
 

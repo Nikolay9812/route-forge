@@ -7,6 +7,7 @@ import { Button } from "@/components/button";
 import { Chip } from "@/components/chip";
 import { useSheetSave } from "@/components/fleet/sheet";
 import { useFormat } from "@/components/home/format";
+import { PhotoSlot } from "@/components/photo-slot";
 import { SegmentedControl } from "@/components/segmented-control";
 import { Surface } from "@/components/surface";
 import { TextField } from "@/components/text-field";
@@ -20,17 +21,16 @@ import {
   genders,
   LICENCE_CLASSES,
   sectionFields,
-  sectionPhotos,
   taxClasses,
   type FieldProblem,
 } from "@/domain/courier-details";
+import { sectionPhotos } from "@/domain/photos";
 import type { CourierDetails, CourierDocuments, DetailsSection, Gender } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
 
 import { ExpiryLine } from "./expiry-line";
 import { fieldHints, fieldKinds, sectionHints } from "./fields";
 import { OptionalDateField } from "./optional-date-field";
-import { PhotoSlot } from "./photo-slot";
 
 type Field = keyof CourierDetails;
 export type Values = Partial<Record<Field, string | string[] | number | null>>;

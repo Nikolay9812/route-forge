@@ -27,6 +27,8 @@ export type Shift = {
   rejection?: Rejection;
   /** A dispatcher or owner changed a value after the courier submitted it. */
   corrected: boolean;
+  /** Vehicle check photos taken, out of the expected ones (`EXPECTED_SHIFT_PHOTOS`); extras don't count. */
+  photoCount: number;
 };
 
 /** Why a dispatcher sent a shift back. Codes are translated in the app. */
@@ -195,13 +197,28 @@ export type SectionWarning = "expired" | "expiresSoon" | "tooOld";
 
 export type SectionState = { state: "missing" | "incomplete" | "complete"; warning: SectionWarning | null };
 
-/** A photo slot of a document section (which sections have which slots: `sectionPhotos`). */
+/** A photo slot of a document section (which sections have which slots: `sectionPhotos` in `photos.ts`). */
 export type PhotoSlot = "front" | "back" | "photo" | "page1" | "page2" | "page3";
 
 /** A stored document photo: its object key (stable, for caching) and a short-lived signed URL to show it. */
 export type DocumentPhoto = { key: string; url: string };
 
-export type DocumentPhotos = Partial<Record<DetailsSection, Partial<Record<PhotoSlot, DocumentPhoto>>>>;
+/** A vehicle check photo slot of a shift (groups and order: `shiftPhotoGroups`). */
+export type ShiftPhotoSlot =
+  | "front"
+  | "back"
+  | "left"
+  | "right"
+  | "extra1"
+  | "extra2"
+  | "logbook"
+  | "mentor"
+  | "diesel"
+  | "adblue";
+
+export type ShiftPhotos = Partial<Record<ShiftPhotoSlot, DocumentPhoto>>;
+
+export type DocumentPhotos =Partial<Record<DetailsSection, Partial<Record<PhotoSlot, DocumentPhoto>>>>;
 
 /** One courier's documents, for the courier themselves or their firm's owner. */
 export type CourierDocuments = {

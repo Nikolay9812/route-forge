@@ -1,19 +1,16 @@
 // Couriers' personal documents under Profile: a courier's own (`/api/details`) and, for owners, any courier's
 // (`/api/couriers/:userId`). The provider wraps the Profile stack, so a section list and its form share one copy;
-// a save swaps in the answer. Photos are saved right away: the API hands out an upload URL, the file goes straight
-// to the private bucket, and keeping it answers the updated documents.
-import { File, UploadType } from "expo-file-system";
+// a save swaps in the answer. Photos are saved right away (`uploadPhoto`), and keeping one answers the updated
+// documents.
 import { useFocusEffect } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from "react";
 
-import { ApiError, failureOf, useApi, type ApiFailure } from "@/api/client";
+import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource, type Resource } from "@/api/use-resource";
-import { PHOTO_TYPES, type PhotoType } from "@/domain/courier-details";
 import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection, PhotoSlot } from "@/domain/types";
+import { uploadPhoto, type PickedPhoto } from "@/photos/upload";
 
 type Entry = { resource: Resource<CourierDocuments>; refreshing: boolean };
-/** A picked image: its local file and type, as the image picker gives them. */
-export type PickedPhoto = { uri: string; mimeType?: string | null };
 /** Local previews of photos still uploading, per documents key, section and slot. */
 type Uploading = Record<string, Partial<Record<DetailsSection, Partial<Record<PhotoSlot, string>>>>>;
 
@@ -91,29 +88,9 @@ export function DocumentsProvider({ children }: PropsWithChildren) {
 
   const addPhoto = useCallback<DocumentsValue["addPhoto"]>(
     async (userId, section, slot, photo) => {
-      const path = `${pathOf(userId)}/photos`;
-      const contentType: PhotoType = PHOTO_TYPES.includes(photo.mimeType as PhotoType)
-        ? (photo.mimeType as PhotoType)
-        : "image/jpeg";
       setPreview(userId, section, slot, photo.uri);
       try {
-        const { key, uploadUrl } = await api<{ key: string; uploadUrl: string }>(path, {
-          method: "POST",
-          body: { section, slot, contentType },
-        });
-        let status: number;
-        try {
-          ({ status } = await new File(photo.uri).upload(uploadUrl, {
-            httpMethod: "PUT",
-            uploadType: UploadType.BINARY_CONTENT,
-            mimeType: contentType,
-            headers: { "Content-Type": contentType },
-          }));
-        } catch {
-          throw new ApiError("offline");
-        }
-        if (status < 200 || status >= 300) throw new ApiError("server");
-        show(userId, await api<CourierDocuments>(path, { method: "PUT", body: { section, slot, key } }));
+        show(userId, await uploadPhoto<CourierDocuments>(api, `${pathOf(userId)}/photos`, { section, slot }, photo));
         return null;
       } catch (error) {
         return failureOf(error);

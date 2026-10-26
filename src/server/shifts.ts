@@ -2,8 +2,9 @@
 import { and, asc, desc, eq, gte, inArray, isNull, lt, lte, min, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
-import { cars, depots, firmSettings, shiftChanges, shifts } from "@/db/schema";
+import { cars, depots, firmSettings, shiftChanges, shiftPhotos, shifts } from "@/db/schema";
 import { todayIn } from "@/domain/dates";
+import { EXPECTED_SHIFT_PHOTOS } from "@/domain/photos";
 import { finishProblem, type FinishProblem, type ShiftPatch, type StartInput } from "@/domain/shift";
 import type { Bus, Firm, RejectReason, Shift, Station } from "@/domain/types";
 
@@ -16,11 +17,18 @@ const shiftSelect = {
   depotName: depots.name,
   carPlate: cars.plate,
   corrected: sql<boolean>`exists (select 1 from ${shiftChanges} where ${shiftChanges.shiftId} = ${shifts.id})`,
+  photoCount: sql<number>`(select count(*)::int from ${shiftPhotos} where ${shiftPhotos.shiftId} = ${shifts.id} and ${inArray(shiftPhotos.slot, [...EXPECTED_SHIFT_PHOTOS])})`,
 };
 
-type ShiftRow = { shift: typeof shifts.$inferSelect; depotName: string; carPlate: string; corrected: boolean };
+type ShiftRow = {
+  shift: typeof shifts.$inferSelect;
+  depotName: string;
+  carPlate: string;
+  corrected: boolean;
+  photoCount: number;
+};
 
-export function toShift({ shift: s, depotName, carPlate, corrected }: ShiftRow): Shift {
+export function toShift({ shift: s, depotName, carPlate, corrected, photoCount }: ShiftRow): Shift {
   return {
     id: s.id,
     date: s.date,
@@ -36,6 +44,7 @@ export function toShift({ shift: s, depotName, carPlate, corrected }: ShiftRow):
     returned: s.returned,
     pickups: s.pickups,
     corrected,
+    photoCount,
     ...(s.status === "rejected"
       ? { rejection: { reasons: (s.rejectionReasons ?? []) as RejectReason[], note: s.rejectionNote } }
       : {}),

@@ -16,6 +16,7 @@ const users = {
 // Today's shifts are created fresh: A at HBW3 (in the dispatcher's depots), C at HBW7 (outside), B in firm B.
 const testCouriers = [users.a, users.c, users.b];
 await sql`delete from shift_changes where shift_id in (select id from shifts where user_id = any(${testCouriers}) and date >= current_date - 1)`;
+await sql`delete from shift_photos where shift_id in (select id from shifts where user_id = any(${testCouriers}) and date >= current_date - 1)`;
 await sql`delete from shifts where user_id = any(${testCouriers}) and date >= current_date - 1`;
 
 const token = {

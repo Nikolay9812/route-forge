@@ -4,9 +4,8 @@ import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { courierDetails, documentPhotos } from "@/db/schema";
+import { documentSummary, emptyDetails, sectionStates } from "@/domain/courier-details";
 import {
-  documentSummary,
-  emptyDetails,
   isPhotoKey,
   PHOTO_MAX_BYTES,
   PHOTO_TYPES,
@@ -14,10 +13,9 @@ import {
   parsePhotoQuery,
   parsePhotoRequest,
   photoPrefix,
-  sectionStates,
   type PhotoTarget,
   type PhotoType,
-} from "@/domain/courier-details";
+} from "@/domain/photos";
 import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection, DocumentPhotos, PhotoSlot } from "@/domain/types";
 
 import { apiError, firmCouriers, readJson, userNames } from "./auth";

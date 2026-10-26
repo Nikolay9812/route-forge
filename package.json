@@ -69,7 +69,8 @@
     "check:fleet": "node --no-warnings --env-file-if-exists=.env.local scripts/check-fleet.mjs",
     "check:details": "node --no-warnings --env-file-if-exists=.env.local scripts/check-details.mjs",
     "check:pay": "node --no-warnings --env-file-if-exists=.env.local scripts/check-pay.mjs",
-    "check:pay-rates": "node --no-warnings --env-file-if-exists=.env.local scripts/check-pay-rates.mjs"
+    "check:pay-rates": "node --no-warnings --env-file-if-exists=.env.local scripts/check-pay-rates.mjs",
+    "check:shift-photos": "node --no-warnings --env-file-if-exists=.env.local scripts/check-shift-photos.mjs"
   },
   "private": true,
   "overrides": {

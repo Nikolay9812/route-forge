@@ -1,7 +1,7 @@
 // Rules for a courier's personal documents, shared by API routes and the app. Each section is saved whole: the
 // form sends every field of one section as typed, and `checkSection` normalises it or says what is wrong per field.
-// Photos are stored apart from the fields: their slots, types and object keys are checked here too.
-import type { CourierDetails, DetailsSection, Gender, PhotoSlot, SectionState, SectionWarning } from "./types";
+// Photos are stored apart from the fields; their rules live in `photos.ts`.
+import type { CourierDetails, DetailsSection, Gender, SectionState, SectionWarning } from "./types";
 
 type Field = keyof CourierDetails;
 type Parsed<T> = { ok: true; value: T } | { ok: false };
@@ -301,70 +301,6 @@ export function sectionStates(details: CourierDetails, today: string): Record<De
     DetailsSection,
     SectionState
   >;
-}
-
-/** Photo slots per section; the health card shows its front only, a Führungszeugnis can run to three pages. */
-export const sectionPhotos: Partial<Record<DetailsSection, readonly PhotoSlot[]>> = {
-  idCard: ["front", "back"],
-  licence: ["front", "back"],
-  address: ["photo"],
-  tax: ["photo"],
-  health: ["front"],
-  criminalRecord: ["page1", "page2", "page3"],
-};
-
-export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/heic", "image/webp"] as const;
-export type PhotoType = (typeof PHOTO_TYPES)[number];
-export const PHOTO_MAX_BYTES = 10 * 1024 * 1024;
-
-export type PhotoTarget = { section: DetailsSection; slot: PhotoSlot };
-
-function photoTarget(section: unknown, slot: unknown): PhotoTarget | null {
-  if (!detailsSections.includes(section as DetailsSection)) return null;
-  const slots = sectionPhotos[section as DetailsSection] ?? [];
-  return slots.includes(slot as PhotoSlot) ? { section: section as DetailsSection, slot: slot as PhotoSlot } : null;
-}
-
-function plainObject(body: unknown): Record<string, unknown> | null {
-  return typeof body === "object" && body !== null && !Array.isArray(body) ? (body as Record<string, unknown>) : null;
-}
-
-/** Body of "start an upload": `{ section, slot, contentType }`, a slot that section has and an allowed type. */
-export function parsePhotoRequest(body: unknown): Parsed<PhotoTarget & { contentType: PhotoType }> {
-  const object = plainObject(body);
-  if (!object) return { ok: false };
-  const { section, slot, contentType, ...rest } = object;
-  const target = photoTarget(section, slot);
-  if (!target || Object.keys(rest).length > 0 || !PHOTO_TYPES.includes(contentType as PhotoType)) return { ok: false };
-  return { ok: true, value: { ...target, contentType: contentType as PhotoType } };
-}
-
-/** Body of "keep the uploaded photo": `{ section, slot, key }`; the key itself is checked against the prefix. */
-export function parsePhotoConfirm(body: unknown): Parsed<PhotoTarget & { key: string }> {
-  const object = plainObject(body);
-  if (!object) return { ok: false };
-  const { section, slot, key, ...rest } = object;
-  const target = photoTarget(section, slot);
-  if (!target || Object.keys(rest).length > 0 || typeof key !== "string") return { ok: false };
-  return { ok: true, value: { ...target, key } };
-}
-
-/** Query of "remove a photo": `?section=&slot=`. */
-export function parsePhotoQuery(params: URLSearchParams): Parsed<PhotoTarget> {
-  const target = photoTarget(params.get("section"), params.get("slot"));
-  return target ? { ok: true, value: target } : { ok: false };
-}
-
-/** Where one slot's photos live in the bucket; the firm and courier come from the session, never the request. */
-export function photoPrefix(firmId: string, userId: string, { section, slot }: PhotoTarget): string {
-  return `firms/${firmId}/couriers/${userId}/${section}/${slot}/`;
-}
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
-/** A key the server could have handed out for this slot: the prefix plus a UUID, nothing else. */
-export function isPhotoKey(key: string, prefix: string): boolean {
-  return key.startsWith(prefix) && UUID.test(key.slice(prefix.length));
 }
 
 /** Counts for the owner's Couriers list. */

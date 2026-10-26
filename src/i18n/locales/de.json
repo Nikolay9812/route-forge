@@ -353,7 +353,11 @@
     "emptyPendingBody": "Keine Schichten warten auf Freigabe.",
     "emptyReviewedTitle": "Noch nichts geprüft",
     "emptyReviewedBody": "Schichten, die du in den letzten 30 Tagen freigibst oder zurückgibst, erscheinen hier.",
-    "payDaily": "Tagessatz"
+    "payDaily": "Tagessatz",
+    "photos": {
+      "none": "Keine Fotos",
+      "some": "Fotos {{count}}/{{total}}"
+    }
   },
   "calendar": {
     "list": "Liste",
@@ -574,17 +578,7 @@
       "page1": "Seite 1",
       "page2": "Seite 2",
       "page3": "Seite 3",
-      "take": "Foto aufnehmen",
-      "choose": "Aus Mediathek wählen",
-      "remove": "Foto entfernen",
-      "deniedTitle": "Kein Zugriff",
-      "deniedCamera": "Erlaube den Kamerazugriff in den Einstellungen, um ein Foto aufzunehmen.",
-      "deniedLibrary": "Erlaube den Fotozugriff in den Einstellungen, um ein Foto zu wählen.",
-      "saved": "Fotos werden gespeichert, sobald du sie hinzufügst.",
-      "uploadError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal.",
-      "removeError": "Das Foto konnte nicht entfernt werden. Versuch es noch einmal.",
-      "offline": "Keine Verbindung. Das Foto wurde nicht gespeichert.",
-      "tooLarge": "Dieses Foto ist zu groß (über 10 MB)."
+      "saved": "Fotos werden gespeichert, sobald du sie hinzufügst."
     },
     "error": "Die Dokumente konnten nicht geladen werden.",
     "progress": "{{done}} von {{total}} fertig",
@@ -609,6 +603,42 @@
         "one": "{{count}} Tag",
         "other": "{{count}} Tagen"
       }
+    }
+  },
+  "photos": {
+    "take": "Foto aufnehmen",
+    "choose": "Aus Mediathek wählen",
+    "remove": "Foto entfernen",
+    "deniedTitle": "Kein Zugriff",
+    "deniedCamera": "Erlaube den Kamerazugriff in den Einstellungen, um ein Foto aufzunehmen.",
+    "deniedLibrary": "Erlaube den Fotozugriff in den Einstellungen, um ein Foto zu wählen.",
+    "uploadError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal.",
+    "removeError": "Das Foto konnte nicht entfernt werden. Versuch es noch einmal.",
+    "offline": "Keine Verbindung. Das Foto wurde nicht gespeichert.",
+    "tooLarge": "Dieses Foto ist zu groß (über 10 MB).",
+    "close": "Schließen"
+  },
+  "shiftPhotos": {
+    "title": "Fahrzeugcheck",
+    "optional": "Optional. Fotos werden gespeichert, sobald du sie aufnimmst.",
+    "count": "{{count}} von {{total}}",
+    "missing": "Fehlt",
+    "none": "Keine Fotos hinzugefügt.",
+    "groups": {
+      "bus": "Transporter · {{plate}}",
+      "fuel": "Diesel & AdBlue"
+    },
+    "slots": {
+      "front": "Vorne",
+      "back": "Hinten",
+      "left": "Linke Seite",
+      "right": "Rechte Seite",
+      "extra1": "Extra 1",
+      "extra2": "Extra 2",
+      "logbook": "Fahrtenbuch",
+      "mentor": "Mentor-Score",
+      "diesel": "Diesel",
+      "adblue": "AdBlue"
     }
   }
 }

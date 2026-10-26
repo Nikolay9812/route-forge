@@ -15,7 +15,8 @@ export type Shift = {
   /** Working time, set on submit. */
   minutes: number | null;
   depot: { id: string; name: string };
-  car: { id: string; plate: string };
+  /** The VIN is shown to the courier as a QR; null when the owner hasn't entered one. */
+  car: { id: string; plate: string; vin: string | null };
   startKm: number;
   endKm: number | null;
   loaded: number;
@@ -140,10 +141,43 @@ export type Bus = { id: string; plate: string };
 /** A depot as its firm's owner manages it, with every car assigned to it (archived ones included). */
 export type FleetDepot = { id: string; name: string; archived: boolean; cars: FleetCar[] };
 
-export type FleetCar = { id: string; plate: string; depotId: string; archived: boolean };
+export type FleetCar = {
+  id: string;
+  plate: string;
+  depotId: string;
+  archived: boolean;
+  papers: CarPapers;
+  /** The highest end km of a submitted or approved shift with this car, null without one. */
+  odometerKm: number | null;
+  hasTalon: boolean;
+};
 
-/** Every depot of the firm, active and archived, sorted by name; cars sorted by plate. */
-export type Fleet = { depots: FleetDepot[] };
+/** A car's papers, saved as a whole by the owner. Every field is optional (null = not set). */
+export type CarPapers = {
+  vin: string | null;
+  /** TÜV (HU) due month, "YYYY-MM"; valid through its last day. */
+  tuvDue: string | null;
+  insuranceExpiresOn: string | null;
+  serviceDueOn: string | null;
+  serviceDueKm: number | null;
+};
+
+export type CarWarningKind = "tuv" | "insurance" | "service";
+
+/** `soon`: within 30 days (or 1,000 km of the service km); `due`: the day or km has passed. */
+export type CarWarning = { kind: CarWarningKind; level: "soon" | "due" };
+
+export type CarPhotoSlot = "talon";
+
+/** One car for its owner: the fleet row plus its signed talon photo, when the papers were saved last, and the firm's today. */
+export type CarDetail = FleetCar & {
+  photos: Partial<Record<CarPhotoSlot, DocumentPhoto>>;
+  papersUpdatedAt: string | null;
+  today: string;
+};
+
+/** Every depot of the firm, active and archived, sorted by name; cars sorted by plate. `today` is the firm's. */
+export type Fleet = { today: string; depots: FleetDepot[] };
 
 /** The sections of a courier's personal documents, in Profile order. */
 export type DetailsSection =

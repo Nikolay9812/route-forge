@@ -46,6 +46,7 @@ const swatchClasses: Record<(typeof colorTokens)[number], string> = {
   "on-inverse": "bg-on-inverse",
   "on-inverse-muted": "bg-on-inverse-muted",
   white: "bg-white",
+  scrim: "bg-scrim",
 };
 
 // Board 03: units next to a number are 15 SemiBold ink-muted.

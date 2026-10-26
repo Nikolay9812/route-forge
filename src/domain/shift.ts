@@ -43,7 +43,6 @@ export type ShiftPatch = Partial<{
   loaded: number;
   returned: number | null;
   pickups: number | null;
-  startedAt: string;
 }>;
 
 type Parsed<T> = { ok: true; value: T } | { ok: false };
@@ -71,7 +70,10 @@ export function parseStart(body: unknown): Parsed<StartInput> {
   return { ok: true, value: { depotId, carId, startKm, loaded } };
 }
 
-/** Body of "update shift": any known field; unknown fields are rejected. Optional counts may be null (cleared). */
+/**
+ * Body of "update shift": any known field; unknown fields are rejected. Optional counts may be null (cleared).
+ * The start time isn't one: it is set when the courier taps Start, and only a reviewer corrects it.
+ */
 export function parsePatch(body: unknown): Parsed<ShiftPatch> {
   if (!isObject(body)) return { ok: false };
   const value: ShiftPatch = {};
@@ -92,10 +94,6 @@ export function parsePatch(body: unknown): Parsed<ShiftPatch> {
       case "pickups":
         if (field !== null && !isCount(field)) return { ok: false };
         value[key] = field;
-        break;
-      case "startedAt":
-        if (typeof field !== "string" || Number.isNaN(Date.parse(field))) return { ok: false };
-        value.startedAt = new Date(field).toISOString();
         break;
       default:
         return { ok: false };

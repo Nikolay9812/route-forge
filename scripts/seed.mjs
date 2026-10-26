@@ -1,4 +1,4 @@
-// Development seed: firm settings, depots, cars, pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
+// Development seed: firm settings, depots, cars (with papers), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
@@ -7,6 +7,7 @@ import { neon } from "@neondatabase/serverless";
 import { addMonths } from "../src/domain/calendar.ts";
 import { addDays } from "../src/domain/courier-details.ts";
 import { zonedTime } from "../src/domain/dates.ts";
+import { lastDayOfMonth } from "../src/domain/fleet.ts";
 import { deletePrefix } from "../src/server/storage.ts";
 
 const MONTHS_BACK = 6;
@@ -19,6 +20,14 @@ const firms = [
     depots: ["HBW3", "HBW1", "HBW7"],
     // One car per depot, in the same order.
     cars: ["KH I 6004", "KH I 5120", "KH I 7732"],
+    // Papers per car, in the same order: TÜV in months from the current one, insurance in days from today, the
+    // service km ahead of the car's odometer. The first warns about TÜV (this month) and service (600 km to go),
+    // the second about insurance (expired), the third has none, so courier.c at HBW7 sees no VIN.
+    papers: [
+      { vin: "ZFA250006SMC06228", tuvMonths: 0, insuranceDays: 200, serviceKmAhead: 600 },
+      { vin: "WF0XXXTTGXKA12345", tuvMonths: 14, insuranceDays: -10, serviceKmAhead: 15_000 },
+      null,
+    ],
     // The firm default (hourly), in months relative to the current one: a mid-month change three months ago and
     // one in the current month.
     rates: [
@@ -83,6 +92,8 @@ const firms = [
     timeZone: "Europe/Berlin",
     depots: ["TFB1"],
     cars: ["B TF 100"],
+    // The same VIN as Ivanov's first car: VINs are unique per firm only.
+    papers: [{ vin: "ZFA250006SMC06228", tuvMonths: 8, insuranceDays: 90, serviceKmAhead: 20_000 }],
     rates: [{ month: -MONTHS_BACK, day: "01", hourlyMinor: 1200 }],
     overrides: {},
     depotsOf: {},
@@ -171,6 +182,7 @@ for (const firm of firms) {
     sql`delete from pay_rates where firm_id = ${firmId}`,
     sql`delete from courier_details where firm_id = ${firmId}`,
     sql`delete from document_photos where firm_id = ${firmId}`,
+    sql`delete from car_photos where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
     sql`delete from firm_settings where firm_id = ${firmId}`,
@@ -299,6 +311,18 @@ for (const firm of firms) {
   }
   const queries = [...inserts, ...changes];
   for (let i = 0; i < queries.length; i += 200) await sql.transaction(queries.slice(i, i + 200));
+
+  // Papers last, so the service km can sit just ahead of each car's odometer (its highest submitted end km).
+  for (const [i, papers] of firm.papers.entries()) {
+    if (!papers) continue;
+    await sql`
+      update cars set vin = ${papers.vin}, tuv_due_on = ${lastDayOfMonth(addMonths(month, papers.tuvMonths))},
+        insurance_expires_on = ${addDays(today, papers.insuranceDays)},
+        service_due_km = coalesce((select max(end_km) from shifts where firm_id = ${firmId} and car_id = ${cars[i]}
+          and status in ('submitted', 'approved')), 0) + ${papers.serviceKmAhead},
+        papers_updated_at = now()
+      where id = ${cars[i]}`;
+  }
 
   const perCourier = couriers.map((m, i) => `${m.identifier.split("+")[0]} ${plans[i].count}`).join(", ");
   console.log(

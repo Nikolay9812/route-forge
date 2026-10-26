@@ -47,10 +47,41 @@ export const cars = pgTable(
     depotId: uuid()
       .notNull()
       .references(() => depots.id),
+    /** Normalised (17 characters, no I, O or Q), unique per firm when set. */
+    vin: text(),
+    /** TÜV (HU) due: the last day of the month on the sticker. */
+    tuvDueOn: date({ mode: "string" }),
+    insuranceExpiresOn: date({ mode: "string" }),
+    serviceDueOn: date({ mode: "string" }),
+    serviceDueKm: integer(),
+    /** Clerk user ID of whoever saved the papers last, and when. */
+    papersUpdatedBy: text(),
+    papersUpdatedAt: timestamp({ withTimezone: true }),
     archivedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex().on(t.firmId, t.plate)],
+  (t) => [uniqueIndex().on(t.firmId, t.plate), uniqueIndex().on(t.firmId, t.vin)],
+);
+
+/** A car's registration certificate photo (`talon`), owner-only. Postgres keeps only the R2 object key. */
+export const carPhotos = pgTable(
+  "car_photos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    carId: uuid()
+      .notNull()
+      .references(() => cars.id),
+    slot: text().notNull(),
+    objectKey: text().notNull(),
+    contentType: text().notNull(),
+    /** Bytes. */
+    size: integer().notNull(),
+    /** Clerk user ID of whoever uploaded it, and when. */
+    uploadedBy: text().notNull(),
+    uploadedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.carId, t.slot)],
 );
 
 export const payKind = pgEnum("pay_kind", ["hourly", "daily", "firm"]);

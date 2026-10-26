@@ -46,6 +46,8 @@
   --color-on-inverse: #ffffff;
   --color-on-inverse-muted: #a3a9b6;
   --color-white: #ffffff;
+  /* Dims the screen behind in-app sheets; the same in dark mode. */
+  --color-scrim: rgba(0, 0, 0, 0.5);
   --color-transparent: transparent;
 
   /* Type ramp. Line heights are unitless ratios (px / size): NativeWind on Android reads a px value here as a multiplier.

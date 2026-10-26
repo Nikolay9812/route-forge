@@ -10,6 +10,7 @@ import { useFormat } from "@/components/home/format";
 import { RejectionAlert } from "@/components/shifts/rejection-alert";
 import { ShiftEditForm } from "@/components/shifts/shift-edit-form";
 import { OwnVehicleCheck, VehicleCheckCard } from "@/components/shifts/vehicle-check-card";
+import { VinRow } from "@/components/shifts/vin-row";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation, type TranslationKey } from "@/i18n";
@@ -96,6 +97,7 @@ export default function OwnShift() {
               onChange={(change) => setEdit({ fields: { ...fields, ...change }, original: edit?.original ?? original })}
             />
           </Surface>
+          {shift.car.vin ? <VinRow vin={shift.car.vin} plate={shift.car.plate} /> : null}
           <OwnVehicleCheck shiftId={shift.id} plate={shift.car.plate} photos={photos} />
           {message ? (
             <Alert tone={message === "shifts.fix.offline" ? "offline" : "danger"} message={t(message)} />
@@ -110,6 +112,7 @@ export default function OwnShift() {
       ) : (
         <>
           <ShiftCard shift={shift} format={format} />
+          {shift.car.vin ? <VinRow vin={shift.car.vin} plate={shift.car.plate} /> : null}
           {shift.status === "submitted" ? (
             <ThemedText variant="footnote">{t("shifts.submitted.waiting")}</ThemedText>
           ) : null}

@@ -232,13 +232,8 @@
     "time": {
       "title": "Working time",
       "startedAt": "Started at {{time}}",
-      "edit": "Edit",
-      "save": "Save",
       "cancel": "Cancel",
-      "label": "Start time",
-      "invalid": "Enter a time like 07:30.",
-      "future": "The start time can't be in the future.",
-      "offline": "No connection. The start time wasn't changed."
+      "invalid": "Enter a time like 07:30."
     },
     "route": {
       "title": "Route",
@@ -288,6 +283,15 @@
       "error": "Couldn't resubmit the shift. Try again.",
       "loadError": "Couldn't load this shift.",
       "timesLocked": "Only your dispatcher can change the times."
+    },
+    "vin": {
+      "label": "VIN",
+      "showQr": "Show VIN as QR code",
+      "copy": "Copy VIN",
+      "copied": "Copied",
+      "title": "Scan the VIN",
+      "body": "Scan this code with the app that asks for the car's VIN, or copy it.",
+      "copiedAnnounce": "VIN copied"
     }
   },
   "firm": {
@@ -439,6 +443,57 @@
       "restore": "Restore car",
       "depotArchived": "Its depot {{depot}} is archived. Restore the depot first.",
       "confirmTitle": "Archive this car?"
+    },
+    "papers": {
+      "title": "Car",
+      "talon": "Registration certificate (Part I)",
+      "talonAdd": "Add photo",
+      "vin": "VIN",
+      "vinHint": "17 letters and digits, as in the registration certificate (field E).",
+      "vinInvalid": "A VIN has 17 letters and digits, without I, O or Q.",
+      "vinTaken": "Another car already has this VIN.",
+      "tuv": "TÜV (HU) due",
+      "tuvShort": "TÜV {{month}}",
+      "addMonth": "Add month",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "insurance": "Insurance expires",
+      "serviceDate": "Next service date",
+      "serviceKm": "Next service at km",
+      "kmInvalid": "Whole kilometres only.",
+      "odometer": "Now {{km}} km",
+      "kmLeft": "Now {{km}} km · {{left}} km to go",
+      "kmOver": "Now {{km}} km · {{over}} km over",
+      "warnedCount": "To check: {{count}}",
+      "more": "+{{count}}",
+      "warnings": {
+        "tuv": {
+          "soon": "TÜV is due within 30 days.",
+          "due": "TÜV is overdue."
+        },
+        "insurance": {
+          "soon": "Insurance runs out within 30 days.",
+          "due": "Insurance has expired."
+        },
+        "service": {
+          "soon": "Service is due soon (within 30 days or 1,000 km).",
+          "due": "Service is overdue."
+        }
+      },
+      "short": {
+        "tuv": {
+          "soon": "TÜV due soon",
+          "due": "TÜV overdue"
+        },
+        "insurance": {
+          "soon": "Insurance ends soon",
+          "due": "Insurance expired"
+        },
+        "service": {
+          "soon": "Service due soon",
+          "due": "Service overdue"
+        }
+      }
     }
   },
   "payRates": {

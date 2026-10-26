@@ -161,7 +161,7 @@ export async function correct(
       ? { id: values.depotId, name: names.stations.find((s) => s.id === values.depotId)?.name ?? "" }
       : current.depot,
     car: values.carId
-      ? { id: values.carId, plate: names.buses.find((b) => b.id === values.carId)?.plate ?? "" }
+      ? { id: values.carId, plate: names.buses.find((b) => b.id === values.carId)?.plate ?? "", vin: null }
       : current.car,
     startedAt: values.startedAt?.toISOString() ?? current.startedAt,
     finishedAt: values.finishedAt?.toISOString() ?? current.finishedAt,

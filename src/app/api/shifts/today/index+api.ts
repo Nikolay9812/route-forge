@@ -1,6 +1,5 @@
 // Today's shift for the signed-in courier: read it (with recent shifts and the stations and buses to pick from),
 // start it, edit it.
-import { todayIn } from "@/domain/dates";
 import { delivered, parsePatch, parseStart } from "@/domain/shift";
 import { apiError, handle, readJson } from "@/server/auth";
 import { courierContext } from "@/server/context";
@@ -48,19 +47,15 @@ export function PATCH(request: Request) {
   return handle(async () => {
     const ctx = await courierContext(request);
     if (ctx instanceof Response) return ctx;
-    const { courier, firm, date } = ctx;
+    const { courier, date } = ctx;
     const patch = parsePatch(await readJson(request));
     if (!patch.ok) return apiError("invalid");
-    const { depotId, carId, startedAt } = patch.value;
+    const { depotId, carId } = patch.value;
 
     const current = await shiftOn(courier, date);
     if (!current) return apiError("notFound");
     if (current.status !== "draft" && current.status !== "rejected") return apiError("notEditable");
     if (delivered({ ...current, ...patch.value }) < 0) return apiError("invalid");
-    // The start time stays on the shift's day and never moves into the future.
-    if (startedAt && (Date.parse(startedAt) > Date.now() || todayIn(firm.timeZone, new Date(startedAt)) !== date)) {
-      return apiError("invalid");
-    }
     if ((depotId || carId) && !(await ownsDepotAndCar(courier.firmId, depotId, carId))) return apiError("invalid");
 
     const shift = await updateShift(courier, date, patch.value);

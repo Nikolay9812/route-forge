@@ -28,6 +28,8 @@ export const icons = {
   plus: { ios: "plus", android: "add" },
   minus: { ios: "minus", android: "remove" },
   lock: { ios: "lock", android: "lock" },
+  qr: { ios: "qrcode", android: "qr_code_2" },
+  copy: { ios: "doc.on.doc", android: "content_copy" },
   show: { ios: "eye", android: "visibility" },
   hide: { ios: "eye.slash", android: "visibility_off" },
   list: { ios: "list.bullet", android: "list" },

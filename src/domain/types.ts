@@ -143,6 +143,72 @@ export type FleetCar = { id: string; plate: string; depotId: string; archived: b
 /** Every depot of the firm, active and archived, sorted by name; cars sorted by plate. */
 export type Fleet = { depots: FleetDepot[] };
 
+/** The sections of a courier's personal documents, in Profile order. */
+export type DetailsSection =
+  | "idCard"
+  | "licence"
+  | "address"
+  | "tax"
+  | "social"
+  | "health"
+  | "criminalRecord"
+  | "bank"
+  | "contacts";
+
+export type Gender = "female" | "male" | "diverse";
+
+/** A courier's personal documents. Every field is null until set; dates are calendar days. */
+export type CourierDetails = {
+  idNumber: string | null;
+  nationality: string | null;
+  placeOfBirth: string | null;
+  birthDate: string | null;
+  gender: Gender | null;
+  idAddress: string | null;
+  idIssuedOn: string | null;
+  idExpiresOn: string | null;
+  licenceNumber: string | null;
+  licenceClasses: string[] | null;
+  licenceIssuedOn: string | null;
+  licenceExpiresOn: string | null;
+  /** The registered address in Germany (Anmeldung), which can differ from the ID card. */
+  street: string | null;
+  postcode: string | null;
+  city: string | null;
+  /** Steuer-ID, 11 digits. */
+  taxId: string | null;
+  taxClass: number | null;
+  /** Sozialversicherungsnummer. */
+  socialNumber: string | null;
+  healthInsurer: string | null;
+  healthNumber: string | null;
+  /** Führungszeugnis. */
+  criminalRecordIssuedOn: string | null;
+  bankHolder: string | null;
+  iban: string | null;
+  phone: string | null;
+  emergencyName: string | null;
+  emergencyPhone: string | null;
+};
+
+export type SectionWarning = "expired" | "expiresSoon" | "tooOld";
+
+export type SectionState = { state: "missing" | "incomplete" | "complete"; warning: SectionWarning | null };
+
+/** One courier's documents, for the courier themselves or their firm's owner. */
+export type CourierDocuments = {
+  userId: string;
+  name: string;
+  today: string;
+  details: CourierDetails;
+  sections: Record<DetailsSection, SectionState>;
+};
+
+/** A courier in the owner's Couriers list. `expiring` counts both `expiresSoon` and `tooOld` sections. */
+export type CourierDocumentsItem = { userId: string; name: string; complete: number; expired: number; expiring: number };
+
+export type CourierDocumentsList = { today: string; couriers: CourierDocumentsItem[] };
+
 /** The `error` code in API error bodies. Bodies never carry details beyond the code. */
 export type ApiErrorCode =
   | "unauthorized"

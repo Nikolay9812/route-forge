@@ -38,6 +38,15 @@ export const icons = {
   route: { ios: "point.topleft.down.to.point.bottomright.curvepath", android: "route" },
   review: { ios: "doc.text.magnifyingglass", android: "find_in_page" },
   team: { ios: "person.2", android: "group" },
+  "id-card": { ios: "person.text.rectangle", android: "badge" },
+  licence: { ios: "car", android: "directions_car" },
+  tax: { ios: "percent", android: "percent" },
+  social: { ios: "checkmark.shield", android: "verified_user" },
+  health: { ios: "cross.case", android: "medical_services" },
+  record: { ios: "checkmark.seal", android: "gavel" },
+  bank: { ios: "building.columns", android: "account_balance" },
+  phone: { ios: "phone", android: "call" },
+  camera: { ios: "camera", android: "photo_camera" },
 } as const satisfies Record<string, Symbol>;
 
 export type IconName = keyof typeof icons;

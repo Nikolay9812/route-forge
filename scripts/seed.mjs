@@ -1,10 +1,11 @@
-// Development seed: firm settings, depots, cars, pay rates and six months of past shifts for the firms below.
+// Development seed: firm settings, depots, cars, pay rates, courier documents and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
 import { neon } from "@neondatabase/serverless";
 
 import { addMonths } from "../src/domain/calendar.ts";
+import { addDays } from "../src/domain/courier-details.ts";
 import { zonedTime } from "../src/domain/dates.ts";
 
 const MONTHS_BACK = 6;
@@ -29,6 +30,51 @@ const firms = [
     overrides: { "courier.c": [{ month: -1, day: "01", kind: "daily", amountMinor: 13000 }] },
     // courier.a drives in the dispatcher's depots only, courier.c only at HBW7 (outside them).
     depotsOf: { "courier.a": [0, 1], "courier.c": [2] },
+    // Made-up documents, dates in days relative to today: courier.a has everything with an ID card expiring in
+    // 20 days, courier.c has gaps and a Führungszeugnis that is 5 months old.
+    details: {
+      "courier.a": {
+        id_number: "L01X00T47",
+        nationality: "Bulgarian",
+        place_of_birth: "Plovdiv",
+        birth_date: "1994-03-12",
+        gender: "male",
+        id_address: "ul. Vasil Levski 5, 4000 Plovdiv",
+        id_issued_on: -3630,
+        id_expires_on: 20,
+        licence_number: "B072RRE2I55",
+        licence_classes: ["B", "C1"],
+        licence_issued_on: -2900,
+        licence_expires_on: 2400,
+        street: "Hauptstraße 12",
+        postcode: "76185",
+        city: "Karlsruhe",
+        tax_id: "12345678903",
+        tax_class: 1,
+        social_number: "12120394M005",
+        health_insurer: "AOK Baden-Württemberg",
+        health_number: "A123456780",
+        criminal_record_issued_on: -40,
+        bank_holder: "Courier A",
+        iban: "DE89370400440532013000",
+        phone: "+49 151 2345 6789",
+        emergency_name: "Maria A",
+        emergency_phone: "+359 88 123 4567",
+      },
+      "courier.c": {
+        id_number: "T22000129",
+        nationality: "Romanian",
+        birth_date: "1990-11-02",
+        gender: "female",
+        id_issued_on: -1200,
+        id_expires_on: 2400,
+        tax_id: "98765432106",
+        tax_class: 1,
+        criminal_record_issued_on: -150,
+        bank_holder: "Courier C",
+        iban: "GB82WEST12345698765432",
+      },
+    },
   },
   {
     name: "Test Firm B",
@@ -39,6 +85,7 @@ const firms = [
     rates: [{ month: -MONTHS_BACK, day: "01", hourlyMinor: 1200 }],
     overrides: {},
     depotsOf: {},
+    details: { "courier.b": { phone: "+49 160 9876 5432", emergency_name: "Courier B Contact", emergency_phone: "+49 30 123456" } },
   },
 ];
 
@@ -120,6 +167,7 @@ for (const firm of firms) {
     sql`delete from shifts where firm_id = ${firmId}`,
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
     sql`delete from pay_rates where firm_id = ${firmId}`,
+    sql`delete from courier_details where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
     sql`delete from firm_settings where firm_id = ${firmId}`,
@@ -162,6 +210,19 @@ for (const firm of firms) {
         insert into pay_rates (firm_id, user_id, effective_from, kind, amount_minor, set_by)
         values (${firmId}, ${userId}, ${`${addMonths(month, rate.month)}-${rate.day}`}, ${rate.kind}, ${rate.amountMinor}, ${setBy})`;
     }
+  }
+
+  // Documents, saved as if by the courier themselves. Column names are fixed text here, values are parameters.
+  for (const { id: userId, identifier } of couriers) {
+    const values = firm.details[identifier.split("+")[0]];
+    if (!values) continue;
+    const row = { firm_id: firmId, user_id: userId, updated_by: userId };
+    for (const [column, value] of Object.entries(values)) {
+      row[column] = column.endsWith("_on") ? addDays(today, value) : value;
+    }
+    const columns = Object.keys(row);
+    const query = `insert into courier_details (${columns.join(", ")}) values (${columns.map((_, i) => `$${i + 1}`).join(", ")})`;
+    await sql.query(query, Object.values(row));
   }
 
   // Which days each courier works, and each day's status.

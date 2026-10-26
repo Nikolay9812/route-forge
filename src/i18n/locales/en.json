@@ -203,7 +203,9 @@
   },
   "profile": {
     "signOut": "Sign out",
-    "firm": "Firm"
+    "firm": "Firm",
+    "myDocuments": "My documents",
+    "couriers": "Couriers"
   },
   "shifts": {
     "title": "Today's shift",
@@ -479,5 +481,111 @@
       "taken": "There's already a change on this day.",
       "notEditable": "This rate has already started and can't be changed."
     }
+  },
+  "documents": {
+    "couriers": "Couriers",
+    "sections": {
+      "idCard": "ID card",
+      "licence": "Driving licence",
+      "address": "Registered address",
+      "tax": "Tax ID",
+      "social": "Social security",
+      "health": "Health insurance",
+      "criminalRecord": "Criminal record certificate",
+      "bank": "Bank account",
+      "contacts": "Contacts"
+    },
+    "state": {
+      "missing": "Missing",
+      "incomplete": "Incomplete",
+      "done": "Done"
+    },
+    "warning": {
+      "expired": "Expired",
+      "expiresSoon": "Expires soon",
+      "tooOld": "Over 3 months old"
+    },
+    "warningBody": {
+      "expired": "This document expired on {{date}}.",
+      "expiresSoon": "This document expires on {{date}}.",
+      "tooOld": "Issued on {{date}}, more than 3 months ago. Firms usually ask for a newer one."
+    },
+    "fields": {
+      "idNumber": "Document number",
+      "nationality": "Nationality",
+      "placeOfBirth": "Place of birth",
+      "birthDate": "Date of birth",
+      "gender": "Gender",
+      "idAddress": "Address on the card",
+      "idIssuedOn": "Issued on",
+      "idExpiresOn": "Expires on",
+      "licenceNumber": "Licence number",
+      "licenceClasses": "Classes",
+      "licenceIssuedOn": "Issued on",
+      "licenceExpiresOn": "Expires on",
+      "street": "Street and number",
+      "postcode": "Postcode",
+      "city": "City",
+      "taxId": "Tax ID (Steuer-ID)",
+      "taxClass": "Tax class",
+      "socialNumber": "Social security number",
+      "healthInsurer": "Health insurer",
+      "healthNumber": "Insurance number",
+      "criminalRecordIssuedOn": "Issued on",
+      "bankHolder": "Account holder",
+      "iban": "IBAN",
+      "phone": "Phone",
+      "emergencyName": "Emergency contact",
+      "emergencyPhone": "Emergency contact phone"
+    },
+    "hints": {
+      "address": "Where you're registered in Germany (Anmeldung). It can differ from your ID card.",
+      "taxId": "11 digits, from your tax letter or payslip",
+      "socialNumber": "12 characters, e.g. 65 170839 J 003",
+      "healthNumber": "A letter and 9 digits, on your insurance card"
+    },
+    "gender": {
+      "female": "Female",
+      "male": "Male",
+      "diverse": "Diverse"
+    },
+    "addDate": "Add date",
+    "clearDate": "Clear {{label}}",
+    "errors": {
+      "tooLong": "This is too long",
+      "future": "Can't be in the future",
+      "beforeIssued": "Must be after the issue date",
+      "format": {
+        "date": "Enter a date as YYYY-MM-DD",
+        "postcode": "Enter 5 digits",
+        "taxId": "Enter the 11 digits of your tax ID",
+        "socialNumber": "8 digits, a letter, then 3 digits",
+        "healthNumber": "A letter and 9 digits",
+        "iban": "This IBAN isn't valid. Check it for typos.",
+        "phone": "Enter a phone number",
+        "emergencyPhone": "Enter a phone number"
+      },
+      "check": "Check the highlighted fields."
+    },
+    "photos": {
+      "front": "Front",
+      "back": "Back",
+      "photo": "Photo",
+      "page1": "Page 1",
+      "page2": "Page 2",
+      "page3": "Page 3",
+      "notSaved": "Photos aren't saved yet. They stay on this phone until you close the app.",
+      "take": "Take photo",
+      "choose": "Choose from library",
+      "remove": "Remove photo",
+      "deniedTitle": "No access",
+      "deniedCamera": "Allow camera access in Settings to take a photo.",
+      "deniedLibrary": "Allow photo access in Settings to choose a photo."
+    },
+    "error": "Couldn't load the documents.",
+    "progress": "{{done}} of {{total}} done",
+    "expiredCount": "{{count}} expired",
+    "expiringCount": "{{count}} expiring",
+    "empty": "No couriers yet"
   }
 }

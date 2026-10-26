@@ -203,7 +203,9 @@
   },
   "profile": {
     "signOut": "Abmelden",
-    "firm": "Firma"
+    "firm": "Firma",
+    "myDocuments": "Meine Dokumente",
+    "couriers": "Kuriere"
   },
   "shifts": {
     "title": "Heutige Schicht",
@@ -479,5 +481,111 @@
       "taken": "An diesem Tag gibt es schon eine Änderung.",
       "notEditable": "Dieser Satz gilt bereits und kann nicht mehr geändert werden."
     }
+  },
+  "documents": {
+    "couriers": "Kuriere",
+    "sections": {
+      "idCard": "Personalausweis",
+      "licence": "Führerschein",
+      "address": "Meldeadresse",
+      "tax": "Steuer-ID",
+      "social": "Sozialversicherung",
+      "health": "Krankenversicherung",
+      "criminalRecord": "Führungszeugnis",
+      "bank": "Bankverbindung",
+      "contacts": "Kontakte"
+    },
+    "state": {
+      "missing": "Fehlt",
+      "incomplete": "Unvollständig",
+      "done": "Fertig"
+    },
+    "warning": {
+      "expired": "Abgelaufen",
+      "expiresSoon": "Läuft bald ab",
+      "tooOld": "Älter als 3 Monate"
+    },
+    "warningBody": {
+      "expired": "Dieses Dokument ist am {{date}} abgelaufen.",
+      "expiresSoon": "Dieses Dokument läuft am {{date}} ab.",
+      "tooOld": "Ausgestellt am {{date}}, vor mehr als 3 Monaten. Firmen verlangen meist ein neueres."
+    },
+    "fields": {
+      "idNumber": "Ausweisnummer",
+      "nationality": "Staatsangehörigkeit",
+      "placeOfBirth": "Geburtsort",
+      "birthDate": "Geburtsdatum",
+      "gender": "Geschlecht",
+      "idAddress": "Adresse im Ausweis",
+      "idIssuedOn": "Ausgestellt am",
+      "idExpiresOn": "Gültig bis",
+      "licenceNumber": "Führerscheinnummer",
+      "licenceClasses": "Klassen",
+      "licenceIssuedOn": "Ausgestellt am",
+      "licenceExpiresOn": "Gültig bis",
+      "street": "Straße und Hausnummer",
+      "postcode": "PLZ",
+      "city": "Ort",
+      "taxId": "Steuer-ID",
+      "taxClass": "Steuerklasse",
+      "socialNumber": "Sozialversicherungsnummer",
+      "healthInsurer": "Krankenkasse",
+      "healthNumber": "Versichertennummer",
+      "criminalRecordIssuedOn": "Ausgestellt am",
+      "bankHolder": "Kontoinhaber",
+      "iban": "IBAN",
+      "phone": "Telefon",
+      "emergencyName": "Notfallkontakt",
+      "emergencyPhone": "Telefon des Notfallkontakts"
+    },
+    "hints": {
+      "address": "Wo du in Deutschland gemeldet bist (Anmeldung). Sie kann von der Adresse im Ausweis abweichen.",
+      "taxId": "11 Ziffern, aus dem Brief des Finanzamts oder der Lohnabrechnung",
+      "socialNumber": "12 Zeichen, z. B. 65 170839 J 003",
+      "healthNumber": "Ein Buchstabe und 9 Ziffern, auf deiner Versichertenkarte"
+    },
+    "gender": {
+      "female": "Weiblich",
+      "male": "Männlich",
+      "diverse": "Divers"
+    },
+    "addDate": "Datum hinzufügen",
+    "clearDate": "{{label}} löschen",
+    "errors": {
+      "tooLong": "Das ist zu lang",
+      "future": "Darf nicht in der Zukunft liegen",
+      "beforeIssued": "Muss nach dem Ausstellungsdatum liegen",
+      "format": {
+        "date": "Datum als JJJJ-MM-TT eingeben",
+        "postcode": "5 Ziffern eingeben",
+        "taxId": "Die 11 Ziffern deiner Steuer-ID eingeben",
+        "socialNumber": "8 Ziffern, ein Buchstabe, dann 3 Ziffern",
+        "healthNumber": "Ein Buchstabe und 9 Ziffern",
+        "iban": "Diese IBAN ist ungültig. Prüfe sie auf Tippfehler.",
+        "phone": "Telefonnummer eingeben",
+        "emergencyPhone": "Telefonnummer eingeben"
+      },
+      "check": "Prüfe die markierten Felder."
+    },
+    "photos": {
+      "front": "Vorderseite",
+      "back": "Rückseite",
+      "photo": "Foto",
+      "page1": "Seite 1",
+      "page2": "Seite 2",
+      "page3": "Seite 3",
+      "notSaved": "Fotos werden noch nicht gespeichert. Sie bleiben auf diesem Handy, bis du die App schließt.",
+      "take": "Foto aufnehmen",
+      "choose": "Aus Mediathek wählen",
+      "remove": "Foto entfernen",
+      "deniedTitle": "Kein Zugriff",
+      "deniedCamera": "Erlaube den Kamerazugriff in den Einstellungen, um ein Foto aufzunehmen.",
+      "deniedLibrary": "Erlaube den Fotozugriff in den Einstellungen, um ein Foto zu wählen."
+    },
+    "error": "Die Dokumente konnten nicht geladen werden.",
+    "progress": "{{done}} von {{total}} fertig",
+    "expiredCount": "{{count}} abgelaufen",
+    "expiringCount": "{{count}} laufen ab",
+    "empty": "Noch keine Kuriere"
   }
 }

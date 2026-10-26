@@ -43,7 +43,14 @@
           ]
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Route Forge uses your photos so you can add pictures of your documents.",
+          "cameraPermission": "Route Forge uses the camera so you can take pictures of your documents."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

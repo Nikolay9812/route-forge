@@ -31,6 +31,7 @@ export function useFormat(timeZone: string, currency: string) {
     const count = new Intl.NumberFormat(locale);
     const longDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "long", day: "numeric", month: "long" });
     const shortDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
+    const fullDay = new Intl.DateTimeFormat(locale, { timeZone, day: "numeric", month: "short", year: "numeric" });
     const monthName = new Intl.DateTimeFormat(locale, { timeZone, month: "long" });
     const monthYear = new Intl.DateTimeFormat(locale, { timeZone, month: "long", year: "numeric" });
     const weekday = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short" });
@@ -45,6 +46,8 @@ export function useFormat(timeZone: string, currency: string) {
         t("units.duration", { hours: Math.floor(minutes / 60), minutes: minutes % 60 }),
       longDay: (date: string) => longDay.format(dateAtNoon(date)),
       shortDay: (date: string) => shortDay.format(dateAtNoon(date)),
+      /** "12 Mar 1994": birth dates and document validity, where the year matters. */
+      fullDay: (date: string) => fullDay.format(dateAtNoon(date)),
       /** "Mo", "Mon", "пн": the calendar's column heads, without German's trailing dot. */
       weekday: (date: string) => weekday.format(dateAtNoon(date)).replace(/\.$/, ""),
       /** "Oktober" in the current year, "Dezember 2025" in any other. */

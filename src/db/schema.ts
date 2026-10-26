@@ -161,3 +161,57 @@ export const shiftChanges = pgTable(
   },
   (t) => [index().on(t.firmId, t.shiftId)],
 );
+
+export const gender = pgEnum("gender", ["female", "male", "diverse"]);
+
+/**
+ * A courier's personal documents, one row per courier per firm, created on their first save. Every field is
+ * optional; the courier edits their own row and the firm's owner edits anyone's. Personal data: never logged.
+ */
+export const courierDetails = pgTable(
+  "courier_details",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    /** Clerk user ID of the courier. */
+    userId: text().notNull(),
+    idNumber: text(),
+    nationality: text(),
+    placeOfBirth: text(),
+    birthDate: date({ mode: "string" }),
+    gender: gender(),
+    idAddress: text(),
+    idIssuedOn: date({ mode: "string" }),
+    idExpiresOn: date({ mode: "string" }),
+    licenceNumber: text(),
+    licenceClasses: text().array(),
+    licenceIssuedOn: date({ mode: "string" }),
+    licenceExpiresOn: date({ mode: "string" }),
+    /** Registered address in Germany (Anmeldung). */
+    street: text(),
+    postcode: text(),
+    city: text(),
+    /** Steuer-ID. */
+    taxId: text(),
+    taxClass: integer(),
+    /** Sozialversicherungsnummer. */
+    socialNumber: text(),
+    healthInsurer: text(),
+    healthNumber: text(),
+    /** Führungszeugnis. */
+    criminalRecordIssuedOn: date({ mode: "string" }),
+    bankHolder: text(),
+    iban: text(),
+    phone: text(),
+    emergencyName: text(),
+    emergencyPhone: text(),
+    /** Clerk user ID of whoever saved last (the courier or the owner), and when. */
+    updatedBy: text().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex().on(t.firmId, t.userId),
+    check("courier_details_tax_class", sql`${t.taxClass} between 1 and 6`),
+  ],
+);

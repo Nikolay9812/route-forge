@@ -353,7 +353,11 @@
     "emptyPendingBody": "No shifts are waiting for approval.",
     "emptyReviewedTitle": "Nothing reviewed yet",
     "emptyReviewedBody": "Shifts you approve or send back in the last 30 days show up here.",
-    "payDaily": "Day rate"
+    "payDaily": "Day rate",
+    "photos": {
+      "none": "No photos",
+      "some": "Photos {{count}}/{{total}}"
+    }
   },
   "calendar": {
     "list": "List",
@@ -574,17 +578,7 @@
       "page1": "Page 1",
       "page2": "Page 2",
       "page3": "Page 3",
-      "take": "Take photo",
-      "choose": "Choose from library",
-      "remove": "Remove photo",
-      "deniedTitle": "No access",
-      "deniedCamera": "Allow camera access in Settings to take a photo.",
-      "deniedLibrary": "Allow photo access in Settings to choose a photo.",
-      "saved": "Photos are saved as soon as you add them.",
-      "uploadError": "Couldn’t save the photo. Try again.",
-      "removeError": "Couldn’t remove the photo. Try again.",
-      "offline": "No connection. The photo wasn’t saved.",
-      "tooLarge": "This photo is too large (over 10 MB)."
+      "saved": "Photos are saved as soon as you add them."
     },
     "error": "Couldn't load the documents.",
     "progress": "{{done}} of {{total}} done",
@@ -609,6 +603,42 @@
         "one": "{{count}} day",
         "other": "{{count}} days"
       }
+    }
+  },
+  "photos": {
+    "take": "Take photo",
+    "choose": "Choose from library",
+    "remove": "Remove photo",
+    "deniedTitle": "No access",
+    "deniedCamera": "Allow camera access in Settings to take a photo.",
+    "deniedLibrary": "Allow photo access in Settings to choose a photo.",
+    "uploadError": "Couldn’t save the photo. Try again.",
+    "removeError": "Couldn’t remove the photo. Try again.",
+    "offline": "No connection. The photo wasn’t saved.",
+    "tooLarge": "This photo is too large (over 10 MB).",
+    "close": "Close"
+  },
+  "shiftPhotos": {
+    "title": "Vehicle check",
+    "optional": "Optional. Photos are saved as soon as you take them.",
+    "count": "{{count}} of {{total}}",
+    "missing": "Missing",
+    "none": "No photos added.",
+    "groups": {
+      "bus": "Bus · {{plate}}",
+      "fuel": "Diesel & AdBlue"
+    },
+    "slots": {
+      "front": "Front",
+      "back": "Back",
+      "left": "Left side",
+      "right": "Right side",
+      "extra1": "Extra 1",
+      "extra2": "Extra 2",
+      "logbook": "Logbook",
+      "mentor": "Mentor score",
+      "diesel": "Diesel",
+      "adblue": "AdBlue"
     }
   }
 }

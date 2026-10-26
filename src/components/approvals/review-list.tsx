@@ -5,12 +5,14 @@ import { Pressable, View } from "react-native";
 import { Divider } from "@/components/divider";
 import type { useFormat } from "@/components/home/format";
 import { Surface } from "@/components/surface";
+import { photoTag } from "@/components/shifts/vehicle-check-card";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { ReviewItem } from "@/domain/types";
 import { useTranslation } from "@/i18n";
 
-// Shifts to review, as full-width rows that highlight on press (like Home's recent shifts).
+// Shifts to review, as full-width rows that highlight on press (like Home's recent shifts). Each shows how many
+// vehicle check photos the courier took, so a missing check stands out.
 export function ReviewList({ items, format }: { items: ReviewItem[]; format: ReturnType<typeof useFormat> }) {
   const { t } = useTranslation();
 
@@ -35,6 +37,7 @@ export function ReviewList({ items, format }: { items: ReviewItem[]; format: Ret
             <View className="items-end gap-1">
               <ThemedText variant="label">{format.duration(shift.minutes ?? 0)}</ThemedText>
               <View className="flex-row gap-1">
+                <Tag size="sm" {...photoTag(shift.photoCount, t)} />
                 {shift.corrected ? <Tag tone="info" size="sm" label={t("review.corrected")} /> : null}
                 <Tag tone={shift.status} size="sm" label={t(`status.${shift.status}`)} />
               </View>

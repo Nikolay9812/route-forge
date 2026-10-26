@@ -12,14 +12,10 @@ import {
   normalizeSocialNumber,
   normalizeTaxId,
   parseDetailsPatch,
-  isPhotoKey,
-  parsePhotoConfirm,
-  parsePhotoQuery,
-  parsePhotoRequest,
-  photoPrefix,
   sectionFields,
   sectionState,
 } from "../src/domain/courier-details.ts";
+import { isPhotoKey, parsePhotoConfirm, parsePhotoQuery, parsePhotoRequest, photoPrefix } from "../src/domain/photos.ts";
 import { timeUntil } from "../src/domain/dates.ts";
 
 const today = "2026-10-26";

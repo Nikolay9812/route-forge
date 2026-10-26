@@ -4,6 +4,7 @@ import { todayIn } from "@/domain/dates";
 import { delivered, parsePatch, parseStart } from "@/domain/shift";
 import { apiError, handle, readJson } from "@/server/auth";
 import { courierContext } from "@/server/context";
+import { photosOfShift } from "@/server/shift-photos";
 import {
   activeBuses,
   activeStations,
@@ -25,7 +26,8 @@ export function GET(request: Request) {
       activeStations(courier.firmId),
       activeBuses(courier.firmId),
     ]);
-    return Response.json({ firm, date, shift, recent, stations, buses });
+    const photos = shift ? await photosOfShift(courier.firmId, shift.id) : {};
+    return Response.json({ firm, date, shift, photos, recent, stations, buses });
   });
 }
 

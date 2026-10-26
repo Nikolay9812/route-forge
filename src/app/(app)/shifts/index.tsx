@@ -19,6 +19,7 @@ import { ShiftsSkeleton } from "@/components/shifts/shifts-skeleton";
 import { StartCard } from "@/components/shifts/start-card";
 import { SubmittedCard } from "@/components/shifts/submitted-card";
 import { TimeCard } from "@/components/shifts/time-card";
+import { OwnVehicleCheck } from "@/components/shifts/vehicle-check-card";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { CalendarMonth } from "@/domain/types";
@@ -133,6 +134,11 @@ export default function Shifts() {
                   onChange={set}
                 />
                 <PackagesCard fields={fields} format={format} onChange={set} />
+                <OwnVehicleCheck
+                  shiftId={shift.id}
+                  plate={load.buses.find((b) => b.id === fields.busId)?.plate ?? shift.car.plate}
+                  photos={load.photos}
+                />
                 <SaveStatus state={save} onRetry={() => void retrySave()} />
                 <Button
                   title={t("shifts.finish.button")}

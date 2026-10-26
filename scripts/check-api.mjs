@@ -15,6 +15,7 @@ const users = {
 
 // Start clean: today's shifts for the test couriers (any date >= yesterday covers timezone edges).
 await sql`delete from shift_changes where shift_id in (select id from shifts where user_id = any(${[users.a, users.c, users.b]}) and date >= current_date - 1)`;
+await sql`delete from shift_photos where shift_id in (select id from shifts where user_id = any(${[users.a, users.c, users.b]}) and date >= current_date - 1)`;
 await sql`delete from shifts where user_id = any(${[users.a, users.c, users.b]}) and date >= current_date - 1`;
 
 const tokens = {

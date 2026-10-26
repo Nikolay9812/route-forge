@@ -239,3 +239,30 @@ export const documentPhotos = pgTable(
   },
   (t) => [uniqueIndex().on(t.firmId, t.userId, t.section, t.slot)],
 );
+
+/**
+ * One vehicle check photo per shift slot (the bus from four sides plus extras, logbook, Mentor, diesel and AdBlue).
+ * The file lives in the private R2 bucket under `objectKey`. Replacing or removing a photo deletes the old file and
+ * this row; otherwise rows stay as long as their shift, which is never deleted.
+ */
+export const shiftPhotos = pgTable(
+  "shift_photos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    shiftId: uuid()
+      .notNull()
+      .references(() => shifts.id),
+    /** Clerk user ID of the courier whose shift it is. */
+    userId: text().notNull(),
+    slot: text().notNull(),
+    objectKey: text().notNull(),
+    contentType: text().notNull(),
+    /** Bytes. */
+    size: integer().notNull(),
+    /** Clerk user ID of whoever uploaded it, and when. */
+    uploadedBy: text().notNull(),
+    uploadedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.shiftId, t.slot)],
+);

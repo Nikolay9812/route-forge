@@ -9,6 +9,7 @@ import { Button } from "@/components/button";
 import { useFormat } from "@/components/home/format";
 import { RejectionAlert } from "@/components/shifts/rejection-alert";
 import { ShiftEditForm } from "@/components/shifts/shift-edit-form";
+import { OwnVehicleCheck, VehicleCheckCard } from "@/components/shifts/vehicle-check-card";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation, type TranslationKey } from "@/i18n";
@@ -22,7 +23,8 @@ function failureMessage(failure: ApiFailure): TranslationKey {
   return "shifts.fix.error";
 }
 
-// One of the courier's shifts. A rejected one shows why and can be fixed and resubmitted; others are read-only.
+// One of the courier's shifts. A rejected one shows why and can be fixed (photos too) and resubmitted; others are
+// read-only.
 export default function OwnShift() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,7 +54,7 @@ export default function OwnShift() {
     );
   }
 
-  const { shift, firm, stations, buses } = resource.data;
+  const { shift, firm, stations, buses, photos } = resource.data;
   const rejected = shift.status === "rejected";
   const original = editFieldsOf(shift, firm.timeZone);
   const fields = edit?.fields ?? original;
@@ -94,6 +96,7 @@ export default function OwnShift() {
               onChange={(change) => setEdit({ fields: { ...fields, ...change }, original: edit?.original ?? original })}
             />
           </Surface>
+          <OwnVehicleCheck shiftId={shift.id} plate={shift.car.plate} photos={photos} />
           {message ? (
             <Alert tone={message === "shifts.fix.offline" ? "offline" : "danger"} message={t(message)} />
           ) : null}
@@ -110,6 +113,7 @@ export default function OwnShift() {
           {shift.status === "submitted" ? (
             <ThemedText variant="footnote">{t("shifts.submitted.waiting")}</ThemedText>
           ) : null}
+          <VehicleCheckCard plate={shift.car.plate} photos={photos} />
         </>
       )}
     </ScrollView>

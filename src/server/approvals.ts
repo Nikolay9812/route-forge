@@ -10,6 +10,7 @@ import type { Bus, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Sta
 
 import { userNames, type Reviewer } from "./auth";
 import { payScheduleOf } from "./pay-rates";
+import { photosOfShift } from "./shift-photos";
 import { selectShifts, toShift, type ShiftValues } from "./shifts";
 
 export type ReviewScope = Reviewer & { depotIds: string[] | "all" };
@@ -74,7 +75,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
   if (!found) return null;
   const { shift, userId } = found;
 
-  const [schedule, changeRows, stations, buses] = await Promise.all([
+  const [schedule, changeRows, stations, buses, photos] = await Promise.all([
     payScheduleOf(scope.firmId, userId),
     db
       .select()
@@ -83,6 +84,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
       .orderBy(asc(shiftChanges.changedAt)),
     scopeStations(scope),
     activeBusesOf(scope.firmId),
+    photosOfShift(scope.firmId, id),
   ]);
   const names = await userNames([userId, ...changeRows.map((c) => c.changedBy)]);
 
@@ -100,7 +102,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
     at: c.changedAt.toISOString(),
   }));
 
-  return { shift, courierName: names.get(userId) ?? "", pay, changes, stations, buses };
+  return { shift, courierName: names.get(userId) ?? "", pay, changes, stations, buses, photos };
 }
 
 /** Active depots the reviewer may move a shift to. */

@@ -165,6 +165,7 @@ for (const firm of firms) {
 
   await sql.transaction([
     sql`delete from shift_changes where firm_id = ${firmId}`,
+    sql`delete from shift_photos where firm_id = ${firmId}`,
     sql`delete from shifts where firm_id = ${firmId}`,
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
     sql`delete from pay_rates where firm_id = ${firmId}`,
@@ -175,7 +176,7 @@ for (const firm of firms) {
     sql`delete from firm_settings where firm_id = ${firmId}`,
     sql`insert into firm_settings (firm_id, currency, time_zone) values (${firmId}, ${firm.currency}, ${firm.timeZone})`,
   ]);
-  // The firm's document photos in R2 go with their rows; no photos are seeded.
+  // The firm's document and shift photos in R2 go with their rows; no photos are seeded.
   await deletePrefix(`firms/${firmId}/`);
 
   const depots = [];

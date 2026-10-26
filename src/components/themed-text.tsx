@@ -49,6 +49,7 @@ export const textColors = {
   "on-inverse": "text-on-inverse",
   "on-inverse-muted": "text-on-inverse-muted",
   white: "text-white",
+  scrim: "text-scrim",
 } as const satisfies Record<ColorToken, string>;
 
 // Design Board 03. Size, line height and tracking come from the --text-* tokens.

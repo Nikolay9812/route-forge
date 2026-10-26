@@ -1,6 +1,5 @@
 // What the courier is typing on the shift form. Number fields stay strings so the inputs show exactly what was
 // typed; "" means empty. The rules themselves live in src/domain/shift.ts; these adapt the strings to them.
-import { minuteOfDayIn } from "@/domain/dates";
 import { delivered, finishProblem, kmDriven, type ShiftPatch } from "@/domain/shift";
 import type { Shift } from "@/domain/types";
 
@@ -104,14 +103,6 @@ export function patchOf(fields: ShiftFields, names: Iterable<FieldName>): ShiftP
 /** Keeps digits only, so pasted "48 213" or "140." becomes a plain number string. */
 export function digitsOnly(text: string): string {
   return text.replace(/\D/g, "").slice(0, 7);
-}
-
-/** Today at the given firm-local minute of day, as UTC milliseconds, or null if that is in the future. */
-export function todayAt(minuteOfDay: number, timeZone: string, now = new Date()): number | null {
-  const current = minuteOfDayIn(timeZone, now);
-  if (minuteOfDay > current) return null;
-  const startOfMinute = now.getTime() - (now.getTime() % 60_000);
-  return startOfMinute - (current - minuteOfDay) * 60_000;
 }
 
 /** Whole minutes between two UTC timestamps. */

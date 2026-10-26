@@ -232,13 +232,8 @@
     "time": {
       "title": "Arbeitszeit",
       "startedAt": "Begonnen um {{time}}",
-      "edit": "Ändern",
-      "save": "Speichern",
       "cancel": "Abbrechen",
-      "label": "Startzeit",
-      "invalid": "Gib eine Uhrzeit wie 07:30 ein.",
-      "future": "Die Startzeit darf nicht in der Zukunft liegen.",
-      "offline": "Keine Verbindung. Die Startzeit wurde nicht geändert."
+      "invalid": "Gib eine Uhrzeit wie 07:30 ein."
     },
     "route": {
       "title": "Route",
@@ -288,6 +283,15 @@
       "error": "Die Schicht konnte nicht gesendet werden. Versuch es erneut.",
       "loadError": "Diese Schicht konnte nicht geladen werden.",
       "timesLocked": "Nur dein Disponent kann die Zeiten ändern."
+    },
+    "vin": {
+      "label": "FIN",
+      "showQr": "FIN als QR-Code zeigen",
+      "copy": "FIN kopieren",
+      "copied": "Kopiert",
+      "title": "FIN scannen",
+      "body": "Scanne den Code mit der App, die nach der FIN fragt, oder kopiere sie.",
+      "copiedAnnounce": "FIN kopiert"
     }
   },
   "firm": {
@@ -439,6 +443,57 @@
       "restore": "Fahrzeug wiederherstellen",
       "depotArchived": "Sein Depot {{depot}} ist archiviert. Stell zuerst das Depot wieder her.",
       "confirmTitle": "Dieses Fahrzeug archivieren?"
+    },
+    "papers": {
+      "title": "Fahrzeug",
+      "talon": "Fahrzeugschein (Zulassungsbescheinigung Teil I)",
+      "talonAdd": "Foto hinzufügen",
+      "vin": "FIN (Fahrgestellnummer)",
+      "vinHint": "17 Buchstaben und Ziffern, wie im Fahrzeugschein (Feld E).",
+      "vinInvalid": "Eine FIN hat 17 Buchstaben und Ziffern, ohne I, O und Q.",
+      "vinTaken": "Ein anderes Fahrzeug hat diese FIN schon.",
+      "tuv": "HU/TÜV fällig",
+      "tuvShort": "TÜV {{month}}",
+      "addMonth": "Monat hinzufügen",
+      "previousMonth": "Vorheriger Monat",
+      "nextMonth": "Nächster Monat",
+      "insurance": "Versicherung läuft ab",
+      "serviceDate": "Nächste Wartung (Datum)",
+      "serviceKm": "Nächste Wartung bei km",
+      "kmInvalid": "Nur ganze Kilometer.",
+      "odometer": "Jetzt {{km}} km",
+      "kmLeft": "Jetzt {{km}} km · noch {{left}} km",
+      "kmOver": "Jetzt {{km}} km · {{over}} km drüber",
+      "warnedCount": "Prüfen: {{count}}",
+      "more": "+{{count}}",
+      "warnings": {
+        "tuv": {
+          "soon": "HU/TÜV ist in den nächsten 30 Tagen fällig.",
+          "due": "HU/TÜV ist überfällig."
+        },
+        "insurance": {
+          "soon": "Die Versicherung läuft in den nächsten 30 Tagen ab.",
+          "due": "Die Versicherung ist abgelaufen."
+        },
+        "service": {
+          "soon": "Die Wartung steht bald an (30 Tage oder 1.000 km).",
+          "due": "Die Wartung ist überfällig."
+        }
+      },
+      "short": {
+        "tuv": {
+          "soon": "TÜV bald fällig",
+          "due": "TÜV überfällig"
+        },
+        "insurance": {
+          "soon": "Versicherung läuft bald ab",
+          "due": "Versicherung abgelaufen"
+        },
+        "service": {
+          "soon": "Wartung bald fällig",
+          "due": "Wartung überfällig"
+        }
+      }
     }
   },
   "payRates": {

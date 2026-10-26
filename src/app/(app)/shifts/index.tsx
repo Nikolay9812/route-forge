@@ -40,7 +40,7 @@ function startMessage(failure: ApiFailure): TranslationKey | null {
 export default function Shifts() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { load, shift, phase, fields, save, set, start, setStartTime, retrySave, reload } = useTodayShift();
+  const { load, shift, phase, fields, save, set, start, retrySave, reload } = useTodayShift();
   const firm = load.status === "ready" ? load.firm : beforeLoad;
   const format = useFormat(firm.timeZone, firm.currency);
   const [starting, setStarting] = useState(false);
@@ -120,16 +120,12 @@ export default function Shifts() {
             ) : phase === "inProgress" && shift ? (
               <View className="gap-4">
                 <RejectionAlert rejection={shift.rejection} />
-                <TimeCard
-                  startedAt={Date.parse(shift.startedAt)}
-                  timeZone={firm.timeZone}
-                  format={format}
-                  onChangeStart={setStartTime}
-                />
+                <TimeCard startedAt={Date.parse(shift.startedAt)} format={format} />
                 <RouteCard
                   fields={fields}
                   stations={load.stations}
                   buses={load.buses}
+                  car={shift.car}
                   format={format}
                   onChange={set}
                 />

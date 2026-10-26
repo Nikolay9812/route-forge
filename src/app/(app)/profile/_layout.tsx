@@ -13,8 +13,8 @@ const sheet = {
   sheetCornerRadius: 20,
 } as const;
 
-// Profile with the courier's documents, and for owners the firm's depots and cars, its pay rates and its
-// couriers' documents (native headers), with their form sheets.
+// Profile with the courier's documents, and for owners the firm's depots and cars (each car with its papers), its
+// pay rates and its couriers' documents (native headers), with their form sheets.
 export default function ProfileLayout() {
   const { t } = useTranslation();
   return (
@@ -24,6 +24,8 @@ export default function ProfileLayout() {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="fleet" options={{ title: t("fleet.title"), headerBackTitle: t("tabs.profile") }} />
+            {/* The title is the car's plate, set by the screen. */}
+            <Stack.Screen name="vehicle" options={{ title: "", headerBackTitle: t("fleet.title") }} />
             <Stack.Screen name="depot" options={sheet} />
             <Stack.Screen name="car" options={sheet} />
             <Stack.Screen name="pay-rates" options={{ title: t("payRates.title"), headerBackTitle: t("tabs.profile") }} />

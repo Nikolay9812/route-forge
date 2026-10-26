@@ -24,6 +24,7 @@ export const colorTokens = [
   "on-inverse",
   "on-inverse-muted",
   "white",
+  "scrim",
 ] as const;
 
 export type ColorToken = (typeof colorTokens)[number];

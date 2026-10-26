@@ -160,21 +160,6 @@ function useTodayShiftState() {
     }
   }, [api, reload]);
 
-  /** Moves the start time (UTC milliseconds). Resolves the failure, or null on success. */
-  const setStartTime = useCallback(
-    async (at: number): Promise<ApiFailure | null> => {
-      try {
-        setShift(
-          await api<Shift>("/api/shifts/today", { method: "PATCH", body: { startedAt: new Date(at).toISOString() } }),
-        );
-        return null;
-      } catch (error) {
-        return failureOf(error);
-      }
-    },
-    [api],
-  );
-
   /** Saves anything pending, then submits. Resolves the failure, or null on success. */
   const submit = useCallback(async (): Promise<ApiFailure | null> => {
     const unsaved = await flush();
@@ -188,7 +173,7 @@ function useTodayShiftState() {
     }
   }, [api, flush]);
 
-  return { load, shift, phase, fields, save, set, start, setStartTime, submit, retrySave: flush, reload };
+  return { load, shift, phase, fields, save, set, start, submit, retrySave: flush, reload };
 }
 
 type TodayShift = ReturnType<typeof useTodayShiftState>;

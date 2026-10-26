@@ -11,15 +11,18 @@ import { Notice } from "@/components/notice";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
-import type { FleetDepot } from "@/domain/types";
+import { carWarnings } from "@/domain/fleet";
+import type { FleetCar, FleetDepot } from "@/domain/types";
 import { useFleet } from "@/fleet/fleet";
 import { useTranslation } from "@/i18n";
 import { useThemeColor } from "@/theme";
 
 const openDepot = (id?: string) => router.push({ pathname: "/profile/depot", params: id ? { id } : {} });
-const openCar = (params: { id: string } | { depotId: string }) => router.push({ pathname: "/profile/car", params });
+const addCar = (depotId: string) => router.push({ pathname: "/profile/car", params: { depotId } });
+const openCar = (id: string) => router.push({ pathname: "/profile/vehicle", params: { id } });
 
-// The owner's depots, each with its active cars, then everything archived. Edits happen in form sheets.
+// The owner's depots, each with its active cars (and what their papers warn about), then everything archived.
+// Depots are edited in form sheets, cars on their own screen.
 export default function FleetScreen() {
   const { t } = useTranslation();
   const spinner = useThemeColor("secondary-ink");
@@ -70,7 +73,7 @@ export default function FleetScreen() {
           ) : (
             active.map((depot, i) => (
               <SectionEntrance key={depot.id} index={i + 1}>
-                <DepotCard depot={depot} />
+                <DepotCard depot={depot} today={data?.today ?? ""} />
               </SectionEntrance>
             ))
           )}
@@ -102,7 +105,7 @@ export default function FleetScreen() {
                         detail={depot.name}
                         tone="ink-muted"
                         trailing={<Tag tone="role" size="sm" label={t("fleet.archivedTag")} />}
-                        onPress={() => openCar({ id: car.id })}
+                        onPress={() => openCar(car.id)}
                       />
                     </Fragment>
                   ))}
@@ -116,22 +119,24 @@ export default function FleetScreen() {
   );
 }
 
-function DepotCard({ depot }: { depot: FleetDepot }) {
+function DepotCard({ depot, today }: { depot: FleetDepot; today: string }) {
   const { t } = useTranslation();
   const cars = depot.cars.filter((c) => !c.archived);
+  const warned = cars.filter((c) => carWarnings(c, today).length > 0).length;
   return (
     <Surface className="overflow-hidden">
       <FleetRow
         icon="depot"
         title={depot.name}
         detail={t("fleet.carCount", { count: cars.length })}
+        trailing={warned > 0 ? <Tag tone="warning" size="sm" label={t("fleet.papers.warnedCount", { count: warned })} /> : undefined}
         strong
         onPress={() => openDepot(depot.id)}
       />
       <Divider />
       {cars.map((car) => (
         <Fragment key={car.id}>
-          <FleetRow icon="car" title={car.plate} onPress={() => openCar({ id: car.id })} />
+          <CarRow car={car} today={today} />
           <Divider className="mx-4" />
         </Fragment>
       ))}
@@ -140,8 +145,29 @@ function DepotCard({ depot }: { depot: FleetDepot }) {
         title={t("fleet.addCar")}
         tone="secondary-ink"
         chevron={false}
-        onPress={() => openCar({ depotId: depot.id })}
+        onPress={() => addCar(depot.id)}
       />
     </Surface>
+  );
+}
+
+/** A car with what its papers warn about first ("TÜV due", "Insurance expired"), else its TÜV month. */
+function CarRow({ car, today }: { car: FleetCar; today: string }) {
+  const { t } = useTranslation();
+  const [first, ...more] = carWarnings(car, today);
+  const warning = first
+    ? [t(`fleet.papers.short.${first.kind}.${first.level}`), more.length > 0 ? t("fleet.papers.more", { count: more.length }) : null]
+        .filter(Boolean)
+        .join(" ")
+    : null;
+  const tuv = car.papers.tuvDue ? t("fleet.papers.tuvShort", { month: `${car.papers.tuvDue.slice(5)}/${car.papers.tuvDue.slice(0, 4)}` }) : undefined;
+  return (
+    <FleetRow
+      icon="car"
+      title={car.plate}
+      detail={warning ?? tuv}
+      detailColor={warning ? "danger" : undefined}
+      onPress={() => openCar(car.id)}
+    />
   );
 }

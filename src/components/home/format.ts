@@ -61,6 +61,11 @@ export function useFormat(timeZone: string, currency: string) {
         const name = monthName.format(dateAtNoon(date));
         return name.charAt(0).toUpperCase() + name.slice(1);
       },
+      /** "March 2027": a TÜV month. */
+      monthYear: (date: string) => {
+        const name = monthYear.format(dateAtNoon(date));
+        return name.charAt(0).toUpperCase() + name.slice(1);
+      },
     };
   }, [t, language, timeZone, currency]);
 }

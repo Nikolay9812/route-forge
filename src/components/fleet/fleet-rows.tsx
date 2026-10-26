@@ -11,6 +11,7 @@ export function FleetRow({
   icon,
   title,
   detail,
+  detailColor = "ink-muted",
   trailing,
   tone = "ink",
   strong = false,
@@ -20,6 +21,8 @@ export function FleetRow({
   icon: IconName;
   title: string;
   detail?: string;
+  /** A car's paper warning shows in danger. */
+  detailColor?: Extract<ColorToken, "ink-muted" | "danger">;
   trailing?: ReactNode;
   tone?: Extract<ColorToken, "ink" | "ink-muted" | "secondary-ink">;
   /** Depot headers use the label weight. */
@@ -44,7 +47,7 @@ export function FleetRow({
           {title}
         </ThemedText>
         {detail ? (
-          <ThemedText variant="footnote" numberOfLines={1}>
+          <ThemedText variant="footnote" color={detailColor} numberOfLines={1}>
             {detail}
           </ThemedText>
         ) : null}

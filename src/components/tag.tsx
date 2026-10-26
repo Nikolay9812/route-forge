@@ -17,6 +17,8 @@ const tones = {
   // Counts without a status dot, such as vehicle check photos: some or none, and all done.
   muted: { container: "bg-neutral-soft", dot: null, color: "neutral" },
   done: { container: "bg-success-soft", dot: null, color: "success" },
+  // Something to act on, without a status dot: cars whose papers run out.
+  warning: { container: "bg-danger-soft", dot: null, color: "danger" },
 } as const satisfies Record<string, { container: string; dot: string | null; color: ColorToken }>;
 
 export type TagTone = keyof typeof tones;

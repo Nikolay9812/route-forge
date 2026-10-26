@@ -1,7 +1,7 @@
-// Rules for stored photos, shared by API routes and the app: the allowed files, document photo slots, and the
-// vehicle check photos of a shift. Object keys are made by the server only; a key coming back from the app must be
+// Rules for stored photos, shared by API routes and the app: the allowed files, document photo slots, the
+// vehicle check photos of a shift, and a car's registration certificate. Object keys are made by the server only; a key coming back from the app must be
 // one the server could have handed out for that slot (its prefix plus a UUID).
-import type { DetailsSection, PhotoSlot, ShiftPhotoSlot } from "./types";
+import type { CarPhotoSlot, DetailsSection, PhotoSlot, ShiftPhotoSlot } from "./types";
 
 type Parsed<T> = { ok: true; value: T } | { ok: false };
 
@@ -132,4 +132,46 @@ export function parseShiftPhotoQuery(params: URLSearchParams): Parsed<{ slot: Sh
 /** Where one shift slot's photos live; the firm, courier and shift come from the session and the checked shift. */
 export function shiftPhotoPrefix(firmId: string, userId: string, shiftId: string, slot: ShiftPhotoSlot): string {
   return `firms/${firmId}/couriers/${userId}/shifts/${shiftId}/${slot}/`;
+}
+
+// Car photos (owner-only).
+
+export const carPhotoSlots: readonly CarPhotoSlot[] = ["talon"];
+
+/** Zulassungsbescheinigung Teil I folded open, about 105 × 74 mm. */
+export const TALON_RATIO = 105 / 74;
+
+function carSlot(slot: unknown): CarPhotoSlot | null {
+  return carPhotoSlots.includes(slot as CarPhotoSlot) ? (slot as CarPhotoSlot) : null;
+}
+
+/** Body of "start an upload": `{ slot, contentType }`. */
+export function parseCarPhotoRequest(body: unknown): Parsed<{ slot: CarPhotoSlot; contentType: PhotoType }> {
+  const object = plainObject(body);
+  if (!object) return { ok: false };
+  const { slot, contentType, ...rest } = object;
+  const target = carSlot(slot);
+  if (!target || Object.keys(rest).length > 0 || !isPhotoType(contentType)) return { ok: false };
+  return { ok: true, value: { slot: target, contentType } };
+}
+
+/** Body of "keep the uploaded photo": `{ slot, key }`; the key itself is checked against the prefix. */
+export function parseCarPhotoConfirm(body: unknown): Parsed<{ slot: CarPhotoSlot; key: string }> {
+  const object = plainObject(body);
+  if (!object) return { ok: false };
+  const { slot, key, ...rest } = object;
+  const target = carSlot(slot);
+  if (!target || Object.keys(rest).length > 0 || typeof key !== "string") return { ok: false };
+  return { ok: true, value: { slot: target, key } };
+}
+
+/** Query of "remove a photo": `?slot=`. */
+export function parseCarPhotoQuery(params: URLSearchParams): Parsed<{ slot: CarPhotoSlot }> {
+  const slot = carSlot(params.get("slot"));
+  return slot ? { ok: true, value: { slot } } : { ok: false };
+}
+
+/** Where one car slot's photos live; the firm comes from the session and the car is checked to be the firm's. */
+export function carPhotoPrefix(firmId: string, carId: string, slot: CarPhotoSlot): string {
+  return `firms/${firmId}/cars/${carId}/${slot}/`;
 }

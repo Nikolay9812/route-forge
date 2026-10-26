@@ -16,6 +16,7 @@ const shiftSelect = {
   shift: shifts,
   depotName: depots.name,
   carPlate: cars.plate,
+  carVin: cars.vin,
   corrected: sql<boolean>`exists (select 1 from ${shiftChanges} where ${shiftChanges.shiftId} = ${shifts.id})`,
   photoCount: sql<number>`(select count(*)::int from ${shiftPhotos} where ${shiftPhotos.shiftId} = ${shifts.id} and ${inArray(shiftPhotos.slot, [...EXPECTED_SHIFT_PHOTOS])})`,
 };
@@ -24,11 +25,12 @@ type ShiftRow = {
   shift: typeof shifts.$inferSelect;
   depotName: string;
   carPlate: string;
+  carVin: string | null;
   corrected: boolean;
   photoCount: number;
 };
 
-export function toShift({ shift: s, depotName, carPlate, corrected, photoCount }: ShiftRow): Shift {
+export function toShift({ shift: s, depotName, carPlate, carVin, corrected, photoCount }: ShiftRow): Shift {
   return {
     id: s.id,
     date: s.date,
@@ -37,7 +39,7 @@ export function toShift({ shift: s, depotName, carPlate, corrected, photoCount }
     finishedAt: s.finishedAt?.toISOString() ?? null,
     minutes: s.minutes,
     depot: { id: s.depotId, name: depotName },
-    car: { id: s.carId, plate: carPlate },
+    car: { id: s.carId, plate: carPlate, vin: carVin },
     startKm: s.startKm,
     endKm: s.endKm,
     loaded: s.loaded,
@@ -150,10 +152,9 @@ export async function startShift(courier: Courier, date: string, input: StartInp
 
 /** Applies a patch to the day's draft or rejected shift. Null when there is no shift or it can't be edited. */
 export async function updateShift(courier: Courier, date: string, patch: ShiftPatch): Promise<Shift | null> {
-  const { startedAt, ...rest } = patch;
   const updated = await db
     .update(shifts)
-    .set({ ...rest, ...(startedAt ? { startedAt: new Date(startedAt) } : {}), updatedAt: new Date() })
+    .set({ ...patch, updatedAt: new Date() })
     .where(mine(courier, eq(shifts.date, date), inArray(shifts.status, editable)))
     .returning({ id: shifts.id });
   return updated.length ? shiftOn(courier, date) : null;

@@ -1,12 +1,14 @@
 // Data for the owner's depots and cars under Profile. The provider wraps the Profile stack, so the fleet screen
-// and its add/edit sheets share one copy, and every successful save reloads it quietly.
+// and its add/edit sheets share one copy, and every successful save reloads it quietly. One car's screen loads its
+// papers and talon photo on its own (`useCar`); the photo is saved right away through `uploadPhoto`.
 import { useFocusEffect } from "expo-router";
-import { createContext, useCallback, useContext, useRef, type PropsWithChildren } from "react";
+import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from "react";
 
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource, type Resource } from "@/api/use-resource";
 import { useFirm } from "@/auth";
-import type { Fleet, FleetCar, FleetDepot } from "@/domain/types";
+import type { CarDetail, CarPapers, CarPhotoSlot, Fleet, FleetCar, FleetDepot } from "@/domain/types";
+import { uploadPhoto, type PickedPhoto } from "@/photos/upload";
 
 type Save = (path: string, method: "POST" | "PATCH", body: unknown) => Promise<ApiFailure | null>;
 
@@ -80,4 +82,68 @@ export function useFleetActions() {
       save(`/api/fleet/cars/${id}`, "PATCH", change),
     archiveCar: (id: string, archived: boolean) => save(`/api/fleet/cars/${id}`, "PATCH", { archived }),
   };
+}
+
+/**
+ * One car with its papers and talon photo. Saving the papers or a photo swaps in the answer and reloads the
+ * fleet list quietly, so its warnings follow. A photo shows its local file (`uploading`) until it's kept.
+ */
+export function useCar(id: string | undefined) {
+  const api = useApi();
+  const { reload: reloadFleet } = useFleetContext();
+  const path = id ? `/api/fleet/cars/${id}` : null;
+  const { resource, reload, replace } = useResource<CarDetail>(path);
+  const [uploading, setUploading] = useState<Partial<Record<CarPhotoSlot, string>>>({});
+
+  const show = useCallback(
+    (car: CarDetail) => {
+      replace(() => car);
+      reloadFleet(true);
+    },
+    [replace, reloadFleet],
+  );
+
+  const savePapers = useCallback(
+    async (papers: CarPapers): Promise<ApiFailure | null> => {
+      if (!path) return "notFound";
+      try {
+        show(await api<CarDetail>(path, { method: "PATCH", body: { papers } }));
+        return null;
+      } catch (error) {
+        return failureOf(error);
+      }
+    },
+    [api, path, show],
+  );
+
+  const addPhoto = useCallback(
+    async (slot: CarPhotoSlot, photo: PickedPhoto): Promise<ApiFailure | null> => {
+      if (!path) return "notFound";
+      setUploading((previous) => ({ ...previous, [slot]: photo.uri }));
+      try {
+        show(await uploadPhoto<CarDetail>(api, `${path}/photos`, { slot }, photo));
+        return null;
+      } catch (error) {
+        return failureOf(error);
+      } finally {
+        setUploading((previous) => ({ ...previous, [slot]: undefined }));
+      }
+    },
+    [api, path, show],
+  );
+
+  const removePhoto = useCallback(
+    async (slot: CarPhotoSlot): Promise<ApiFailure | null> => {
+      if (!path) return "notFound";
+      try {
+        show(await api<CarDetail>(`${path}/photos?slot=${slot}`, { method: "DELETE" }));
+        return null;
+      } catch (error) {
+        return failureOf(error);
+      }
+    },
+    [api, path, show],
+  );
+
+  return { resource, reload, uploading, savePapers, addPhoto, removePhoto };
 }

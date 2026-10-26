@@ -1,8 +1,10 @@
 import { Image } from "expo-image";
+import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { ActivityIndicator, Alert as NativeAlert, View } from "react-native";
 
 import type { ApiFailure } from "@/api/client";
+import { ActionSheet, type SheetAction } from "@/components/action-sheet";
 import { Icon } from "@/components/icon";
 import { PressableScale } from "@/components/pressable-scale";
 import { ThemedText } from "@/components/themed-text";
@@ -47,6 +49,7 @@ export function PhotoSlot({
   const spinner = useThemeColor("ink");
   const busy = uploadingUri !== undefined;
   const editable = onAdd !== undefined;
+  const [choosing, setChoosing] = useState(false);
 
   const report = (failure: ApiFailure | null, kind: "upload" | "remove") => {
     if (!failure) return;
@@ -80,60 +83,72 @@ export function PhotoSlot({
     }
     // Camera only and nothing to replace or remove: straight to the camera.
     if (sources === "camera" && !photo) return void take();
-    NativeAlert.alert(label, undefined, [
-      { text: t("photos.take"), onPress: () => void take() },
-      ...(sources === "both" ? [{ text: t("photos.choose"), onPress: () => void choose() }] : []),
-      ...(photo && onRemove
-        ? [
-            {
-              text: t("photos.remove"),
-              style: "destructive" as const,
-              onPress: () => void onRemove().then((failure) => report(failure, "remove")),
-            },
-          ]
-        : []),
-      { text: t("fleet.cancel"), style: "cancel" },
-    ]);
+    setChoosing(true);
   };
+
+  const actions: SheetAction[] = [
+    { label: t("photos.take"), onPress: () => void take() },
+    ...(sources === "both" ? [{ label: t("photos.choose"), onPress: () => void choose() }] : []),
+    ...(photo && onRemove
+      ? [
+          {
+            label: t("photos.remove"),
+            destructive: true,
+            onPress: () => void onRemove().then((failure) => report(failure, "remove")),
+          },
+        ]
+      : []),
+  ];
 
   // The signed URL changes on every load; caching by the object key keeps one download per photo.
   const source = busy ? { uri: uploadingUri } : photo ? { uri: photo.url, cacheKey: photo.key } : null;
   const pressable = editable || (photo !== undefined && onView !== undefined);
 
   return (
-    <PressableScale
-      accessibilityRole={pressable ? "button" : "image"}
-      accessibilityLabel={label}
-      accessibilityState={{ busy, disabled: !pressable }}
-      disabled={busy || !pressable}
-      onPress={open}
-      className="flex-1"
-      contentClassName={`overflow-hidden rounded-md ${editable ? "bg-secondary-soft" : "bg-neutral-soft"}`}
-    >
-      <View style={{ aspectRatio }} className="items-center justify-center gap-1 px-2">
-        {source ? (
-          <Image
-            source={source}
-            contentFit="cover"
-            style={{ position: "absolute", inset: 0, opacity: busy ? 0.5 : 1 }}
-            accessibilityIgnoresInvertColors
-          />
-        ) : editable ? (
-          <>
-            <Icon name="camera" color="secondary-ink" />
-            {emptyText ? (
-              <ThemedText variant="footnote" color="secondary-ink" numberOfLines={1}>
-                {emptyText}
-              </ThemedText>
-            ) : null}
-          </>
-        ) : emptyText ? (
-          <ThemedText variant="footnote" color="ink-muted" numberOfLines={1}>
-            {emptyText}
-          </ThemedText>
-        ) : null}
-        {busy ? <ActivityIndicator color={spinner} /> : null}
-      </View>
-    </PressableScale>
+    <>
+      <PressableScale
+        accessibilityRole={pressable ? "button" : "image"}
+        accessibilityLabel={label}
+        accessibilityState={{ busy, disabled: !pressable }}
+        disabled={busy || !pressable}
+        onPress={open}
+        className="flex-1"
+        contentClassName={`overflow-hidden rounded-md ${editable ? "bg-secondary-soft" : "bg-neutral-soft"}`}
+      >
+        <View style={{ aspectRatio }} className="items-center justify-center gap-1 px-2">
+          {source ? (
+            <Image
+              source={source}
+              contentFit="cover"
+              style={{ position: "absolute", inset: 0, opacity: busy ? 0.5 : 1 }}
+              accessibilityIgnoresInvertColors
+            />
+          ) : editable ? (
+            <>
+              <Icon name="camera" color="secondary-ink" />
+              {emptyText ? (
+                <ThemedText variant="footnote" color="secondary-ink" numberOfLines={1}>
+                  {emptyText}
+                </ThemedText>
+              ) : null}
+            </>
+          ) : emptyText ? (
+            <ThemedText variant="footnote" color="ink-muted" numberOfLines={1}>
+              {emptyText}
+            </ThemedText>
+          ) : null}
+          {busy ? <ActivityIndicator color={spinner} /> : null}
+        </View>
+      </PressableScale>
+      {editable ? (
+        <ActionSheet
+          visible={choosing}
+          title={label}
+          actions={actions}
+          cancelLabel={t("fleet.cancel")}
+          onClose={() => setChoosing(false)}
+        />
+      ) : null}
+    </>
   );
 }

@@ -9,18 +9,22 @@ import { kmDrivenOf, type ShiftFields } from "@/shifts/draft";
 
 import { NumberField } from "./number-field";
 import { StationBusPickers } from "./station-bus-pickers";
+import { VinRow } from "./vin-row";
 
-// Phase 2: station, bus and odometer readings, all still editable.
+// Phase 2: station, bus and odometer readings, all still editable, with the saved bus's VIN when it has one.
 export function RouteCard({
   fields,
   stations,
   buses,
+  car,
   format,
   onChange,
 }: {
   fields: ShiftFields;
   stations: Station[];
   buses: Bus[];
+  /** The shift's car as saved; its VIN shows once the picked bus is saved. */
+  car: { id: string; plate: string; vin: string | null };
   format: ReturnType<typeof useFormat>;
   onChange: (fields: Partial<ShiftFields>) => void;
 }) {
@@ -39,6 +43,7 @@ export function RouteCard({
         buses={buses}
         onChange={onChange}
       />
+      {car.vin && fields.busId === car.id ? <VinRow vin={car.vin} plate={car.plate} /> : null}
       <View className="flex-row items-start gap-3">
         <NumberField
           label={t("shifts.fields.startKm")}

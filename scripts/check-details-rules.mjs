@@ -1,4 +1,4 @@
-// Hand-checked rules for courier documents (prompts/16-courier-documents.md). Run with
+// Hand-checked rules for courier documents (prompts/16 and 17). Run with
 // `node --no-warnings scripts/check-details-rules.mjs` (Node 23.6+ strips the TypeScript types).
 import assert from "node:assert/strict";
 
@@ -12,9 +12,15 @@ import {
   normalizeSocialNumber,
   normalizeTaxId,
   parseDetailsPatch,
+  isPhotoKey,
+  parsePhotoConfirm,
+  parsePhotoQuery,
+  parsePhotoRequest,
+  photoPrefix,
   sectionFields,
   sectionState,
 } from "../src/domain/courier-details.ts";
+import { timeUntil } from "../src/domain/dates.ts";
 
 const today = "2026-10-26";
 
@@ -88,5 +94,39 @@ assert.equal(parseDetailsPatch({ section: "bank", values: { bankHolder: "A", iba
 assert.equal(parseDetailsPatch({ section: "bank", values: { bankHolder: "A", iban: null }, userId: "user_x" }, today).ok, false);
 assert.equal(parseDetailsPatch({ section: "nope", values: {} }, today).ok, false);
 assert.equal(parseDetailsPatch([], today).ok, false);
+
+// Photos (prompts/17-document-photos.md): only the slots a section has, only image types, only server-made keys.
+assert.equal(parsePhotoRequest({ section: "idCard", slot: "front", contentType: "image/jpeg" }).ok, true);
+assert.equal(parsePhotoRequest({ section: "tax", slot: "photo", contentType: "image/heic" }).ok, true);
+assert.equal(parsePhotoRequest({ section: "tax", slot: "front", contentType: "image/jpeg" }).ok, false, "tax has one photo");
+assert.equal(parsePhotoRequest({ section: "social", slot: "front", contentType: "image/jpeg" }).ok, false, "no photos");
+assert.equal(parsePhotoRequest({ section: "idCard", slot: "front", contentType: "application/pdf" }).ok, false);
+assert.equal(parsePhotoRequest({ section: "idCard", slot: "front", contentType: "image/jpeg", userId: "u" }).ok, false);
+assert.equal(parsePhotoConfirm({ section: "idCard", slot: "back", key: "x" }).ok, true);
+assert.equal(parsePhotoConfirm({ section: "idCard", slot: "back", key: 5 }).ok, false);
+assert.equal(parsePhotoQuery(new URLSearchParams("section=criminalRecord&slot=page3")).ok, true);
+assert.equal(parsePhotoQuery(new URLSearchParams("section=criminalRecord&slot=front")).ok, false);
+const prefix = photoPrefix("org_1", "user_a", { section: "idCard", slot: "front" });
+assert.equal(prefix, "firms/org_1/couriers/user_a/idCard/front/");
+const uuid = "0b9d7a52-6f0e-4c1a-9a57-3f1d2c4b5e6f";
+assert.equal(isPhotoKey(prefix + uuid, prefix), true);
+assert.equal(isPhotoKey(`firms/org_1/couriers/user_c/idCard/front/${uuid}`, prefix), false, "another courier");
+assert.equal(isPhotoKey(`${prefix}../../user_c/idCard/front/${uuid}`, prefix), false);
+assert.equal(isPhotoKey(prefix, prefix), false, "no UUID");
+assert.equal(isPhotoKey(`${prefix}${uuid}/x`, prefix), false);
+
+// Time until a day, in whole calendar units.
+const until = (from, to) => {
+  const { years, months, days, past } = timeUntil(from, to);
+  return [years, months, days, past];
+};
+assert.deepEqual(until(today, today), [0, 0, 0, false]);
+assert.deepEqual(until(today, "2027-10-28"), [1, 0, 2, false]);
+assert.deepEqual(until(today, "2026-11-15"), [0, 0, 20, false]);
+assert.deepEqual(until("2026-01-31", "2026-02-28"), [0, 1, 0, false], "end of a shorter month counts as a month");
+assert.deepEqual(until("2026-01-31", "2026-02-27"), [0, 0, 27, false]);
+assert.deepEqual(until(today, "2026-06-25"), [0, 4, 1, true]);
+assert.deepEqual(until("2028-02-29", "2029-02-28"), [1, 0, 0, false], "leap day");
+assert.deepEqual(until(today, "2029-01-30"), [2, 3, 4, false]);
 
 console.log("Courier document rules: all checks passed.");

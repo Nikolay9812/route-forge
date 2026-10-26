@@ -574,18 +574,41 @@
       "page1": "Seite 1",
       "page2": "Seite 2",
       "page3": "Seite 3",
-      "notSaved": "Fotos werden noch nicht gespeichert. Sie bleiben auf diesem Handy, bis du die App schließt.",
       "take": "Foto aufnehmen",
       "choose": "Aus Mediathek wählen",
       "remove": "Foto entfernen",
       "deniedTitle": "Kein Zugriff",
       "deniedCamera": "Erlaube den Kamerazugriff in den Einstellungen, um ein Foto aufzunehmen.",
-      "deniedLibrary": "Erlaube den Fotozugriff in den Einstellungen, um ein Foto zu wählen."
+      "deniedLibrary": "Erlaube den Fotozugriff in den Einstellungen, um ein Foto zu wählen.",
+      "saved": "Fotos werden gespeichert, sobald du sie hinzufügst.",
+      "uploadError": "Das Foto konnte nicht gespeichert werden. Versuch es noch einmal.",
+      "removeError": "Das Foto konnte nicht entfernt werden. Versuch es noch einmal.",
+      "offline": "Keine Verbindung. Das Foto wurde nicht gespeichert.",
+      "tooLarge": "Dieses Foto ist zu groß (über 10 MB)."
     },
     "error": "Die Dokumente konnten nicht geladen werden.",
     "progress": "{{done}} von {{total}} fertig",
     "expiredCount": "{{count}} abgelaufen",
     "expiringCount": "{{count}} laufen ab",
-    "empty": "Noch keine Kuriere"
+    "empty": "Noch keine Kuriere",
+    "expiry": {
+      "valid": "Läuft in {{time}} ab",
+      "today": "Läuft heute ab",
+      "expired": "Vor {{time}} abgelaufen"
+    },
+    "units": {
+      "years": {
+        "one": "{{count}} Jahr",
+        "other": "{{count}} Jahren"
+      },
+      "months": {
+        "one": "{{count}} Monat",
+        "other": "{{count}} Monaten"
+      },
+      "days": {
+        "one": "{{count}} Tag",
+        "other": "{{count}} Tagen"
+      }
+    }
   }
 }

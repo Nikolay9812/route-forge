@@ -215,3 +215,27 @@ export const courierDetails = pgTable(
     check("courier_details_tax_class", sql`${t.taxClass} between 1 and 6`),
   ],
 );
+
+/**
+ * One stored photo per document slot of a courier. The file itself lives in the private R2 bucket under
+ * `objectKey`; replacing or removing a photo deletes the old file and this row (photos aren't salary history).
+ */
+export const documentPhotos = pgTable(
+  "document_photos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    /** Clerk user ID of the courier the document belongs to. */
+    userId: text().notNull(),
+    section: text().notNull(),
+    slot: text().notNull(),
+    objectKey: text().notNull(),
+    contentType: text().notNull(),
+    /** Bytes. */
+    size: integer().notNull(),
+    /** Clerk user ID of whoever uploaded it (the courier or the owner), and when. */
+    uploadedBy: text().notNull(),
+    uploadedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.userId, t.section, t.slot)],
+);

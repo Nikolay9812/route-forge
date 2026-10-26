@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Platform, ScrollView, View } from "react-native";
 
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
@@ -8,6 +8,7 @@ import { Chip } from "@/components/chip";
 import { useSheetSave } from "@/components/fleet/sheet";
 import { useFormat } from "@/components/home/format";
 import { SegmentedControl } from "@/components/segmented-control";
+import { Surface } from "@/components/surface";
 import { TextField } from "@/components/text-field";
 import { ThemedText } from "@/components/themed-text";
 import type { ApiFailure } from "@/api/client";
@@ -19,13 +20,15 @@ import {
   genders,
   LICENCE_CLASSES,
   sectionFields,
+  sectionPhotos,
   taxClasses,
   type FieldProblem,
 } from "@/domain/courier-details";
 import type { CourierDetails, CourierDocuments, DetailsSection, Gender } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
 
-import { fieldHints, fieldKinds, sectionHints, sectionPhotos } from "./fields";
+import { ExpiryLine } from "./expiry-line";
+import { fieldHints, fieldKinds, sectionHints } from "./fields";
 import { OptionalDateField } from "./optional-date-field";
 import { PhotoSlot } from "./photo-slot";
 
@@ -45,24 +48,24 @@ function initialValues(section: DetailsSection, details: CourierDetails): Values
   return values;
 }
 
-// One section of a courier's documents: photos (the courier's own phone only), then its fields. Save sends the
+// One section of a courier's documents: photos (saved as soon as they're added), then its fields. Save sends the
 // whole section; problems show under their fields once Save was tried, and a failed save keeps what was typed.
 export function SectionForm({
   section,
   documents,
-  withPhotos,
+  userId,
   save,
 }: {
   section: DetailsSection;
   documents: CourierDocuments;
-  /** Only on the courier's own phone; owners see no photo slots. */
-  withPhotos: boolean;
+  /** The courier an owner is looking at; none for the courier's own documents. */
+  userId: string | undefined;
   save: (section: DetailsSection, values: Values) => Promise<ApiFailure | null>;
 }) {
   const { t } = useTranslation();
   // Calendar days formatted at UTC noon land on the same day everywhere.
   const format = useFormat("UTC", "EUR");
-  const { photos, setPhoto } = useSectionPhotos(section);
+  const photos = useSectionPhotos(userId, section, documents);
   const [initial] = useState(() => initialValues(section, documents.details));
   const [values, setValues] = useState<Values>(initial);
   const [tried, setTried] = useState(false);
@@ -73,7 +76,8 @@ export function SectionForm({
   const problems = check && !check.ok ? check.problems : {};
   const changed = JSON.stringify(values) !== JSON.stringify(initial);
   const warning = documents.sections[section].warning;
-  const slots = withPhotos ? (sectionPhotos[section] ?? []) : [];
+  // No photos on web: uploading there would need a bucket CORS rule.
+  const slots = Platform.OS === "web" ? [] : (sectionPhotos[section] ?? []);
 
   const set = (field: Field, value: Values[Field]) => {
     setValues((previous) => ({ ...previous, [field]: value }));
@@ -128,8 +132,10 @@ export function SectionForm({
                     <PhotoSlot
                       key={slot}
                       label={t(`documents.photos.${slot}`)}
-                      uri={photos[slot]}
-                      onChange={(uri) => setPhoto(slot, uri)}
+                      photo={photos.stored[slot]}
+                      uploadingUri={photos.uploading[slot]}
+                      onAdd={(photo) => photos.add(slot, photo)}
+                      onRemove={() => photos.remove(slot)}
                     />
                   ))}
                   {pair.length === 1 ? <View className="flex-1" /> : null}
@@ -137,21 +143,24 @@ export function SectionForm({
               ),
             )}
             <ThemedText variant="footnote" className="ml-1">
-              {t("documents.photos.notSaved")}
+              {t("documents.photos.saved")}
             </ThemedText>
           </View>
         ) : null}
-        {sectionFields[section].map((field) => (
-          <FieldInput
-            key={field}
-            field={field}
-            value={values[field] ?? null}
-            error={errorOf(field)}
-            today={today}
-            display={(day) => format.fullDay(day)}
-            onChange={(value) => set(field, value)}
-          />
-        ))}
+        {/* Fields sit on a card like the shift form's, so the canvas-coloured inputs stand out. */}
+        <Surface className="gap-4 p-5">
+          {sectionFields[section].map((field) => (
+            <FieldInput
+              key={field}
+              field={field}
+              value={values[field] ?? null}
+              error={errorOf(field)}
+              today={today}
+              display={(day) => format.fullDay(day)}
+              onChange={(value) => set(field, value)}
+            />
+          ))}
+        </Surface>
         {failure === "offline" ? (
           <Alert tone="offline" message={t("fleet.saveOffline")} />
         ) : failure ? (
@@ -213,14 +222,17 @@ function FieldInput({
       const initial = kind.role === "birth" ? `${year - 30}-01-01` : kind.role === "expires" ? addDays(today, 1) : today;
       const day = value as string | null;
       return (
-        <OptionalDateField
-          label={label}
-          value={day}
-          display={day ? display(day) : ""}
-          initial={initial}
-          error={error}
-          onChange={onChange}
-        />
+        <View className="gap-1">
+          <OptionalDateField
+            label={label}
+            value={day}
+            display={day ? display(day) : ""}
+            initial={initial}
+            error={error}
+            onChange={onChange}
+          />
+          {kind.role === "expires" && day && !error ? <ExpiryLine today={today} expiresOn={day} className="ml-1" /> : null}
+        </View>
       );
     }
     case "gender":

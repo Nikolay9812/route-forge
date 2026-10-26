@@ -2,7 +2,6 @@
 import type { KeyboardTypeOptions } from "react-native";
 
 import type { IconName } from "@/components/icons";
-import type { PhotoSlot } from "@/documents/documents";
 import type { CourierDetails, DetailsSection } from "@/domain/types";
 
 export type FieldKind =
@@ -52,16 +51,6 @@ export const sectionIcons: Record<DetailsSection, IconName> = {
   criminalRecord: "record",
   bank: "bank",
   contacts: "phone",
-};
-
-/** Photo slots per section; the health card shows its front only, a Führungszeugnis can run to three pages. */
-export const sectionPhotos: Partial<Record<DetailsSection, PhotoSlot[]>> = {
-  idCard: ["front", "back"],
-  licence: ["front", "back"],
-  address: ["photo"],
-  tax: ["photo"],
-  health: ["front"],
-  criminalRecord: ["page1", "page2", "page3"],
 };
 
 /** Fields with a hint under them, and sections with one above their fields. */

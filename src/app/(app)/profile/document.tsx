@@ -17,7 +17,7 @@ export default function DocumentScreen() {
 
   if (resource.status === "ready") {
     return (
-      <SectionForm section={section} documents={resource.data} withPhotos={!params.userId} save={save} />
+      <SectionForm section={section} documents={resource.data} userId={params.userId} save={save} />
     );
   }
   return (

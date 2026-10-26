@@ -17,7 +17,7 @@ export function failureOf(error: unknown): ApiFailure {
   return error instanceof ApiError ? error.code : "server";
 }
 
-type Request = { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown };
+type Request = { method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; body?: unknown };
 
 export function useApi() {
   const getToken = useSessionToken();

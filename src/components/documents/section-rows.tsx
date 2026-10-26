@@ -7,18 +7,19 @@ import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import { detailsSections } from "@/domain/courier-details";
-import type { DetailsSection, SectionState } from "@/domain/types";
+import type { CourierDocuments, DetailsSection, SectionState } from "@/domain/types";
 import { useTranslation } from "@/i18n";
 
+import { ExpiryLine, expiryText } from "./expiry-line";
 import { sectionIcons } from "./fields";
 
 // The nine document sections with their state, for the courier's Profile and the owner's courier screen. A
 // warning wins over the state; a complete section without one shows a check instead of a tag.
 export function SectionRows({
-  sections,
+  documents: { sections, details, today },
   onOpen,
 }: {
-  sections: Record<DetailsSection, SectionState>;
+  documents: Pick<CourierDocuments, "sections" | "details" | "today">;
   onOpen: (section: DetailsSection) => void;
 }) {
   const { t } = useTranslation();
@@ -26,19 +27,26 @@ export function SectionRows({
     <Surface className="overflow-hidden">
       {detailsSections.map((section, i) => {
         const title = t(`documents.sections.${section}`);
+        // ID card and licence show how long they stay valid under the title.
+        const expiresOn =
+          section === "idCard" ? details.idExpiresOn : section === "licence" ? details.licenceExpiresOn : null;
+        const expiry = expiresOn ? expiryText(t, today, expiresOn).text : null;
         return (
           <Fragment key={section}>
             {i > 0 ? <Divider className="mx-4" /> : null}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${title}, ${stateLabel(sections[section], t)}`}
+              accessibilityLabel={[title, expiry, stateLabel(sections[section], t)].filter(Boolean).join(", ")}
               onPress={() => onOpen(section)}
               className="min-h-11 flex-row items-center gap-3 px-4 py-3 active:bg-secondary-soft"
             >
               <Icon name={sectionIcons[section]} color="ink" />
-              <ThemedText variant="body" color="ink" className="flex-1" numberOfLines={1}>
-                {title}
-              </ThemedText>
+              <View className="flex-1">
+                <ThemedText variant="body" color="ink" numberOfLines={1}>
+                  {title}
+                </ThemedText>
+                {expiresOn ? <ExpiryLine today={today} expiresOn={expiresOn} /> : null}
+              </View>
               <SectionStatus state={sections[section]} />
               <Icon name="chevron" size="sm" color="ink-muted" />
             </Pressable>

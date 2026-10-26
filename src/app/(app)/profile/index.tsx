@@ -103,7 +103,7 @@ function MyDocuments() {
         <DocumentsFailure failure={resource.failure} onRetry={() => reload()} />
       ) : (
         <SectionRows
-          sections={resource.data.sections}
+          documents={resource.data}
           onOpen={(section) => router.push({ pathname: "/profile/document", params: { section } })}
         />
       )}

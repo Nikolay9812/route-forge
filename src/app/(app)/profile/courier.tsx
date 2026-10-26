@@ -34,7 +34,7 @@ export default function CourierScreen() {
         ) : (
           <SectionEntrance index={0}>
             <SectionRows
-              sections={resource.data.sections}
+              documents={resource.data}
               onOpen={(section) => router.push({ pathname: "/profile/document", params: { section, userId } })}
             />
           </SectionEntrance>

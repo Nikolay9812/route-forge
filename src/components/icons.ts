@@ -49,6 +49,8 @@ export const icons = {
   bank: { ios: "building.columns", android: "account_balance" },
   phone: { ios: "phone", android: "call" },
   camera: { ios: "camera", android: "photo_camera" },
+  "dark-mode": { ios: "moon", android: "dark_mode" },
+  "light-mode": { ios: "sun.max", android: "light_mode" },
 } as const satisfies Record<string, Symbol>;
 
 export type IconName = keyof typeof icons;

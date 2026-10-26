@@ -205,7 +205,9 @@
     "signOut": "Abmelden",
     "firm": "Firma",
     "myDocuments": "Meine Dokumente",
-    "couriers": "Kuriere"
+    "couriers": "Kuriere",
+    "darkMode": "Dunkelmodus aktivieren",
+    "lightMode": "Hellmodus aktivieren"
   },
   "shifts": {
     "title": "Heutige Schicht",

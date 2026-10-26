@@ -10,12 +10,15 @@ import { DocumentsFailure, DocumentsSkeleton } from "@/components/documents/load
 import { SectionRows } from "@/components/documents/section-rows";
 import { initials } from "@/components/home/format";
 import { Icon } from "@/components/icon";
+import { IconButton } from "@/components/icon-button";
 import type { IconName } from "@/components/icons";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useDocuments } from "@/documents/documents";
 import { useTranslation } from "@/i18n";
+import { useToggleColorScheme } from "@/theme";
 
+// The moon/sun button switches light/dark for the whole app (remembered on the device).
 // Signing out flips the auth guard back to onboarding. Couriers get their documents; owners get the firm's depots
 // and cars, pay rates and couriers.
 export default function Profile() {
@@ -25,6 +28,7 @@ export default function Profile() {
   const role = firm.status === "ready" ? firm.role : null;
   const [signingOut, setSigningOut] = useState(false);
   const insets = useSafeAreaInsets();
+  const colorScheme = useToggleColorScheme();
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -48,7 +52,16 @@ export default function Profile() {
       contentContainerClassName="gap-6 px-4"
       contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: 32 }}
     >
-      <View className="items-center gap-2">
+      <View className="relative items-center gap-2">
+        {colorScheme ? (
+          <IconButton
+            variant="outline"
+            icon={colorScheme.scheme === "dark" ? "light-mode" : "dark-mode"}
+            accessibilityLabel={t(colorScheme.scheme === "dark" ? "profile.lightMode" : "profile.darkMode")}
+            onPress={colorScheme.toggle}
+            className="absolute right-0 top-0"
+          />
+        ) : null}
         <View className="mb-2 size-button items-center justify-center rounded-full bg-primary-soft">
           <ThemedText variant="heading">{initials(user?.fullName ?? "")}</ThemedText>
         </View>

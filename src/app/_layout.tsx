@@ -11,7 +11,7 @@ import { useColorScheme } from "react-native";
 
 import { useAuth } from "@/auth";
 import { useLanguage } from "@/i18n";
-import { fontFiles, fontScriptFor, FontScriptProvider, useThemeColor, type FontScript } from "@/theme";
+import { fontFiles, fontScriptFor, FontScriptProvider, restoreColorScheme, useThemeColor, type FontScript } from "@/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 
@@ -20,6 +20,7 @@ if (!publishableKey) {
 }
 
 SplashScreen.preventAutoHideAsync();
+restoreColorScheme();
 
 const navigationFonts: Record<FontScript, Theme["fonts"]> = {
   latin: {

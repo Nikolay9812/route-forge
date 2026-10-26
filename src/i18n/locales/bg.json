@@ -205,7 +205,9 @@
     "signOut": "Изход",
     "firm": "Фирма",
     "myDocuments": "Моите документи",
-    "couriers": "Куриери"
+    "couriers": "Куриери",
+    "darkMode": "Тъмен режим",
+    "lightMode": "Светъл режим"
   },
   "shifts": {
     "title": "Днешна смяна",

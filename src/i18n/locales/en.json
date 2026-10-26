@@ -205,7 +205,9 @@
     "signOut": "Sign out",
     "firm": "Firm",
     "myDocuments": "My documents",
-    "couriers": "Couriers"
+    "couriers": "Couriers",
+    "darkMode": "Switch to dark mode",
+    "lightMode": "Switch to light mode"
   },
   "shifts": {
     "title": "Today's shift",

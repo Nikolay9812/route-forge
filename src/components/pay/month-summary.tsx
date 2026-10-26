@@ -91,22 +91,22 @@ export function MonthSummary({
   return (
     <View className="gap-3">
       <PressableScale accessibilityRole="button" accessibilityLabel={t("pay.open.pay")} onPress={() => onOpen("pay")}>
-        <View className="gap-2 rounded-lg bg-inverse p-5">
+        <Surface variant="outlined" className="gap-2 p-5">
           <View className="flex-row items-center justify-between gap-4">
-            <ThemedText variant="footnote" color="on-inverse-muted">
+            <ThemedText variant="footnote" color="ink-muted">
               {t("pay.month.estimatedPay")}
             </ThemedText>
-            <Icon name="chevron" size="sm" color="on-inverse-muted" />
+            <Icon name="chevron" size="sm" color="ink-muted" />
           </View>
-          <ThemedText variant="display" color="on-inverse" numberOfLines={1} adjustsFontSizeToFit>
+          <ThemedText variant="display" color="ink" numberOfLines={1} adjustsFontSizeToFit>
             {format.money(totals.payMinor)}
           </ThemedText>
-          <ThemedText variant="caption" color="on-inverse-muted">
+          <ThemedText variant="caption" color="ink-muted">
             {caption}
           </ThemedText>
           <View>
             {rateLines(data, format, t).map((line) => (
-              <ThemedText key={line} variant="caption" color="on-inverse-muted">
+              <ThemedText key={line} variant="caption" color="ink-muted">
                 {line}
               </ThemedText>
             ))}
@@ -123,7 +123,7 @@ export function MonthSummary({
               }
             />
           ) : null}
-        </View>
+        </Surface>
       </PressableScale>
 
       <View className="flex-row gap-3">

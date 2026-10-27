@@ -265,7 +265,15 @@ export type CourierDocuments = {
 };
 
 /** A courier in the owner's Couriers list. `expiring` counts both `expiresSoon` and `tooOld` sections. */
-export type CourierDocumentsItem = { userId: string; name: string; complete: number; expired: number; expiring: number };
+export type CourierDocumentsItem = {
+  userId: string;
+  name: string;
+  complete: number;
+  expired: number;
+  expiring: number;
+  /** No longer a member of the firm (removed); their documents stay. */
+  former: boolean;
+};
 
 export type CourierDocumentsList = { today: string; couriers: CourierDocumentsItem[] };
 
@@ -284,4 +292,27 @@ export type ApiErrorCode =
   | "returnedAboveLoaded"
   | "taken"
   | "depotHasCars"
+  | "memberLimit"
   | "server";
+
+/** A member of the firm on the owner's People screen. `depotIds` is filled for dispatchers only. */
+export type Person = {
+  userId: string;
+  name: string;
+  email: string;
+  role: "owner" | "dispatcher" | "courier";
+  joinedAt: string;
+  depotIds: string[];
+};
+
+export type PendingInvitation = { id: string; email: string; role: "dispatcher" | "courier"; createdAt: string };
+
+/** Every member, the pending invitations, and the active depots a dispatcher can be given. */
+export type PeopleList = {
+  firm: Firm;
+  /** The signed-in owner's user ID, to mark their own row. */
+  you: string;
+  members: Person[];
+  invitations: PendingInvitation[];
+  depots: { id: string; name: string }[];
+};

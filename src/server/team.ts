@@ -11,6 +11,7 @@ import type { CalendarMonth, Firm } from "@/domain/types";
 import { inScope, type ReviewScope } from "./approvals";
 import { firmCouriers, userNames } from "./auth";
 import { calendarMonth, monthRange } from "./calendar";
+import { memberIds } from "./people";
 import { selectShifts, toShift } from "./shifts";
 
 export type TeamMember = {
@@ -22,6 +23,8 @@ export type TeamMember = {
   minutes: number;
   /** Submitted shifts waiting for review this month. */
   waiting: number;
+  /** No longer a member of the firm (removed); their shifts stay. */
+  former: boolean;
 };
 
 /** User IDs of everyone with a shift in scope, plus (owners only) the firm's courier members. */
@@ -34,8 +37,9 @@ async function teamIds(scope: ReviewScope): Promise<Set<string>> {
 
 export async function teamList(scope: ReviewScope, today: string): Promise<TeamMember[]> {
   const [from, to] = monthRange(monthOf(today));
-  const [ids, totals] = await Promise.all([
+  const [ids, members, totals] = await Promise.all([
     teamIds(scope),
+    memberIds(scope.firmId),
     db
       .select({
         userId: shifts.userId,
@@ -52,7 +56,14 @@ export async function teamList(scope: ReviewScope, today: string): Promise<TeamM
   return [...ids]
     .map((userId) => {
       const t = byUser.get(userId);
-      return { userId, name: names.get(userId) ?? "", shifts: t?.shifts ?? 0, minutes: t?.minutes ?? 0, waiting: t?.waiting ?? 0 };
+      return {
+        userId,
+        name: names.get(userId) ?? "",
+        shifts: t?.shifts ?? 0,
+        minutes: t?.minutes ?? 0,
+        waiting: t?.waiting ?? 0,
+        former: !members.has(userId),
+      };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 }

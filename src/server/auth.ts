@@ -7,7 +7,8 @@ import type { ApiErrorCode } from "@/domain/types";
 const secretKey = process.env.CLERK_SECRET_KEY;
 if (!secretKey) throw new Error("CLERK_SECRET_KEY is not set");
 
-const clerk = createClerkClient({ secretKey, publishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY });
+/** Clerk's backend client, for server modules only. */
+export const clerk = createClerkClient({ secretKey, publishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY });
 
 const statusOf: Record<ApiErrorCode, number> = {
   unauthorized: 401,
@@ -23,6 +24,7 @@ const statusOf: Record<ApiErrorCode, number> = {
   returnedAboveLoaded: 409,
   taken: 409,
   depotHasCars: 409,
+  memberLimit: 409,
   server: 500,
 };
 

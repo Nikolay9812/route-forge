@@ -19,6 +19,7 @@ import {
 import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSection, DocumentPhotos, PhotoSlot } from "@/domain/types";
 
 import { apiError, firmCouriers, readJson, userNames } from "./auth";
+import { memberIds } from "./people";
 import { deleteObject, headObject, presignGet, presignPut } from "./storage";
 
 type Row = typeof courierDetails.$inferSelect;
@@ -174,9 +175,10 @@ export async function saveDetails(
 
 /** The owner's Couriers list: every courier member plus anyone with documents in this firm, by name. */
 export async function documentsList(firmId: string, today: string): Promise<CourierDocumentsList> {
-  const [rows, members] = await Promise.all([
+  const [rows, members, everyone] = await Promise.all([
     db.select().from(courierDetails).where(eq(courierDetails.firmId, firmId)),
     firmCouriers(firmId),
+    memberIds(firmId),
   ]);
   const byUser = new Map(rows.map((r) => [r.userId, r]));
   const userIds = [...new Set([...members, ...byUser.keys()])];
@@ -186,6 +188,7 @@ export async function documentsList(firmId: string, today: string): Promise<Cour
       userId,
       name: names.get(userId) ?? "",
       ...documentSummary(toDetails(byUser.get(userId)), today),
+      former: !everyone.has(userId),
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
   return { today, couriers };

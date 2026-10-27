@@ -207,7 +207,8 @@
     "myDocuments": "Meine Dokumente",
     "couriers": "Kuriere",
     "darkMode": "Dunkelmodus aktivieren",
-    "lightMode": "Hellmodus aktivieren"
+    "lightMode": "Hellmodus aktivieren",
+    "people": "Personen"
   },
   "shifts": {
     "title": "Heutige Schicht",
@@ -398,7 +399,8 @@
     "emptyTitle": "Noch keine Fahrer",
     "emptyBody": "Fahrer erscheinen hier, sobald sie der Firma beitreten oder in deinen Depots arbeiten.",
     "error": "Das Team konnte nicht geladen werden.",
-    "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist."
+    "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist.",
+    "former": "Ehemalig"
   },
   "fleet": {
     "title": "Depots & Fahrzeuge",
@@ -660,7 +662,8 @@
         "one": "{{count}} Tag",
         "other": "{{count}} Tagen"
       }
-    }
+    },
+    "former": "Ehemalig"
   },
   "photos": {
     "take": "Foto aufnehmen",
@@ -696,6 +699,62 @@
       "mentor": "Mentor-Score",
       "diesel": "Diesel",
       "adblue": "AdBlue"
+    }
+  },
+  "people": {
+    "title": "Personen",
+    "invite": "Einladen",
+    "sections": {
+      "owner": "Inhaber",
+      "dispatcher": "Disponenten",
+      "courier": "Kuriere",
+      "pending": "Offene Einladungen"
+    },
+    "roles": {
+      "owner": "Inhaber",
+      "dispatcher": "Disponent",
+      "courier": "Kurier"
+    },
+    "you": "Du",
+    "depotCount": "Depots: {{count}}",
+    "noDepots": "Keine Depots",
+    "invited": "{{role}} · Eingeladen am {{date}}",
+    "error": "Personen konnten nicht geladen werden.",
+    "offline": "Keine Verbindung. Versuche es erneut, wenn du online bist.",
+    "saveError": "Das wurde nicht gespeichert. Versuche es erneut.",
+    "saveOffline": "Keine Verbindung. Es wurde nichts geändert.",
+    "cancel": "Abbrechen",
+    "inviteSheet": {
+      "title": "Jemanden einladen",
+      "body": "Wir schicken eine Einladung per E-Mail. Die Person registriert sich mit dieser E-Mail und nimmt sie in der App an.",
+      "email": "E-Mail",
+      "emailPlaceholder": "name@beispiel.de",
+      "role": "Rolle",
+      "send": "Einladung senden",
+      "invalid": "Gib eine gültige E-Mail-Adresse ein.",
+      "exists": "Diese Person ist schon in der Firma oder hat eine offene Einladung.",
+      "memberLimit": "Die Firma hat ihr Mitgliederlimit erreicht."
+    },
+    "revoke": {
+      "title": "Einladung für {{email}} zurückziehen?",
+      "action": "Einladung zurückziehen"
+    },
+    "person": {
+      "role": "Rolle",
+      "roleNote": "Änderungen erreichen das Handy innerhalb einer Minute.",
+      "toDispatcher": "{{name}} zum Disponenten machen? Prüft dann Schichten in den Depots, die du unten wählst.",
+      "toCourier": "{{name}} zum Kurier machen? Verliert Freigaben und Team und erfasst eigene Schichten.",
+      "changeRole": "Rolle ändern",
+      "depots": "Depots",
+      "depotsNote": "Prüft Schichten und sieht Kuriere nur in diesen Depots.",
+      "noActiveDepots": "Noch keine aktiven Depots. Lege eins unter Depots & Fahrzeuge an.",
+      "saveDepots": "Depots speichern",
+      "remove": "Aus der Firma entfernen",
+      "removeTitle": "{{name}} aus der Firma entfernen? Der Zugang endet. Schichten, Lohn und Dokumente bleiben.",
+      "removeConfirm": "Entfernen",
+      "missingTitle": "Nicht in der Firma",
+      "missingBody": "Diese Person ist kein Mitglied der Firma mehr.",
+      "back": "Zurück"
     }
   }
 }

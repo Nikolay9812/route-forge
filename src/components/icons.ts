@@ -40,6 +40,7 @@ export const icons = {
   route: { ios: "point.topleft.down.to.point.bottomright.curvepath", android: "route" },
   review: { ios: "doc.text.magnifyingglass", android: "find_in_page" },
   team: { ios: "person.2", android: "group" },
+  "people-add": { ios: "person.badge.plus", android: "person_add" },
   "id-card": { ios: "person.text.rectangle", android: "badge" },
   licence: { ios: "car", android: "directions_car" },
   tax: { ios: "percent", android: "percent" },

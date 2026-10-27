@@ -50,7 +50,9 @@ export default function CouriersScreen() {
                   title={courier.name}
                   detail={t("documents.progress", { done: courier.complete, total: detailsSections.length })}
                   trailing={
-                    courier.expired > 0 ? (
+                    courier.former ? (
+                      <Tag tone="muted" size="sm" label={t("documents.former")} />
+                    ) : courier.expired > 0 ? (
                       <Tag tone="rejected" size="sm" label={t("documents.expiredCount", { count: courier.expired })} />
                     ) : courier.expiring > 0 ? (
                       <Tag tone="highlight" size="sm" label={t("documents.expiringCount", { count: courier.expiring })} />

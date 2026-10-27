@@ -69,6 +69,7 @@
     "check:api": "node --env-file-if-exists=.env.local scripts/check-api.mjs",
     "check:approvals": "node --env-file-if-exists=.env.local scripts/check-approvals.mjs",
     "check:calendar": "node --no-warnings --env-file-if-exists=.env.local scripts/check-calendar.mjs",
+    "check:review-filters": "node --no-warnings scripts/check-review-filters.mjs",
     "check:car-rules": "node --no-warnings scripts/check-car-rules.mjs",
     "check:car-note-rules": "node --no-warnings scripts/check-car-note-rules.mjs",
     "check:garage": "node --no-warnings --env-file-if-exists=.env.local scripts/check-garage.mjs",

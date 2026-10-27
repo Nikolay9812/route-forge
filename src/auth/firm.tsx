@@ -24,6 +24,11 @@ const roles: Record<string, FirmRole> = {
   "org:mechanic": "mechanic",
 };
 
+/** The active firm's ID, or null before one is active. Cheaper than useFirm when only the ID matters. */
+export function useFirmId(): string | null {
+  return useClerkAuth().orgId ?? null;
+}
+
 export function useFirm() {
   const { isLoaded, orgId, orgRole } = useClerkAuth();
   const list = useOrganizationList({ userMemberships: true, userInvitations: { status: "pending" } });

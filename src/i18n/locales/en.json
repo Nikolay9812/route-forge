@@ -370,7 +370,30 @@
       "some": "Photos {{count}}/{{total}}"
     },
     "payBreakdownBreak": "{{shift}} − {{break}} break = {{hours}} × {{rate}}/h",
-    "spesen": "Spesen {{amount}} (tax-free)"
+    "spesen": "Spesen {{amount}} (tax-free)",
+    "filters": {
+      "depot": "Depot",
+      "allDepots": "All depots",
+      "courier": "Courier",
+      "allCouriers": "All couriers",
+      "bus": "Bus",
+      "allBuses": "All buses",
+      "sort": "Sort",
+      "sortBy": "Sort: {{by}}",
+      "sorts": {
+        "date": "Date",
+        "courier": "Courier",
+        "depot": "Depot",
+        "bus": "Bus"
+      },
+      "all": "All",
+      "missingPhotos": "Missing photos",
+      "clear": "Clear filters",
+      "totalOne": "1 shift",
+      "totalOther": "{{count}} shifts",
+      "emptyTitle": "No matching shifts",
+      "emptyBody": "Try another depot, courier or bus, or clear the filters."
+    }
   },
   "calendar": {
     "list": "List",

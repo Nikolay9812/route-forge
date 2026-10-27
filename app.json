@@ -1,36 +1,66 @@
 {
   "expo": {
-    "name": "route-forge",
+    "name": "Route Forge",
     "slug": "route-forge",
+    "description": "Shifts, hours and pay for courier teams.",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "routeforge",
     "userInterfaceStyle": "automatic",
+    "primaryColor": "#11141C",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "com.routeforge.app",
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
+      "package": "com.routeforge.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#11141C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "server",
+      "name": "Route Forge",
+      "shortName": "Route Forge",
+      "description": "Shifts, hours and pay for courier teams.",
+      "themeColor": "#11141C",
+      "backgroundColor": "#F4F5F7",
       "favicon": "./assets/images/favicon.png"
+    },
+    "locales": {
+      "bg": "./src/i18n/native/bg.json",
+      "de": "./src/i18n/native/de.json"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F4F5F7",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 120,
+          "dark": {
+            "backgroundColor": "#101216",
+            "image": "./assets/images/splash-icon-dark.png"
+          }
         }
       ],
       [
@@ -43,14 +73,22 @@
           ]
         }
       ],
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Route Forge uses your photos so you can add pictures of your documents.",
-          "cameraPermission": "Route Forge uses the camera so you can take pictures of your documents."
+          "photosPermission": "Route Forge uses your photos so you can add pictures of your documents, your Mentor score and service work.",
+          "cameraPermission": "Route Forge uses the camera so you can photograph your documents, vehicle checks, the car's registration and service work.",
+          "microphonePermission": false
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

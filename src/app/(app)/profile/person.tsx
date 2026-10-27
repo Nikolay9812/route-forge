@@ -19,7 +19,7 @@ import { usePeople, usePeopleActions } from "@/people/people";
 
 type Confirm = { kind: "role"; role: AssignableRole } | { kind: "remove" };
 
-// One courier or dispatcher for the owner: switch the role (confirmed first), pick a dispatcher's depots, or remove
+// One courier, dispatcher or mechanic for the owner: switch the role (confirmed first), pick a dispatcher's depots, or remove
 // them from the firm (confirmed first). Failures stay on screen with the choices as the owner left them.
 export default function PersonScreen() {
   const { t } = useTranslation();
@@ -89,6 +89,7 @@ export default function PersonScreen() {
             options={[
               { value: "courier", label: t("people.roles.courier") },
               { value: "dispatcher", label: t("people.roles.dispatcher") },
+              { value: "mechanic", label: t("people.roles.mechanic") },
             ]}
             value={role}
             onChange={(next) => !busy && next !== role && setConfirm({ kind: "role", role: next })}
@@ -125,9 +126,14 @@ export default function PersonScreen() {
         title={
           confirm?.kind === "remove"
             ? t("people.person.removeTitle", { name: person.name })
-            : t(confirm?.role === "dispatcher" ? "people.person.toDispatcher" : "people.person.toCourier", {
-                name: person.name,
-              })
+            : t(
+                confirm?.role === "dispatcher"
+                  ? "people.person.toDispatcher"
+                  : confirm?.role === "mechanic"
+                    ? "people.person.toMechanic"
+                    : "people.person.toCourier",
+                { name: person.name },
+              )
         }
         actions={[
           confirm?.kind === "remove"

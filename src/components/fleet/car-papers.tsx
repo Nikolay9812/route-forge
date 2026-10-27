@@ -4,6 +4,7 @@ import { Platform, ScrollView, View } from "react-native";
 
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
+import { CarServiceNotes } from "@/components/car-notes/service-log";
 import { DocumentsFailure, DocumentsSkeleton } from "@/components/documents/load-state";
 import { ExpiryLine } from "@/components/documents/expiry-line";
 import { OptionalDateField } from "@/components/documents/optional-date-field";
@@ -25,7 +26,8 @@ import { useSheetSave } from "./sheet";
 const openSheet = (id: string) => router.push({ pathname: "/profile/car", params: { id } });
 
 // One of the owner's cars: its plate and depot (edited in the car sheet), any warnings, the talon photo (saved as
-// soon as it's added) and the papers, saved as a whole. Comes back up to date after the sheet closes.
+// soon as it's added), the papers, saved as a whole, and the car's latest service log notes. Comes back up to date
+// after the sheet closes.
 export function CarScreen({ id }: { id: string | undefined }) {
   const { t } = useTranslation();
   const car = useCar(id);
@@ -247,6 +249,7 @@ function PapersForm({ car, actions }: { car: CarDetail; actions: ReturnType<type
           <Alert tone="danger" message={t("fleet.saveError")} />
         ) : null}
         <Button title={t("fleet.save")} disabled={!changed} loading={saving} onPress={submit} />
+        <CarServiceNotes carId={car.id} today={today} />
       </ScrollView>
     </>
   );

@@ -111,7 +111,8 @@
     "pay": "Pay",
     "profile": "Profile",
     "approvals": "Approvals",
-    "team": "Team"
+    "team": "Team",
+    "cars": "Cars"
   },
   "status": {
     "draft": "Draft",
@@ -712,13 +713,15 @@
     "sections": {
       "owner": "Owners",
       "dispatcher": "Dispatchers",
+      "mechanic": "Mechanics",
       "courier": "Couriers",
       "pending": "Pending invitations"
     },
     "roles": {
       "owner": "Owner",
       "dispatcher": "Dispatcher",
-      "courier": "Courier"
+      "courier": "Courier",
+      "mechanic": "Mechanic"
     },
     "you": "You",
     "depotCount": "Depots: {{count}}",
@@ -749,6 +752,7 @@
       "roleNote": "Changes reach their phone within a minute.",
       "toDispatcher": "Make {{name}} a dispatcher? They'll review shifts in the depots you pick below.",
       "toCourier": "Make {{name}} a courier? They lose Approvals and Team and log their own shifts.",
+      "toMechanic": "Make {{name}} a mechanic? They see the cars, recent vehicle check photos and the service log, and lose their current screens.",
       "changeRole": "Change role",
       "depots": "Depots",
       "depotsNote": "They review shifts and see couriers in these depots only.",
@@ -802,5 +806,71 @@
       "notEditable": "This rule has already started."
     },
     "starts": "Starts {{date}}"
+  },
+  "garage": {
+    "title": "Cars",
+    "error": "The cars couldn't load.",
+    "emptyTitle": "No cars yet",
+    "emptyBody": "Cars appear here once the owner adds them in Depots & cars.",
+    "lastNote": "Last note {{date}}",
+    "noNotes": "No notes yet",
+    "check": "Check papers",
+    "notSet": "Not set",
+    "depot": "Depot",
+    "odometer": "Km now",
+    "papers": "Papers",
+    "checks": "Vehicle checks, last 7 days",
+    "noChecks": "Nobody drove this car in the last 7 days.",
+    "today": "Today",
+    "drove": "Drove the car on {{date}}"
+  },
+  "carNotes": {
+    "title": "Service log",
+    "add": "Add note",
+    "seeAll": "See all",
+    "empty": "No notes for this car yet.",
+    "emptyTitle": "No notes yet",
+    "emptyBody": "Notes mechanics add to a car (tyres, oil, repairs) show up here with their date.",
+    "emptyFiltered": "No notes match this filter.",
+    "more": "Show more",
+    "moreError": "More notes couldn't load. Try again.",
+    "km": "{{km}} km",
+    "photoCount": "Photos: {{count}}",
+    "edited": "Edited",
+    "by": "By {{name}} · written {{date}}",
+    "photos": "Photos",
+    "photo": "Note photo",
+    "editUntil": "You can change this note until {{date}}.",
+    "edit": "Edit note",
+    "delete": "Delete note",
+    "deleteConfirm": "Delete this note and its photos? This can't be undone.",
+    "locked": "This note can no longer be changed.",
+    "types": {
+      "tyres": "Tyres",
+      "oil": "Oil",
+      "brakes": "Brakes",
+      "inspection": "Inspection",
+      "repair": "Repair",
+      "other": "Other"
+    },
+    "filter": {
+      "car": "Car",
+      "allCars": "All cars",
+      "allTypes": "All"
+    },
+    "form": {
+      "addTitle": "Add note",
+      "editTitle": "Edit note",
+      "type": "What was done",
+      "typeMissing": "Pick what was done.",
+      "doneOn": "Done on",
+      "future": "The day can't be in the future.",
+      "tooOld": "The day can be at most a year ago.",
+      "km": "Km (optional)",
+      "text": "Details",
+      "textPlaceholder": "e.g. Summer tyres on, tread 6 mm",
+      "textMissing": "Describe what was done.",
+      "textTooLong": "At most {{max}} characters."
+    }
   }
 }

@@ -7,19 +7,20 @@ import { NoFirm } from "@/components/no-firm";
 import { useTranslation, type TranslationKey } from "@/i18n";
 import { useFontScript, useThemeColor, type FontScript } from "@/theme";
 
-// Couriers log their own work; dispatchers and owners review it. Profile is everyone's.
+// Couriers log their own work; dispatchers and owners review it; mechanics look after the cars. Profile is everyone's.
 const tabs = [
   { name: "home", icon: "home", label: "tabs.home", for: "courier" },
   { name: "shifts", icon: "shifts", label: "tabs.shifts", for: "courier" },
   { name: "pay", icon: "salary", label: "tabs.pay", for: "courier" },
   { name: "approvals", icon: "approvals", label: "tabs.approvals", for: "reviewer" },
   { name: "team", icon: "team", label: "tabs.team", for: "reviewer" },
+  { name: "cars", icon: "car", label: "tabs.cars", for: "mechanic" },
   { name: "profile", icon: "profile", label: "tabs.profile", for: "everyone" },
 ] as const satisfies readonly {
   name: string;
   icon: IconName;
   label: TranslationKey;
-  for: "courier" | "reviewer" | "everyone";
+  for: "courier" | "reviewer" | "mechanic" | "everyone";
 }[];
 
 const labelFont: Record<FontScript, string> = {
@@ -49,7 +50,7 @@ export default function AppLayout() {
   if (firm.status === "none") {
     return <NoFirm invitations={firm.invitations} onAccept={accept} onRefresh={refresh} onSignOut={signOut} />;
   }
-  const audience = isReviewer(firm.role) ? "reviewer" : "courier";
+  const audience = isReviewer(firm.role) ? "reviewer" : firm.role === "mechanic" ? "mechanic" : "courier";
 
   return (
     <NativeTabs

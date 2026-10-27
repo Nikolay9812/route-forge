@@ -52,6 +52,7 @@ export const icons = {
   camera: { ios: "camera", android: "photo_camera" },
   "dark-mode": { ios: "moon", android: "dark_mode" },
   "light-mode": { ios: "sun.max", android: "light_mode" },
+  wrench: { ios: "wrench.and.screwdriver", android: "build" },
 } as const satisfies Record<string, Symbol>;
 
 export type IconName = keyof typeof icons;

@@ -69,6 +69,19 @@ export async function requireOwner(request: Request): Promise<Owner | Response> 
   return { firmId: orgId, userId };
 }
 
+export type GarageUser = { firmId: string; userId: string; role: "mechanic" | "owner" };
+
+/** A signed-in mechanic or owner of the session's active firm (the cars and the service log), or the error. */
+export async function requireGarageSession(request: Request): Promise<GarageUser | Response> {
+  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
+  if (!state.isAuthenticated) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = state.toAuth();
+  if (!orgId) return apiError("noFirm");
+  if (orgRole === "org:mechanic") return { firmId: orgId, userId, role: "mechanic" };
+  if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
+  return apiError("role");
+}
+
 const NAME_TTL = 10 * 60_000;
 const names = new Map<string, { name: string; at: number }>();
 

@@ -20,9 +20,9 @@ import { useTranslation } from "@/i18n";
 import { usePeople, usePeopleActions } from "@/people/people";
 import { useThemeColor } from "@/theme";
 
-const roles = ["owner", "dispatcher", "courier"] as const;
+const roles = ["owner", "dispatcher", "mechanic", "courier"] as const;
 
-// The owner's people: owners (read-only), dispatchers with their depots, couriers, then pending invitations
+// The owner's people: owners (read-only), dispatchers with their depots, mechanics, couriers, then pending invitations
 // (tap to revoke). Inviting opens a form sheet; a member opens their own screen.
 export default function PeopleScreen() {
   const { t } = useTranslation();

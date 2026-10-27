@@ -1,7 +1,7 @@
 // Rules for stored photos, shared by API routes and the app: the allowed files, document photo slots, the
-// vehicle check photos of a shift, and a car's registration certificate. Object keys are made by the server only; a key coming back from the app must be
+// vehicle check photos of a shift, a car's registration certificate, and service log note photos. Object keys are made by the server only; a key coming back from the app must be
 // one the server could have handed out for that slot (its prefix plus a UUID).
-import type { CarPhotoSlot, DetailsSection, PhotoSlot, ShiftPhotoSlot } from "./types";
+import type { CarNotePhotoSlot, CarPhotoSlot, DetailsSection, PhotoSlot, ShiftPhotoSlot } from "./types";
 
 type Parsed<T> = { ok: true; value: T } | { ok: false };
 
@@ -174,4 +174,43 @@ export function parseCarPhotoQuery(params: URLSearchParams): Parsed<{ slot: CarP
 /** Where one car slot's photos live; the firm comes from the session and the car is checked to be the firm's. */
 export function carPhotoPrefix(firmId: string, carId: string, slot: CarPhotoSlot): string {
   return `firms/${firmId}/cars/${carId}/${slot}/`;
+}
+
+// Service log note photos (receipts, parts), camera or library.
+
+export const carNotePhotoSlots: readonly CarNotePhotoSlot[] = ["photo1", "photo2", "photo3"];
+
+function noteSlot(slot: unknown): CarNotePhotoSlot | null {
+  return carNotePhotoSlots.includes(slot as CarNotePhotoSlot) ? (slot as CarNotePhotoSlot) : null;
+}
+
+/** Body of "start an upload": `{ slot, contentType }`. */
+export function parseCarNotePhotoRequest(body: unknown): Parsed<{ slot: CarNotePhotoSlot; contentType: PhotoType }> {
+  const object = plainObject(body);
+  if (!object) return { ok: false };
+  const { slot, contentType, ...rest } = object;
+  const target = noteSlot(slot);
+  if (!target || Object.keys(rest).length > 0 || !isPhotoType(contentType)) return { ok: false };
+  return { ok: true, value: { slot: target, contentType } };
+}
+
+/** Body of "keep the uploaded photo": `{ slot, key }`; the key itself is checked against the prefix. */
+export function parseCarNotePhotoConfirm(body: unknown): Parsed<{ slot: CarNotePhotoSlot; key: string }> {
+  const object = plainObject(body);
+  if (!object) return { ok: false };
+  const { slot, key, ...rest } = object;
+  const target = noteSlot(slot);
+  if (!target || Object.keys(rest).length > 0 || typeof key !== "string") return { ok: false };
+  return { ok: true, value: { slot: target, key } };
+}
+
+/** Query of "remove a photo": `?slot=`. */
+export function parseCarNotePhotoQuery(params: URLSearchParams): Parsed<{ slot: CarNotePhotoSlot }> {
+  const slot = noteSlot(params.get("slot"));
+  return slot ? { ok: true, value: { slot } } : { ok: false };
+}
+
+/** Where one note slot's photos live; the firm comes from the session, the car and note from the checked note. */
+export function carNotePhotoPrefix(firmId: string, carId: string, noteId: string, slot: CarNotePhotoSlot): string {
+  return `firms/${firmId}/cars/${carId}/notes/${noteId}/${slot}/`;
 }

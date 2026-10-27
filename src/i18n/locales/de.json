@@ -111,7 +111,8 @@
     "pay": "Lohn",
     "profile": "Profil",
     "approvals": "Freigaben",
-    "team": "Team"
+    "team": "Team",
+    "cars": "Fahrzeuge"
   },
   "status": {
     "draft": "Entwurf",
@@ -712,13 +713,15 @@
     "sections": {
       "owner": "Inhaber",
       "dispatcher": "Disponenten",
+      "mechanic": "Mechaniker",
       "courier": "Kuriere",
       "pending": "Offene Einladungen"
     },
     "roles": {
       "owner": "Inhaber",
       "dispatcher": "Disponent",
-      "courier": "Kurier"
+      "courier": "Kurier",
+      "mechanic": "Mechaniker"
     },
     "you": "Du",
     "depotCount": "Depots: {{count}}",
@@ -749,6 +752,7 @@
       "roleNote": "Änderungen erreichen das Handy innerhalb einer Minute.",
       "toDispatcher": "{{name}} zum Disponenten machen? Prüft dann Schichten in den Depots, die du unten wählst.",
       "toCourier": "{{name}} zum Kurier machen? Verliert Freigaben und Team und erfasst eigene Schichten.",
+      "toMechanic": "{{name}} zum Mechaniker machen? Sieht die Fahrzeuge, aktuelle Fahrzeugcheck-Fotos und das Servicebuch und verliert die bisherigen Bereiche.",
       "changeRole": "Rolle ändern",
       "depots": "Depots",
       "depotsNote": "Prüft Schichten und sieht Kuriere nur in diesen Depots.",
@@ -802,5 +806,71 @@
       "notEditable": "Diese Regel hat schon begonnen."
     },
     "starts": "Gilt ab {{date}}"
+  },
+  "garage": {
+    "title": "Fahrzeuge",
+    "error": "Die Fahrzeuge konnten nicht geladen werden.",
+    "emptyTitle": "Noch keine Fahrzeuge",
+    "emptyBody": "Fahrzeuge erscheinen hier, sobald der Inhaber sie unter Depots & Fahrzeuge anlegt.",
+    "lastNote": "Letzter Eintrag {{date}}",
+    "noNotes": "Noch keine Einträge",
+    "check": "Papiere prüfen",
+    "notSet": "Nicht gesetzt",
+    "depot": "Depot",
+    "odometer": "Km-Stand",
+    "papers": "Papiere",
+    "checks": "Fahrzeugchecks, letzte 7 Tage",
+    "noChecks": "In den letzten 7 Tagen ist niemand mit diesem Fahrzeug gefahren.",
+    "today": "Heute",
+    "drove": "Ist am {{date}} gefahren"
+  },
+  "carNotes": {
+    "title": "Servicebuch",
+    "add": "Eintrag hinzufügen",
+    "seeAll": "Alle anzeigen",
+    "empty": "Noch keine Einträge für dieses Fahrzeug.",
+    "emptyTitle": "Noch keine Einträge",
+    "emptyBody": "Einträge der Mechaniker (Reifen, Öl, Reparaturen) erscheinen hier mit Datum.",
+    "emptyFiltered": "Keine Einträge für diesen Filter.",
+    "more": "Mehr anzeigen",
+    "moreError": "Weitere Einträge konnten nicht geladen werden. Bitte erneut versuchen.",
+    "km": "{{km}} km",
+    "photoCount": "Fotos: {{count}}",
+    "edited": "Bearbeitet",
+    "by": "Von {{name}} · geschrieben am {{date}}",
+    "photos": "Fotos",
+    "photo": "Foto zum Eintrag",
+    "editUntil": "Du kannst diesen Eintrag bis {{date}} ändern.",
+    "edit": "Eintrag bearbeiten",
+    "delete": "Eintrag löschen",
+    "deleteConfirm": "Diesen Eintrag und seine Fotos löschen? Das lässt sich nicht rückgängig machen.",
+    "locked": "Dieser Eintrag kann nicht mehr geändert werden.",
+    "types": {
+      "tyres": "Reifen",
+      "oil": "Öl",
+      "brakes": "Bremsen",
+      "inspection": "Inspektion",
+      "repair": "Reparatur",
+      "other": "Sonstiges"
+    },
+    "filter": {
+      "car": "Fahrzeug",
+      "allCars": "Alle Fahrzeuge",
+      "allTypes": "Alle"
+    },
+    "form": {
+      "addTitle": "Eintrag hinzufügen",
+      "editTitle": "Eintrag bearbeiten",
+      "type": "Was wurde gemacht",
+      "typeMissing": "Wähle, was gemacht wurde.",
+      "doneOn": "Erledigt am",
+      "future": "Der Tag darf nicht in der Zukunft liegen.",
+      "tooOld": "Der Tag darf höchstens ein Jahr zurückliegen.",
+      "km": "Km (optional)",
+      "text": "Details",
+      "textPlaceholder": "z. B. Sommerreifen montiert, Profil 6 mm",
+      "textMissing": "Beschreibe, was gemacht wurde.",
+      "textTooLong": "Höchstens {{max}} Zeichen."
+    }
   }
 }

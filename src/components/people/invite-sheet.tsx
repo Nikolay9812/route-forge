@@ -12,7 +12,7 @@ import { MAX_EMAIL, validEmail, type AssignableRole } from "@/domain/people";
 import { useTranslation } from "@/i18n";
 import { usePeopleActions } from "@/people/people";
 
-// Invite someone by email as a courier or dispatcher. Clerk sends the email; they accept it on the no-firm screen.
+// Invite someone by email as a courier, dispatcher or mechanic. Clerk sends the email; they accept it on the no-firm screen.
 // A failure keeps what was typed.
 export function InviteSheet() {
   const { t } = useTranslation();
@@ -58,6 +58,7 @@ export function InviteSheet() {
           options={[
             { value: "courier", label: t("people.roles.courier") },
             { value: "dispatcher", label: t("people.roles.dispatcher") },
+            { value: "mechanic", label: t("people.roles.mechanic") },
           ]}
           value={role}
           onChange={setRole}

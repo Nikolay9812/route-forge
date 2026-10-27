@@ -14,8 +14,17 @@ import { clerk } from "./auth";
 type Result<T> = T | ApiErrorCode;
 type Role = Person["role"];
 
-const fromClerk: Record<string, Role> = { "org:owner": "owner", "org:dispatcher": "dispatcher", "org:courier": "courier" };
-const toClerk: Record<AssignableRole, string> = { courier: "org:courier", dispatcher: "org:dispatcher" };
+const fromClerk: Record<string, Role> = {
+  "org:owner": "owner",
+  "org:dispatcher": "dispatcher",
+  "org:courier": "courier",
+  "org:mechanic": "mechanic",
+};
+const toClerk: Record<AssignableRole, string> = {
+  courier: "org:courier",
+  dispatcher: "org:dispatcher",
+  mechanic: "org:mechanic",
+};
 
 const USER_ID = /^user_[A-Za-z0-9]+$/;
 const INVITATION_ID = /^orginv_[A-Za-z0-9]+$/;
@@ -76,7 +85,7 @@ async function pendingInvitations(firmId: string): Promise<PendingInvitation[]> 
     });
     for (const i of data) {
       const role = fromClerk[i.role];
-      if (role === "courier" || role === "dispatcher")
+      if (role && role !== "owner")
         invitations.push({ id: i.id, email: i.emailAddress, role, createdAt: new Date(i.createdAt).toISOString() });
     }
     if (offset + 100 >= totalCount) return invitations;
@@ -116,7 +125,7 @@ async function toPerson(firmId: string, member: Member): Promise<Person> {
   return { ...member, depotIds: byUser.get(member.userId) ?? [] };
 }
 
-const roleOrder: Record<Role, number> = { owner: 0, dispatcher: 1, courier: 2 };
+const roleOrder: Record<Role, number> = { owner: 0, dispatcher: 1, mechanic: 2, courier: 3 };
 
 export async function peopleList({ firm, firmId, userId }: { firm: Firm; firmId: string; userId: string }): Promise<PeopleList> {
   const [members, invitations, depotRows, byUser] = await Promise.all([

@@ -24,8 +24,17 @@ export function useCopyVin(vin: string) {
   return { copied, copy };
 }
 
-// The VIN of the shift's car, as the owner entered it: show it as a QR code (the `shifts/vin` sheet) or copy it.
-export function VinRow({ vin, plate }: { vin: string; plate: string }) {
+// The VIN of the shift's car, as the owner entered it: show it as a QR code (the stack's `vin` sheet, `shifts/vin` unless
+// told otherwise) or copy it.
+export function VinRow({
+  vin,
+  plate,
+  qrSheet = "/shifts/vin",
+}: {
+  vin: string;
+  plate: string;
+  qrSheet?: "/shifts/vin" | "/cars/vin";
+}) {
   const { t } = useTranslation();
   const { copied, copy } = useCopyVin(vin);
   return (
@@ -40,7 +49,7 @@ export function VinRow({ vin, plate }: { vin: string; plate: string }) {
         icon="qr"
         size="sm"
         accessibilityLabel={t("shifts.vin.showQr")}
-        onPress={() => router.push({ pathname: "/shifts/vin", params: { vin, plate } })}
+        onPress={() => router.push({ pathname: qrSheet, params: { vin, plate } })}
       />
       <IconButton
         icon={copied ? "check" : "copy"}

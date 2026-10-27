@@ -217,6 +217,64 @@ export type CarDetail = FleetCar & {
 /** Every depot of the firm, active and archived, sorted by name; cars sorted by plate. `today` is the firm's. */
 export type Fleet = { today: string; depots: FleetDepot[] };
 
+// The garage (mechanics) and the service log.
+
+export type CarNoteType = "tyres" | "oil" | "brakes" | "inspection" | "repair" | "other";
+
+export type CarNotePhotoSlot = "photo1" | "photo2" | "photo3";
+
+/** What a note's author types: the work's type and day, the odometer then, and free text. */
+export type CarNoteInput = { type: CarNoteType; doneOn: string; km: number | null; text: string | null };
+
+/** One service log entry. Lists carry `photoCount` only; one note's detail also carries signed `photos`. */
+export type CarNote = CarNoteInput & {
+  id: string;
+  carId: string;
+  plate: string;
+  byName: string;
+  createdAt: string;
+  /** Changed after it was written. */
+  edited: boolean;
+  /** The signed-in user wrote it and its 7 days aren't over. */
+  canEdit: boolean;
+  /** The signed-in user may delete it: `canEdit`, or they are the owner. */
+  canDelete: boolean;
+  photoCount: number;
+  photos?: Partial<Record<CarNotePhotoSlot, DocumentPhoto>>;
+};
+
+/** A page of the service log, newest `doneOn` first; `next` is the cursor for the page after it. `cars` is every
+ *  firm car (archived included) for the car filter. */
+export type CarNotesPage = { today: string; notes: CarNote[]; next: string | null; cars: Bus[] };
+
+/** A car in the mechanic's list. */
+export type GarageCar = { id: string; plate: string; odometerKm: number | null; warnings: CarWarning[]; lastNoteOn: string | null };
+
+/** The firm's active depots with their active cars, for mechanics. */
+export type Garage = { today: string; depots: { id: string; name: string; cars: GarageCar[] }[] };
+
+/** A shift driven with the car, as a mechanic sees it: the day, who drove it and how many photos were taken. */
+export type GarageShift = { shiftId: string; date: string; courierName: string; photoCount: number };
+
+/** One car for a mechanic: its papers and talon (read-only), the last 7 days of vehicle checks and recent notes. */
+export type GarageCarDetail = {
+  today: string;
+  car: {
+    id: string;
+    plate: string;
+    depotName: string;
+    papers: CarPapers;
+    odometerKm: number | null;
+    warnings: CarWarning[];
+    photos: Partial<Record<CarPhotoSlot, DocumentPhoto>>;
+  };
+  checks: GarageShift[];
+  notes: CarNote[];
+};
+
+/** One vehicle check for a mechanic: the shift's day, courier and car, and its signed photos. */
+export type GarageCheck = { shiftId: string; date: string; courierName: string; plate: string; photos: ShiftPhotos };
+
 /** The sections of a courier's personal documents, in Profile order. */
 export type DetailsSection =
   | "idCard"
@@ -338,12 +396,12 @@ export type Person = {
   userId: string;
   name: string;
   email: string;
-  role: "owner" | "dispatcher" | "courier";
+  role: "owner" | "dispatcher" | "courier" | "mechanic";
   joinedAt: string;
   depotIds: string[];
 };
 
-export type PendingInvitation = { id: string; email: string; role: "dispatcher" | "courier"; createdAt: string };
+export type PendingInvitation = { id: string; email: string; role: "dispatcher" | "courier" | "mechanic"; createdAt: string };
 
 /** Every member, the pending invitations, and the active depots a dispatcher can be given. */
 export type PeopleList = {

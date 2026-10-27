@@ -84,6 +84,12 @@ try {
   check("inviting a pending email again is exists", r.status === 409 && r.json?.error === "exists", r.status);
   r = await call(token.owner, "POST", "/api/people/invitations", { email: "courier.a+clerk_test@example.com", role: "courier" });
   check("inviting a member is exists", r.status === 409 && r.json?.error === "exists", r.status);
+  r = await call(token.owner, "POST", "/api/people/invitations", { email: `mechanic.${email}`, role: "mechanic" });
+  check("owner invites a mechanic", r.status === 201 && r.json?.role === "mechanic", r.status);
+  if (r.json?.id) invitationIds.push(r.json.id);
+  r = await call(token.owner, "GET", "/api/people");
+  check("the mechanic invitation is listed", r.json?.invitations.some((i) => i.role === "mechanic" && i.email === `mechanic.${email}`));
+  check("the seeded mechanic is a member", r.json?.members.some((m) => m.role === "mechanic" && m.depotIds.length === 0));
   r = await call(token.owner, "POST", "/api/people/invitations", { email: `owner.${email}`, role: "owner" });
   check("inviting an owner is invalid", r.status === 400 && r.json?.error === "invalid", r.status);
   r = await call(token.owner, "POST", "/api/people/invitations", { email: "not-an-email", role: "courier" });
@@ -156,6 +162,8 @@ try {
   r = await call(token.owner, "PATCH", `/api/people/${users.c}`, { role: "dispatcher" });
   check("owner makes courier.c a dispatcher", r.status === 200 && r.json?.role === "dispatcher" && r.json.depotIds.length === 0,
     r.status);
+  r = await call(token.owner, "PATCH", `/api/people/${users.c}`, { role: "mechanic" });
+  check("owner makes courier.c a mechanic", r.status === 200 && r.json?.role === "mechanic" && r.json.depotIds.length === 0, r.status);
   r = await call(token.owner, "PATCH", `/api/people/${users.c}`, { role: "courier" });
   check("and back to courier", r.status === 200 && r.json?.role === "courier", r.status);
   const [{ n: depotRowsC }] = await sql`select count(*)::int as n from dispatcher_depots where user_id = ${users.c}`;

@@ -1,7 +1,16 @@
 import type { Firm } from "@/domain/types";
 
 import { scopeOf, type ReviewScope } from "./approvals";
-import { apiError, requireCourier, requireOwner, requireReviewerSession, type Courier, type Owner } from "./auth";
+import {
+  apiError,
+  requireCourier,
+  requireGarageSession,
+  requireOwner,
+  requireReviewerSession,
+  type Courier,
+  type GarageUser,
+  type Owner,
+} from "./auth";
 import { firmToday, loadFirm } from "./shifts";
 
 export type CourierContext = { courier: Courier; firm: Firm; date: string };
@@ -35,4 +44,15 @@ export async function ownerContext(request: Request): Promise<OwnerContext | Res
   const firm = await loadFirm(owner.firmId);
   if (!firm) return apiError("firmNotSetUp");
   return { ...owner, firm, date: firmToday(firm) };
+}
+
+export type GarageContext = GarageUser & { firm: Firm; date: string };
+
+/** Session → firm → mechanic or owner, once the firm is set up: the cars, recent vehicle checks and the service log. */
+export async function garageContext(request: Request): Promise<GarageContext | Response> {
+  const user = await requireGarageSession(request);
+  if (user instanceof Response) return user;
+  const firm = await loadFirm(user.firmId);
+  if (!firm) return apiError("firmNotSetUp");
+  return { ...user, firm, date: firmToday(firm) };
 }

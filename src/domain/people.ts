@@ -1,11 +1,11 @@
 // Input rules for the owner's People screen: invitations by email, and a member's role or dispatcher depots.
-// Owners can only hand out courier and dispatcher; the owner role stays in the Clerk dashboard.
+// Owners can only hand out courier, dispatcher and mechanic; the owner role stays in the Clerk dashboard.
 
 export const MAX_EMAIL = 254;
 /** More depots than any firm has; keeps a patch body small. */
 export const MAX_DISPATCHER_DEPOTS = 100;
 
-export const assignableRoles = ["courier", "dispatcher"] as const;
+export const assignableRoles = ["courier", "dispatcher", "mechanic"] as const;
 export type AssignableRole = (typeof assignableRoles)[number];
 
 export type InviteInput = { email: string; role: AssignableRole };

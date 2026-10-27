@@ -70,6 +70,8 @@
     "check:approvals": "node --env-file-if-exists=.env.local scripts/check-approvals.mjs",
     "check:calendar": "node --no-warnings --env-file-if-exists=.env.local scripts/check-calendar.mjs",
     "check:car-rules": "node --no-warnings scripts/check-car-rules.mjs",
+    "check:car-note-rules": "node --no-warnings scripts/check-car-note-rules.mjs",
+    "check:garage": "node --no-warnings --env-file-if-exists=.env.local scripts/check-garage.mjs",
     "check:car-papers": "node --no-warnings --env-file-if-exists=.env.local scripts/check-car-papers.mjs",
     "check:fleet": "node --no-warnings --env-file-if-exists=.env.local scripts/check-fleet.mjs",
     "check:firm": "node --no-warnings --env-file-if-exists=.env.local scripts/check-firm.mjs",

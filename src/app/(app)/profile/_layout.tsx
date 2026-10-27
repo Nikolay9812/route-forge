@@ -16,7 +16,7 @@ const sheet = {
 } as const;
 
 // Profile with the courier's documents, and for owners the firm's settings (currency, timezone, break and Spesen
-// rules), its depots and cars (each car with its papers), its
+// rules), its depots and cars (each car with its papers and service log), its
 // pay rates, its people and its couriers' documents (native headers), with their form sheets.
 export default function ProfileLayout() {
   const { t } = useTranslation();
@@ -48,6 +48,16 @@ export default function ProfileLayout() {
                   name="vehicle"
                   options={{ title: "", headerBackTitle: t("fleet.title") }}
                 />
+                <Stack.Screen
+                  name="service-log"
+                  options={{
+                    title: t("carNotes.title"),
+                    headerBackTitle: t("tabs.profile"),
+                  }}
+                />
+                {/* The title is the note's type, set by the screen. */}
+                <Stack.Screen name="car-note" options={{ title: "" }} />
+                <Stack.Screen name="note-form" options={{ ...sheet, sheetAllowedDetents: [0.9] }} />
                 <Stack.Screen name="depot" options={sheet} />
                 <Stack.Screen name="car" options={sheet} />
                 <Stack.Screen

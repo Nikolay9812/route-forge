@@ -1,4 +1,4 @@
-// Development seed: firm settings and work rules, depots, cars (with papers), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
+// Development seed: firm settings and work rules, depots, cars (with papers and service log notes), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
@@ -36,6 +36,15 @@ const firms = [
       { month: -3, day: "15", hourlyMinor: 1450 },
       { month: 0, day: "01", hourlyMinor: 1500 },
       { month: 0, day: "15", hourlyMinor: 1600 },
+    ],
+    // Service log notes by the mechanic, in days before today, on cars by index.
+    notes: [
+      { car: 0, daysAgo: 150, type: "tyres", text: "Winter tyres off, summer tyres on. Tread 6 mm." },
+      { car: 1, daysAgo: 120, type: "oil", text: "Oil and filter changed, 5W-30." },
+      { car: 0, daysAgo: 60, type: "brakes", text: "Front pads replaced." },
+      { car: 1, daysAgo: 25, type: "inspection", text: null },
+      { car: 0, daysAgo: 10, type: "other", text: "Wiper blades replaced, washer fluid topped up." },
+      { car: 0, daysAgo: 0, type: "repair", text: "Left mirror glass replaced." },
     ],
     // Couriers with their own rate: courier.c is on a day rate from the 1st of last month.
     overrides: { "courier.c": [{ month: -1, day: "01", kind: "daily", amountMinor: 13000 }] },
@@ -171,6 +180,7 @@ for (const firm of firms) {
   const couriers = members["org:courier"] ?? [];
   const dispatchers = (members["org:dispatcher"] ?? []).map((m) => m.id);
   const owner = members["org:owner"]?.[0]?.id ?? null;
+  const mechanic = members["org:mechanic"]?.[0]?.id ?? null;
   const today = todayIn(firm.timeZone);
   const month = today.slice(0, 7);
   const lastMonth = addMonths(month, -1);
@@ -185,6 +195,8 @@ for (const firm of firms) {
     sql`delete from courier_details where firm_id = ${firmId}`,
     sql`delete from document_photos where firm_id = ${firmId}`,
     sql`delete from car_photos where firm_id = ${firmId}`,
+    sql`delete from car_note_photos where firm_id = ${firmId}`,
+    sql`delete from car_notes where firm_id = ${firmId}`,
     sql`delete from cars where firm_id = ${firmId}`,
     sql`delete from depots where firm_id = ${firmId}`,
     sql`delete from firm_settings where firm_id = ${firmId}`,
@@ -333,9 +345,26 @@ for (const firm of firms) {
       where id = ${cars[i]}`;
   }
 
+  // Service log: notes on the first two cars by the mechanic (else the owner), dated days back, written that day so
+  // all but today's are locked for their author; the km is the car's odometer then.
+  const author = mechanic ?? owner;
+  let notes = 0;
+  if (author) {
+    for (const note of firm.notes ?? []) {
+      const doneOn = addDays(today, -note.daysAgo);
+      const createdAt = note.daysAgo === 0 ? new Date() : new Date(`${doneOn}T15:00:00Z`);
+      await sql`
+        insert into car_notes (firm_id, car_id, type, done_on, km, text, created_by, created_at, updated_by, updated_at)
+        values (${firmId}, ${cars[note.car]}, ${note.type}, ${doneOn},
+          (select max(end_km) from shifts where firm_id = ${firmId} and car_id = ${cars[note.car]} and date <= ${doneOn}),
+          ${note.text}, ${author}, ${createdAt.toISOString()}, ${author}, ${createdAt.toISOString()})`;
+      notes++;
+    }
+  }
+
   const perCourier = couriers.map((m, i) => `${m.identifier.split("+")[0]} ${plans[i].count}`).join(", ");
   console.log(
     `${firm.name}: ${depots.length} depots, ${cars.length} cars, ${dispatchers.length} dispatchers, ` +
-      `${inserts.length} shifts since ${days[0]} (${perCourier}), ${changes.length} corrected.`,
+      `${inserts.length} shifts since ${days[0]} (${perCourier}), ${changes.length} corrected, ${notes} notes.`,
   );
 }

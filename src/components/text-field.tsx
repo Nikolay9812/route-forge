@@ -40,7 +40,8 @@ export function TextField({
   const [typed, setTyped] = useState(props.defaultValue ?? "");
   const inputRef = useRef<TextInputInstance>(null);
   const fontClass = useFontClass("medium");
-  // The board mutes the leading icon only while the field is empty and idle.
+  // The board mutes the leading icon only while the field is empty and idle. Multiline fields (notes) grow from
+  // about four lines.
   const empty = (props.value ?? typed) === "";
 
   const state = error
@@ -56,7 +57,7 @@ export function TextField({
       <Pressable
         accessible={false}
         onPress={() => inputRef.current?.focus()}
-        className={`${label ? "h-field-labeled" : "h-field"} flex-row items-center gap-3 rounded-md border-[1.5px] px-3.5 ${state}`}
+        className={`${props.multiline ? "min-h-28 items-start py-2.5" : label ? "h-field-labeled items-center" : "h-field items-center"} flex-row gap-3 rounded-md border-[1.5px] px-3.5 ${state}`}
       >
         {icon ? (
           <Icon
@@ -65,7 +66,7 @@ export function TextField({
             color={label || !(empty && !focused && !error) ? "ink" : "ink-muted"}
           />
         ) : null}
-        <View className="flex-1 justify-center self-stretch">
+        <View className={`flex-1 self-stretch ${props.multiline ? "justify-start" : "justify-center"}`}>
           {label ? (
             <ThemedText variant="caption" accessible={false}>
               {label}

@@ -84,6 +84,54 @@ export const carPhotos = pgTable(
   (t) => [uniqueIndex().on(t.firmId, t.carId, t.slot)],
 );
 
+/**
+ * A car's service log: work a mechanic (or the owner) did on it, dated by the day it was done. Its author may
+ * change or delete it for 7 days; the owner may delete any. Notes aren't salary history, so deleting is real.
+ */
+export const carNotes = pgTable(
+  "car_notes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    carId: uuid()
+      .notNull()
+      .references(() => cars.id),
+    /** CarNoteType. */
+    type: text().notNull(),
+    /** Calendar day the work was done, in the firm's timezone. */
+    doneOn: date({ mode: "string" }).notNull(),
+    km: integer(),
+    text: text(),
+    /** Clerk user ID of the author, and when; then of whoever changed it last. */
+    createdBy: text().notNull(),
+    createdAt: createdAt(),
+    updatedBy: text().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index().on(t.firmId, t.doneOn), index().on(t.firmId, t.carId, t.doneOn)],
+);
+
+/** Up to three photos per service log note. Postgres keeps only the R2 object key. */
+export const carNotePhotos = pgTable(
+  "car_note_photos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    noteId: uuid()
+      .notNull()
+      .references(() => carNotes.id, { onDelete: "cascade" }),
+    slot: text().notNull(),
+    objectKey: text().notNull(),
+    contentType: text().notNull(),
+    /** Bytes. */
+    size: integer().notNull(),
+    /** Clerk user ID of whoever uploaded it, and when. */
+    uploadedBy: text().notNull(),
+    uploadedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.noteId, t.slot)],
+);
+
 export const payKind = pgEnum("pay_kind", ["hourly", "daily", "firm"]);
 
 /**

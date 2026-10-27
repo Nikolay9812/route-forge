@@ -3,7 +3,7 @@
 import { useAuth as useClerkAuth, useOrganizationList, useSession } from "@clerk/expo";
 import { useCallback, useEffect } from "react";
 
-export type FirmRole = "owner" | "dispatcher" | "courier";
+export type FirmRole = "owner" | "dispatcher" | "courier" | "mechanic";
 
 export type FirmInvitation = { id: string; firmName: string };
 
@@ -17,7 +17,12 @@ export function isReviewer(role: FirmRole | null): boolean {
   return role === "dispatcher" || role === "owner";
 }
 
-const roles: Record<string, FirmRole> = { "org:owner": "owner", "org:dispatcher": "dispatcher", "org:courier": "courier" };
+const roles: Record<string, FirmRole> = {
+  "org:owner": "owner",
+  "org:dispatcher": "dispatcher",
+  "org:courier": "courier",
+  "org:mechanic": "mechanic",
+};
 
 export function useFirm() {
   const { isLoaded, orgId, orgRole } = useClerkAuth();

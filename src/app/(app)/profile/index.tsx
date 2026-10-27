@@ -20,7 +20,7 @@ import { useToggleColorScheme } from "@/theme";
 
 // The moon/sun button switches light/dark for the whole app (remembered on the device).
 // Signing out flips the auth guard back to onboarding. Couriers get their documents; owners get the firm's depots
-// and cars, pay rates, people and couriers, after Firm settings.
+// and cars, the service log, pay rates, people and couriers, after Firm settings. Mechanics get nothing more here.
 export default function Profile() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
@@ -43,6 +43,7 @@ export default function Profile() {
   const firmRows: { icon: IconName; title: string; href: Href }[] = [
     { icon: "settings", title: t("firmSettings.title"), href: "/profile/firm" },
     { icon: "depot", title: t("fleet.title"), href: "/profile/fleet" },
+    { icon: "wrench", title: t("carNotes.title"), href: "/profile/service-log" },
     { icon: "salary", title: t("payRates.title"), href: "/profile/pay-rates" },
     { icon: "people-add", title: t("profile.people"), href: "/profile/people" },
     { icon: "team", title: t("profile.couriers"), href: "/profile/couriers" },

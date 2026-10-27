@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "NSCameraUsageDescription": "Route Forge nutzt die Kamera, damit du deine Dokumente, Fahrzeugchecks, den Fahrzeugschein und Servicearbeiten fotografieren kannst.",
+    "NSPhotoLibraryUsageDescription": "Route Forge nutzt deine Fotos, damit du Bilder deiner Dokumente, deines Mentor-Scores und von Servicearbeiten hinzufügen kannst."
+  }
+}

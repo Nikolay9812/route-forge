@@ -5,7 +5,15 @@ import { useCallback, useRef } from "react";
 import { useResource } from "@/api/use-resource";
 import type { CalendarMonth, Firm } from "@/domain/types";
 
-export type TeamMember = { userId: string; name: string; shifts: number; minutes: number; waiting: number };
+export type TeamMember = {
+  userId: string;
+  name: string;
+  shifts: number;
+  minutes: number;
+  waiting: number;
+  /** No longer a member of the firm (removed). */
+  former: boolean;
+};
 
 export type TeamList = { firm: Firm; today: string; couriers: TeamMember[] };
 

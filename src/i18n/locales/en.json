@@ -207,7 +207,8 @@
     "myDocuments": "My documents",
     "couriers": "Couriers",
     "darkMode": "Switch to dark mode",
-    "lightMode": "Switch to light mode"
+    "lightMode": "Switch to light mode",
+    "people": "People"
   },
   "shifts": {
     "title": "Today's shift",
@@ -398,7 +399,8 @@
     "emptyTitle": "No couriers yet",
     "emptyBody": "Couriers show up here once they join the firm or work in your depots.",
     "error": "The team couldn't load.",
-    "offline": "No connection. Try again when you're online."
+    "offline": "No connection. Try again when you're online.",
+    "former": "Former"
   },
   "fleet": {
     "title": "Depots & cars",
@@ -660,7 +662,8 @@
         "one": "{{count}} day",
         "other": "{{count}} days"
       }
-    }
+    },
+    "former": "Former"
   },
   "photos": {
     "take": "Take photo",
@@ -696,6 +699,62 @@
       "mentor": "Mentor score",
       "diesel": "Diesel",
       "adblue": "AdBlue"
+    }
+  },
+  "people": {
+    "title": "People",
+    "invite": "Invite",
+    "sections": {
+      "owner": "Owners",
+      "dispatcher": "Dispatchers",
+      "courier": "Couriers",
+      "pending": "Pending invitations"
+    },
+    "roles": {
+      "owner": "Owner",
+      "dispatcher": "Dispatcher",
+      "courier": "Courier"
+    },
+    "you": "You",
+    "depotCount": "Depots: {{count}}",
+    "noDepots": "No depots",
+    "invited": "{{role}} · Invited {{date}}",
+    "error": "People couldn't load.",
+    "offline": "No connection. Try again when you're online.",
+    "saveError": "That didn't save. Try again.",
+    "saveOffline": "No connection. Nothing was changed.",
+    "cancel": "Cancel",
+    "inviteSheet": {
+      "title": "Invite someone",
+      "body": "We'll email them an invitation. They sign up with this email and accept it in the app.",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "role": "Role",
+      "send": "Send invitation",
+      "invalid": "Enter a valid email address.",
+      "exists": "This person is already in the firm or has a pending invitation.",
+      "memberLimit": "The firm has reached its member limit."
+    },
+    "revoke": {
+      "title": "Revoke the invitation for {{email}}?",
+      "action": "Revoke invitation"
+    },
+    "person": {
+      "role": "Role",
+      "roleNote": "Changes reach their phone within a minute.",
+      "toDispatcher": "Make {{name}} a dispatcher? They'll review shifts in the depots you pick below.",
+      "toCourier": "Make {{name}} a courier? They lose Approvals and Team and log their own shifts.",
+      "changeRole": "Change role",
+      "depots": "Depots",
+      "depotsNote": "They review shifts and see couriers in these depots only.",
+      "noActiveDepots": "There are no active depots yet. Add one in Depots & cars.",
+      "saveDepots": "Save depots",
+      "remove": "Remove from firm",
+      "removeTitle": "Remove {{name}} from the firm? They lose access. Their shifts, pay and documents stay.",
+      "removeConfirm": "Remove",
+      "missingTitle": "Not in the firm",
+      "missingBody": "This person is no longer a member of the firm.",
+      "back": "Back"
     }
   }
 }

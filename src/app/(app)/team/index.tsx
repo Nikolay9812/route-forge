@@ -109,6 +109,7 @@ function MemberRow({ member }: { member: TeamMember }) {
           {t("team.summary", { shifts: member.shifts, hours: clock(member.minutes) })}
         </ThemedText>
       </View>
+      {member.former ? <Tag tone="muted" size="sm" label={t("team.former")} /> : null}
       {member.waiting > 0 ? (
         <Tag tone="submitted" size="sm" label={t("team.waiting", { count: member.waiting })} />
       ) : null}

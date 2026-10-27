@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import type { useFormat } from "@/components/home/format";
+import { clock, type useFormat } from "@/components/home/format";
 import { Icon } from "@/components/icon";
 import type { IconName } from "@/components/icons";
 import { PressableScale } from "@/components/pressable-scale";
@@ -104,6 +104,11 @@ export function MonthSummary({
           <ThemedText variant="caption" color="ink-muted">
             {caption}
           </ThemedText>
+          {totals.spesenMinor > 0 ? (
+            <ThemedText variant="caption" color="ink">
+              {t("pay.month.spesen", { amount: format.money(totals.spesenMinor) })}
+            </ThemedText>
+          ) : null}
           <View>
             {rateLines(data, format, t).map((line) => (
               <ThemedText key={line} variant="caption" color="ink-muted">
@@ -129,7 +134,7 @@ export function MonthSummary({
       <View className="flex-row gap-3">
         <StatTile
           icon="hours"
-          value={format.hours(totals.approvedMinutes)}
+          value={clock(totals.approvedMinutes)}
           caption={t("units.hours")}
           label={t("pay.open.hours")}
           onPress={() => onOpen("hours")}

@@ -42,7 +42,8 @@ check("past months have no upcoming change", month.next === null);
 const [hand] = await sql`
   select (count(*) filter (where status = 'approved'))::int as approved,
     (count(*) filter (where status = 'submitted'))::int as submitted,
-    coalesce(sum(minutes) filter (where status = 'approved'), 0)::int as minutes,
+    coalesce(sum(minutes - case when minutes > 540 then 45 when minutes > 360 then 30 else 0 end) filter (where status = 'approved'), 0)::int as minutes,
+    coalesce(sum(case when minutes > 480 then 1400 else 0 end) filter (where status = 'approved'), 0)::int as spesen,
     coalesce(sum(loaded - coalesce(returned, 0)) filter (where status = 'approved'), 0)::int as packages,
     coalesce(sum(coalesce(end_km, start_km) - start_km) filter (where status = 'approved'), 0)::int as km
   from shifts where firm_id = ${ivanov} and user_id = ${users.a} and to_char(date, 'YYYY-MM') = ${lastMonth}`;
@@ -67,6 +68,12 @@ check(
     sum("km") === hand.km,
   JSON.stringify({ totals: month.totals, hand }),
 );
+check(
+  "Spesen adds up and matches the database",
+  sum("spesenMinor") === month.totals.spesenMinor && month.totals.spesenMinor === hand.spesen && hand.spesen > 0,
+  JSON.stringify({ spesen: month.totals.spesenMinor, hand: hand.spesen }),
+);
+check("pending rows carry no Spesen", pending.every((d) => d.spesenMinor === null));
 check("the month has a rate", month.rates.length >= 1, month.rates.length);
 
 // Recent months: the 5 before the current one, newest first, the same in every answer.

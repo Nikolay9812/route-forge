@@ -1,11 +1,15 @@
 // Salary math, shared by API routes and the app. Pure and import-free at runtime so Node can run it
-// directly (scripts/check-salary.mjs). Pay counts approved shifts only and is never stored.
-import type { PayDay, PaySchedule, Rate, RateEntry, Shift } from "./types";
+// directly (scripts/check-salary.mjs). Pay counts approved shifts only and is never stored. Hours are worked
+// minutes: shift time minus the automatic break of the firm's work rule (the SQL twin is in src/server/work-rules.ts).
+import type { PayDay, PaySchedule, Rate, RateEntry, Shift, WorkRule } from "./types";
 
 export type MonthTotals = {
+  /** Worked minutes of approved shifts. */
   approvedMinutes: number;
   approvedShifts: number;
   payMinor: number;
+  /** Tax-free meal allowance of approved shifts, separate from pay. */
+  spesenMinor: number;
   /** Delivered packages. */
   packages: number;
   km: number;
@@ -20,6 +24,30 @@ function latestOn<T extends { effectiveFrom: string }>(date: string, entries: re
     if (entry.effectiveFrom <= date && (!match || entry.effectiveFrom > match.effectiveFrom)) match = entry;
   }
   return match;
+}
+
+/** The firm's work rule on a day: its latest entry on or before it. Null means no break and no Spesen. */
+export function ruleFor(date: string, rules: readonly WorkRule[]): WorkRule | null {
+  return latestOn(date, rules);
+}
+
+/** The automatic break for a shift time. "Over" is strict: exactly 6:00 h has no break. */
+export function breakFor(minutes: number, rule: WorkRule | null): number {
+  if (!rule) return 0;
+  if (minutes > rule.longBreakAfterMinutes) return Math.min(rule.longBreakMinutes, minutes);
+  if (minutes > rule.breakAfterMinutes) return Math.min(rule.breakMinutes, minutes);
+  return 0;
+}
+
+/** Spesen for one shift time (before the break), whatever the pay type. */
+export function spesenFor(minutes: number, rule: WorkRule | null): number {
+  return rule && rule.spesenMinor > 0 && minutes > rule.spesenAfterMinutes ? rule.spesenMinor : 0;
+}
+
+/** Spesen an approved shift earns; anything else earns 0. */
+export function shiftSpesen(shift: Shift, rules: readonly WorkRule[]): number {
+  if (shift.status !== "approved") return 0;
+  return spesenFor(shift.minutes ?? 0, ruleFor(shift.date, rules));
 }
 
 function asRate(entry: RateEntry): Rate | null {
@@ -79,19 +107,20 @@ export function ratesIn(first: string, last: string, schedule: PaySchedule): Rat
   return rates;
 }
 
-/** Rounded per shift, half up, in minor units. Anything but an approved shift pays 0. */
+/** Worked minutes (after the break), rounded per shift, half up, in minor units. Anything but approved pays 0. */
 export function shiftPay(shift: Shift, schedule: PaySchedule): number {
   if (shift.status !== "approved") return 0;
   const rate = rateFor(shift.date, schedule);
   if (!rate) return 0;
-  return rate.kind === "daily" ? rate.amountMinor : Math.round(((shift.minutes ?? 0) * rate.amountMinor) / 60);
+  return rate.kind === "daily" ? rate.amountMinor : Math.round(((shift.workedMinutes ?? 0) * rate.amountMinor) / 60);
 }
 
-export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule): MonthTotals {
+export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule, rules: readonly WorkRule[]): MonthTotals {
   const totals: MonthTotals = {
     approvedMinutes: 0,
     approvedShifts: 0,
     payMinor: 0,
+    spesenMinor: 0,
     packages: 0,
     km: 0,
     pendingCount: 0,
@@ -99,9 +128,10 @@ export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule): Mo
   for (const shift of shifts) {
     if (shift.status === "submitted") totals.pendingCount += 1;
     if (shift.status !== "approved") continue;
-    totals.approvedMinutes += shift.minutes ?? 0;
+    totals.approvedMinutes += shift.workedMinutes ?? 0;
     totals.approvedShifts += 1;
     totals.payMinor += shiftPay(shift, schedule);
+    totals.spesenMinor += shiftSpesen(shift, rules);
     // Same as delivered() and kmDriven() in shift.ts, inlined: domain files share only types at runtime.
     totals.packages += shift.loaded - (shift.returned ?? 0);
     totals.km += (shift.endKm ?? shift.startKm) - shift.startKm;
@@ -109,8 +139,8 @@ export function monthTotals(shifts: readonly Shift[], schedule: PaySchedule): Mo
   return totals;
 }
 
-/** The Pay tab's rows: approved and submitted shifts, newest first. Only approved ones carry pay. */
-export function payDays(shifts: readonly Shift[], schedule: PaySchedule): PayDay[] {
+/** The Pay tab's rows: approved and submitted shifts, newest first. Only approved ones carry pay and Spesen. */
+export function payDays(shifts: readonly Shift[], schedule: PaySchedule, rules: readonly WorkRule[]): PayDay[] {
   const days: PayDay[] = [];
   for (const shift of shifts) {
     if (shift.status !== "approved" && shift.status !== "submitted") continue;
@@ -118,10 +148,12 @@ export function payDays(shifts: readonly Shift[], schedule: PaySchedule): PayDay
       shiftId: shift.id,
       date: shift.date,
       status: shift.status,
-      minutes: shift.minutes ?? 0,
+      minutes: shift.workedMinutes ?? 0,
+      breakMinutes: shift.breakMinutes ?? 0,
       packages: shift.loaded - (shift.returned ?? 0),
       km: (shift.endKm ?? shift.startKm) - shift.startKm,
       payMinor: shift.status === "approved" ? shiftPay(shift, schedule) : null,
+      spesenMinor: shift.status === "approved" ? shiftSpesen(shift, rules) : null,
     });
   }
   return days.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));

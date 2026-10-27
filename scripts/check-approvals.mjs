@@ -79,9 +79,15 @@ check(
   detail.pay?.kind === "hourly" && detail.pay.amountMinor === (day >= 15 ? 1600 : 1500),
 );
 check(
-  "pay = minutes × rate, rounded",
-  detail.pay?.payMinor === Math.round((detail.shift.minutes * detail.pay.amountMinor) / 60),
+  "pay = worked minutes × rate, rounded",
+  detail.pay?.payMinor === Math.round((detail.shift.workedMinutes * detail.pay.amountMinor) / 60),
 );
+check(
+  "worked = shift time − the law break",
+  detail.shift.workedMinutes ===
+    detail.shift.minutes - (detail.shift.minutes > 540 ? 45 : detail.shift.minutes > 360 ? 30 : 0),
+);
+check("Spesen over 8:00 h of shift time", detail.pay?.spesenMinor === (detail.shift.minutes > 480 ? 1400 : 0));
 check("dispatcher's stations are HBW1/HBW3 only", detail.stations.map((s) => s.name).sort().join() === "HBW1,HBW3");
 
 // Approve.
@@ -159,14 +165,16 @@ r = await call(token.dispatcher, "PATCH", `/api/approvals/${target.id}`, {
 });
 check("correction saved and marked", r.status === 200 && r.json.corrected && r.json.minutes === 522, r.status);
 r = await call(token.dispatcher, "GET", `/api/approvals/${target.id}`);
-// 522 min at the firm default in force on the shift's day (courier.a has no own rate; the seed changes the
-// default mid-month), rounded half up.
+// 522 min (8:42 h) loses the 30-min law break → 492 worked min at the firm default in force on the shift's day
+// (courier.a has no own rate; the seed changes the default mid-month), rounded half up.
 const [{ amount_minor: hourly }] = await sql`
   select amount_minor from pay_rates
   where firm_id = (select firm_id from shifts where id = ${target.id}) and user_id is null
     and effective_from <= ${target.date}
   order by effective_from desc limit 1`;
-const expectedPay = Math.round((522 * hourly) / 60);
+const expectedPay = Math.round((492 * hourly) / 60);
+check("the corrected shift has its new break", r.json.shift?.breakMinutes === 30 && r.json.shift.workedMinutes === 492);
+check("8:42 h of shift time earns Spesen", r.json.pay?.spesenMinor === 1400);
 check("pay after correction matches the hand calculation", r.json.pay?.payMinor === expectedPay, r.json.pay?.payMinor);
 check(
   "history records who changed which fields",

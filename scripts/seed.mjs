@@ -1,4 +1,4 @@
-// Development seed: firm settings, depots, cars (with papers), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
+// Development seed: firm settings and work rules, depots, cars (with papers), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
 // Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
 // branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
@@ -7,6 +7,7 @@ import { neon } from "@neondatabase/serverless";
 import { addMonths } from "../src/domain/calendar.ts";
 import { addDays } from "../src/domain/courier-details.ts";
 import { zonedTime } from "../src/domain/dates.ts";
+import { LAW_DEFAULTS } from "../src/domain/firm.ts";
 import { lastDayOfMonth } from "../src/domain/fleet.ts";
 import { deletePrefix } from "../src/server/storage.ts";
 
@@ -180,6 +181,7 @@ for (const firm of firms) {
     sql`delete from shifts where firm_id = ${firmId}`,
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
     sql`delete from pay_rates where firm_id = ${firmId}`,
+    sql`delete from firm_rules where firm_id = ${firmId}`,
     sql`delete from courier_details where firm_id = ${firmId}`,
     sql`delete from document_photos where firm_id = ${firmId}`,
     sql`delete from car_photos where firm_id = ${firmId}`,
@@ -221,6 +223,13 @@ for (const firm of firms) {
       insert into pay_rates (firm_id, user_id, effective_from, kind, amount_minor, set_by)
       values (${firmId}, null, ${`${addMonths(month, rate.month)}-${rate.day}`}, 'hourly', ${rate.hourlyMinor}, ${setBy})`;
   }
+  // German law breaks and Spesen from the first seeded month, so every seeded shift has them.
+  const law = LAW_DEFAULTS;
+  await sql`
+    insert into firm_rules (firm_id, effective_from, break_after_minutes, break_minutes, long_break_after_minutes,
+      long_break_minutes, spesen_after_minutes, spesen_minor, set_by)
+    values (${firmId}, ${`${addMonths(month, -MONTHS_BACK)}-01`}, ${law.breakAfterMinutes}, ${law.breakMinutes},
+      ${law.longBreakAfterMinutes}, ${law.longBreakMinutes}, ${law.spesenAfterMinutes}, ${law.spesenMinor}, ${setBy})`;
   for (const { id: userId, identifier } of couriers) {
     for (const rate of firm.overrides[identifier.split("+")[0]] ?? []) {
       await sql`

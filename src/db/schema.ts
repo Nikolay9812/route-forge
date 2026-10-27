@@ -114,6 +114,36 @@ export const payRates = pgTable(
   ],
 );
 
+/**
+ * The firm's automatic break and Spesen, dated like pay rates: on a day the latest entry on or before it applies,
+ * none means no break and no Spesen. Minutes are shift time (finish − start); Spesen in minor units, 0 = off.
+ */
+export const firmRules = pgTable(
+  "firm_rules",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    effectiveFrom: date({ mode: "string" }).notNull(),
+    breakAfterMinutes: integer().notNull(),
+    breakMinutes: integer().notNull(),
+    longBreakAfterMinutes: integer().notNull(),
+    longBreakMinutes: integer().notNull(),
+    spesenAfterMinutes: integer().notNull(),
+    spesenMinor: integer().notNull(),
+    /** Clerk user ID of the owner who last set it, and when. */
+    setBy: text().notNull(),
+    setAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique().on(t.firmId, t.effectiveFrom),
+    check(
+      "firm_rules_values",
+      sql`${t.longBreakAfterMinutes} > ${t.breakAfterMinutes} and ${t.longBreakMinutes} >= ${t.breakMinutes} and ${t.breakMinutes} >= 0 and ${t.spesenMinor} >= 0`,
+    ),
+  ],
+);
+
 export const shiftStatus = pgEnum("shift_status", ["draft", "submitted", "approved", "rejected"]);
 
 /** One courier, one day. Delivered (loaded − returned) and km driven (end − start) are derived, never stored. */

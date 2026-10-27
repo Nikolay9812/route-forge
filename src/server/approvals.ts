@@ -1,9 +1,11 @@
 // Approval queries for dispatchers and owners. Every query is scoped to the reviewer's firm and, for dispatchers,
 // to their depots: a shift outside that scope behaves as if it didn't exist.
-import { and, asc, count, desc, eq, gte, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, isNull, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
-import { cars, depots, dispatcherDepots, shiftChanges, shifts } from "@/db/schema";
+import { cars, depots, dispatcherDepots, shiftChanges, shiftPhotos, shifts } from "@/db/schema";
+import { EXPECTED_SHIFT_PHOTOS } from "@/domain/photos";
+import { emptyReviewFilters, type ReviewFilters, type ReviewOptions, type ReviewView } from "@/domain/review-filters";
 import { rateFor, shiftPay, shiftSpesen } from "@/domain/salary";
 import { diffShift } from "@/domain/shift";
 import type { Bus, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Station } from "@/domain/types";
@@ -49,19 +51,69 @@ async function withNames(rows: { shift: Shift; userId: string }[]): Promise<Revi
   return rows.map(({ shift, userId }) => ({ shift, courierName: names.get(userId) ?? "" }));
 }
 
-/** Pending: submitted, oldest day first. Reviewed: approved or rejected in the last 30 days, newest review first. */
-export async function reviewList(scope: ReviewScope, view: "pending" | "reviewed") {
+/**
+ * Pending: submitted, oldest day first. Reviewed: approved or rejected in the last 30 days, newest review first.
+ * Filters narrow the list inside the reviewer's scope, so an ID outside it just matches nothing. Depot and bus
+ * sorts run in SQL; the courier sort runs on the capped rows once names are known.
+ */
+export async function reviewList(scope: ReviewScope, view: ReviewView, filters: ReviewFilters = emptyReviewFilters) {
   const pending = eq(shifts.status, "submitted");
   const reviewed = and(
     inArray(shifts.status, ["approved", "rejected"]),
     gte(shifts.reviewedAt, sql`now() - make_interval(days => ${REVIEWED_DAYS})`),
   )!;
-  const rows = await selectShifts()
-    .where(inScope(scope, view === "pending" ? pending : reviewed))
-    .orderBy(...(view === "pending" ? [asc(shifts.date), asc(shifts.submittedAt)] : [desc(shifts.reviewedAt)]))
-    .limit(LIST_LIMIT);
-  const [{ value: pendingCount }] = await db.select({ value: count() }).from(shifts).where(inScope(scope, pending));
-  return { pendingCount, items: await withNames(rows.map((r) => ({ shift: toShift(r), userId: r.shift.userId }))) };
+  const where = inScope(scope, view === "pending" ? pending : reviewed, ...filterConditions(view, filters));
+  const byDate = view === "pending" ? [asc(shifts.date), asc(shifts.submittedAt)] : [desc(shifts.reviewedAt)];
+  const sortFirst =
+    filters.sort === "depot" ? [asc(sql`lower(${depots.name})`)] : filters.sort === "bus" ? [asc(cars.plate)] : [];
+
+  const [rows, [{ value: total }], [{ value: pendingCount }], options] = await Promise.all([
+    selectShifts()
+      .where(where)
+      .orderBy(...sortFirst, ...byDate)
+      .limit(LIST_LIMIT),
+    db.select({ value: count() }).from(shifts).where(where),
+    db.select({ value: count() }).from(shifts).where(inScope(scope, pending)),
+    reviewOptions(scope, or(pending, reviewed)!),
+  ]);
+  const items = await withNames(rows.map((r) => ({ shift: toShift(r), userId: r.shift.userId })));
+  // Stable, so equal names keep the date order.
+  if (filters.sort === "courier") items.sort((a, b) => a.courierName.localeCompare(b.courierName));
+  return { pendingCount, total, options, items };
+}
+
+function filterConditions(view: ReviewView, filters: ReviewFilters): SQL[] {
+  const conditions: SQL[] = [];
+  if (filters.depotId) conditions.push(eq(shifts.depotId, filters.depotId));
+  if (filters.carId) conditions.push(eq(shifts.carId, filters.carId));
+  if (filters.userId) conditions.push(eq(shifts.userId, filters.userId));
+  if (view === "reviewed" && filters.status) conditions.push(eq(shifts.status, filters.status));
+  if (filters.corrected) conditions.push(sql`exists (select 1 from ${shiftChanges} where ${shiftChanges.shiftId} = ${shifts.id})`);
+  if (filters.missingPhotos) {
+    conditions.push(
+      sql`(select count(*) from ${shiftPhotos} where ${shiftPhotos.shiftId} = ${shifts.id} and ${inArray(shiftPhotos.slot, [...EXPECTED_SHIFT_PHOTOS])}) < ${EXPECTED_SHIFT_PHOTOS.length}`,
+    );
+  }
+  return conditions;
+}
+
+/** Every depot, courier and bus with an in-scope shift in either view, archived ones included. */
+async function reviewOptions(scope: ReviewScope, inViews: SQL): Promise<ReviewOptions> {
+  const rows = await db
+    .selectDistinct({ depotId: depots.id, depotName: depots.name, carId: cars.id, plate: cars.plate, userId: shifts.userId })
+    .from(shifts)
+    .innerJoin(depots, eq(depots.id, shifts.depotId))
+    .innerJoin(cars, eq(cars.id, shifts.carId))
+    .where(inScope(scope, inViews));
+  const names = await userNames(rows.map((r) => r.userId));
+  const depotList = new Map(rows.map((r) => [r.depotId, { id: r.depotId, name: r.depotName }]));
+  const busList = new Map(rows.map((r) => [r.carId, { id: r.carId, plate: r.plate }]));
+  const courierList = new Map(rows.map((r) => [r.userId, { userId: r.userId, name: names.get(r.userId) ?? "" }]));
+  return {
+    depots: [...depotList.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    couriers: [...courierList.values()].sort((a, b) => a.name.localeCompare(b.name)),
+    buses: [...busList.values()].sort((a, b) => a.plate.localeCompare(b.plate)),
+  };
 }
 
 /** One shift in scope with its courier's user ID, or null. */

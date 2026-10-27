@@ -370,7 +370,30 @@
       "some": "Снимки {{count}}/{{total}}"
     },
     "payBreakdownBreak": "{{shift}} − {{break}} почивка = {{hours}} × {{rate}}/ч",
-    "spesen": "Дневни {{amount}} (необлагаеми)"
+    "spesen": "Дневни {{amount}} (необлагаеми)",
+    "filters": {
+      "depot": "Депо",
+      "allDepots": "Всички депа",
+      "courier": "Куриер",
+      "allCouriers": "Всички куриери",
+      "bus": "Бус",
+      "allBuses": "Всички бусове",
+      "sort": "Подреждане",
+      "sortBy": "Подреди по: {{by}}",
+      "sorts": {
+        "date": "Дата",
+        "courier": "Куриер",
+        "depot": "Депо",
+        "bus": "Бус"
+      },
+      "all": "Всички",
+      "missingPhotos": "Липсващи снимки",
+      "clear": "Изчисти филтрите",
+      "totalOne": "1 смяна",
+      "totalOther": "{{count}} смени",
+      "emptyTitle": "Няма съвпадащи смени",
+      "emptyBody": "Опитай друго депо, куриер или бус, или изчисти филтрите."
+    }
   },
   "calendar": {
     "list": "Списък",

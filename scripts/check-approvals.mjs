@@ -191,4 +191,70 @@ check("approved shift can be corrected", r.status === 200 && r.json.status === "
 const homeAfter = (await call(token.a, "GET", "/api/pay")).json.totals;
 check("courier's approved km went up by 25", homeAfter.km - homeBefore.km === 25, homeAfter.km - homeBefore.km);
 
+// Filters and sort: inside the reviewer's scope only, with matching totals and pick lists.
+const list = async (who, query) => call(token[who], "GET", `/api/approvals?${query}`);
+const ownerPending = (await list("owner", "view=pending")).json;
+const ownerReviewed = (await list("owner", "view=reviewed")).json;
+const hbw3 = ownerPending.options.depots.find((d) => d.name === "HBW3")?.id;
+const bus6004 = ownerPending.options.buses.find((b) => b.plate === "KH I 6004")?.id;
+check("owner options list HBW7 and courier C", ownerPending.options.depots.some((d) => d.id === hbw7) && ownerPending.options.couriers.some((c) => c.userId === users.c));
+const nameC = ownerPending.options.couriers.find((c) => c.userId === users.c)?.name;
+check("unfiltered total = items", ownerPending.total === ownerPending.items.length);
+
+for (const view of ["pending", "reviewed"]) {
+  r = await list("owner", `view=${view}&depotId=${hbw3}`);
+  check(`${view}: depot filter`, r.status === 200 && r.json.items.every((i) => i.shift.depot.id === hbw3) && r.json.total === r.json.items.length, r.status);
+  r = await list("owner", `view=${view}&carId=${bus6004}`);
+  check(`${view}: bus filter`, r.status === 200 && r.json.items.every((i) => i.shift.car.id === bus6004));
+  r = await list("owner", `view=${view}&userId=${users.c}`);
+  check(`${view}: courier filter`, r.status === 200 && r.json.items.every((i) => i.courierName === nameC));
+  r = await list("owner", `view=${view}&photos=missing`);
+  check(`${view}: missing photos filter`, r.status === 200 && r.json.items.every((i) => i.shift.photoCount < 8));
+  r = await list("owner", `view=${view}&corrected=1`);
+  check(`${view}: corrected filter`, r.status === 200 && r.json.items.every((i) => i.shift.corrected));
+  check(`${view}: options don't depend on the view`, JSON.stringify(r.json.options) === JSON.stringify(ownerPending.options));
+}
+r = await list("owner", "view=reviewed&corrected=1");
+check("approved corrected shift A shows under corrected", r.json.items.some((i) => i.shift.id === todayA.id));
+// The owner approved C's shift above, so it's in Reviewed now.
+r = await list("owner", `view=reviewed&userId=${users.c}`);
+check("courier C's shift found by courier", r.json.items.some((i) => i.shift.id === todayC.id) && r.json.items.every((i) => i.shift.id !== todayA.id));
+for (const status of ["approved", "rejected"]) {
+  r = await list("owner", `view=reviewed&status=${status}`);
+  check(`reviewed: status=${status}`, r.status === 200 && r.json.items.every((i) => i.shift.status === status));
+}
+check("pending count stays unfiltered", (await list("owner", `view=pending&depotId=${hbw3}`)).json.pendingCount === ownerPending.pendingCount);
+
+const sorted = (items, key) => items.every((x, i) => i === 0 || key(items[i - 1]).localeCompare(key(x)) <= 0);
+r = await list("owner", "view=reviewed&sort=depot");
+check("sort by depot", sorted(r.json.items, (i) => i.shift.depot.name.toLowerCase()) && r.json.items.length === ownerReviewed.items.length);
+r = await list("owner", "view=reviewed&sort=bus");
+check("sort by bus", sorted(r.json.items, (i) => i.shift.car.plate));
+r = await list("owner", "view=reviewed&sort=courier");
+check("sort by courier", sorted(r.json.items, (i) => i.courierName));
+
+// Scope: an ID outside the dispatcher's depots or the firm matches nothing, and never errors.
+r = await list("dispatcher", `view=pending&depotId=${hbw7}`);
+check("dispatcher filters by HBW7 → empty", r.status === 200 && r.json.items.length === 0 && r.json.total === 0, r.status);
+r = await list("dispatcher", `view=pending&userId=${users.c}`);
+check("dispatcher filters by courier C → no HBW7 shift", r.status === 200 && !r.json.items.some((i) => i.shift.id === todayC.id));
+r = await list("dispatcher", "view=pending");
+check("dispatcher options only hold their depots", r.json.options.depots.every((d) => ["HBW3", "HBW1"].includes(d.name)));
+check("firm B courier with an Ivanov depot → 403", (await call(token.b, "GET", `/api/approvals?view=pending&depotId=${hbw3}`)).status === 403);
+
+// Malformed parameters.
+for (const query of [
+  "view=pending&status=approved",
+  "view=reviewed&status=draft",
+  "view=pending&depotId=nope",
+  "view=pending&carId=1",
+  "view=pending&userId=org_1",
+  "view=pending&sort=pay",
+  "view=pending&photos=all",
+  "view=pending&corrected=yes",
+]) {
+  r = await list("owner", query);
+  check(`${query} → 400`, r.status === 400 && r.json?.error === "invalid", r.status);
+}
+
 finish("approvals");

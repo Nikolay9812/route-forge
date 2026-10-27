@@ -5,12 +5,21 @@ import { createContext, useCallback, useContext, useRef, useState, type PropsWit
 
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource } from "@/api/use-resource";
+import { reviewQuery, type ReviewFilters, type ReviewOptions, type ReviewView } from "@/domain/review-filters";
 import type { Bus, Firm, PayKind, RejectReason, ReviewItem, Shift, ShiftChange, ShiftPhotos, Station } from "@/domain/types";
 import type { EditBody } from "@/shifts/edit";
 
-export type ApprovalsView = "pending" | "reviewed";
+export type ApprovalsView = ReviewView;
 
-export type ApprovalList = { firm: Firm; pendingCount: number; items: ReviewItem[] };
+export type ApprovalList = {
+  firm: Firm;
+  /** Unfiltered, for the tab label. */
+  pendingCount: number;
+  /** Shifts matching the filters (the list itself stops at 200). */
+  total: number;
+  options: ReviewOptions;
+  items: ReviewItem[];
+};
 
 export type ApprovalDetail = {
   firm: Firm;
@@ -43,9 +52,9 @@ function useQuietReloadOnFocus(reload: (quiet?: boolean) => void) {
   );
 }
 
-export function useApprovalList(view: ApprovalsView) {
+export function useApprovalList(view: ApprovalsView, filters: ReviewFilters) {
   const { revision } = useContext(RevisionContext);
-  const list = useResource<ApprovalList>(`/api/approvals?view=${view}`, revision);
+  const list = useResource<ApprovalList>(`/api/approvals?${reviewQuery(view, filters)}`, revision);
   useQuietReloadOnFocus(list.reload);
   return list;
 }

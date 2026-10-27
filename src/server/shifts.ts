@@ -9,6 +9,7 @@ import { finishProblem, type FinishProblem, type ShiftPatch, type StartInput } f
 import type { Bus, Firm, RejectReason, Shift, Station } from "@/domain/types";
 
 import { firmName, type Courier } from "./auth";
+import { breakMinutesSql } from "./work-rules";
 
 const editable = ["draft", "rejected"] as const;
 
@@ -17,6 +18,7 @@ const shiftSelect = {
   depotName: depots.name,
   carPlate: cars.plate,
   carVin: cars.vin,
+  breakMinutes: breakMinutesSql,
   corrected: sql<boolean>`exists (select 1 from ${shiftChanges} where ${shiftChanges.shiftId} = ${shifts.id})`,
   photoCount: sql<number>`(select count(*)::int from ${shiftPhotos} where ${shiftPhotos.shiftId} = ${shifts.id} and ${inArray(shiftPhotos.slot, [...EXPECTED_SHIFT_PHOTOS])})`,
 };
@@ -26,11 +28,12 @@ type ShiftRow = {
   depotName: string;
   carPlate: string;
   carVin: string | null;
+  breakMinutes: number | null;
   corrected: boolean;
   photoCount: number;
 };
 
-export function toShift({ shift: s, depotName, carPlate, carVin, corrected, photoCount }: ShiftRow): Shift {
+export function toShift({ shift: s, depotName, carPlate, carVin, breakMinutes, corrected, photoCount }: ShiftRow): Shift {
   return {
     id: s.id,
     date: s.date,
@@ -38,6 +41,8 @@ export function toShift({ shift: s, depotName, carPlate, carVin, corrected, phot
     startedAt: s.startedAt.toISOString(),
     finishedAt: s.finishedAt?.toISOString() ?? null,
     minutes: s.minutes,
+    breakMinutes,
+    workedMinutes: s.minutes === null || breakMinutes === null ? null : s.minutes - breakMinutes,
     depot: { id: s.depotId, name: depotName },
     car: { id: s.carId, plate: carPlate, vin: carVin },
     startKm: s.startKm,

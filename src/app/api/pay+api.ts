@@ -1,15 +1,16 @@
 // One month of the signed-in courier's own pay for the Pay tab: approved totals, the rates in force, and the
-// approved and pending days behind them, plus the 5 months before the current one. Computed on every request from
+// approved and pending days behind them (worked hours, pay and Spesen), plus the 5 months before the current one. Computed on every request from
 // approved shifts, never stored.
 import { addMonths, lastDayOf } from "@/domain/calendar";
 import { monthOf } from "@/domain/dates";
 import { monthTotals, nextRate, payDays, ratesIn } from "@/domain/salary";
-import type { MonthPay, PayMonth, PaySchedule, Shift } from "@/domain/types";
+import type { MonthPay, PayMonth, PaySchedule, Shift, WorkRule } from "@/domain/types";
 import { apiError, handle } from "@/server/auth";
 import { firstMonthOf, monthParam, monthRange } from "@/server/calendar";
 import { courierContext } from "@/server/context";
 import { payScheduleOf } from "@/server/pay-rates";
 import { firstShiftDate, shiftsBetween } from "@/server/shifts";
+import { loadRules } from "@/server/work-rules";
 
 const RECENT_MONTHS = 5;
 
@@ -19,6 +20,7 @@ function recentMonthsOf(
   firstMonth: string,
   shifts: Shift[],
   schedule: PaySchedule,
+  rules: WorkRule[],
 ): MonthPay[] {
   const months: MonthPay[] = [];
   for (let i = 1; i <= RECENT_MONTHS; i++) {
@@ -27,6 +29,7 @@ function recentMonthsOf(
     const totals = monthTotals(
       shifts.filter((s) => s.date.startsWith(month)),
       schedule,
+      rules,
     );
     months.push({
       month,
@@ -47,7 +50,7 @@ export function GET(request: Request) {
     if (!month) return apiError("invalid");
     const [first, last] = monthRange(month);
     const thisMonth = monthOf(date);
-    const [shifts, earlier, firstDate, schedule] = await Promise.all([
+    const [shifts, earlier, firstDate, schedule, rules] = await Promise.all([
       shiftsBetween(courier, first, last),
       shiftsBetween(
         courier,
@@ -56,6 +59,7 @@ export function GET(request: Request) {
       ),
       firstShiftDate(courier),
       payScheduleOf(courier.firmId, courier.userId),
+      loadRules(courier.firmId),
     ]);
     const current = month === thisMonth;
     const firstMonth = firstMonthOf(date, firstDate);
@@ -64,11 +68,11 @@ export function GET(request: Request) {
       today: date,
       month,
       firstMonth,
-      totals: monthTotals(shifts, schedule),
+      totals: monthTotals(shifts, schedule, rules),
       rates: ratesIn(first, current ? date : last, schedule),
       next: current ? nextRate(date, schedule) : null,
-      days: payDays(shifts, schedule),
-      recentMonths: recentMonthsOf(thisMonth, firstMonth, earlier, schedule),
+      days: payDays(shifts, schedule, rules),
+      recentMonths: recentMonthsOf(thisMonth, firstMonth, earlier, schedule, rules),
     };
     return Response.json(body);
   });

@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { Pressable, View } from "react-native";
 
 import { Divider } from "@/components/divider";
-import type { useFormat } from "@/components/home/format";
+import { clock, type useFormat } from "@/components/home/format";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
@@ -26,8 +26,8 @@ const titles: Record<BreakdownKind, TranslationKey> = {
 function columnsOf(kind: BreakdownKind, data: PayMonth, format: Format, t: ReturnType<typeof useTranslation>["t"]) {
   const hours = {
     head: t("pay.breakdown.hours"),
-    row: (day: PayDay) => format.hoursTenths(day.minutes),
-    total: format.hoursTenths(data.totals.approvedMinutes),
+    row: (day: PayDay) => clock(day.minutes),
+    total: clock(data.totals.approvedMinutes),
   };
   switch (kind) {
     case "pay":
@@ -38,6 +38,15 @@ function columnsOf(kind: BreakdownKind, data: PayMonth, format: Format, t: Retur
           row: (day: PayDay) => (day.payMinor === null ? "–" : format.money(day.payMinor)),
           total: format.money(data.totals.payMinor),
         },
+        ...(data.totals.spesenMinor > 0 || data.days.some((day) => (day.spesenMinor ?? 0) > 0)
+          ? [
+              {
+                head: t("pay.breakdown.spesen"),
+                row: (day: PayDay) => (day.spesenMinor ? format.money(day.spesenMinor) : "–"),
+                total: format.money(data.totals.spesenMinor),
+              },
+            ]
+          : []),
       ];
     case "hours":
       return [hours];

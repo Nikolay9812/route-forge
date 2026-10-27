@@ -106,7 +106,7 @@ function MemberRow({ member }: { member: TeamMember }) {
           {member.name}
         </ThemedText>
         <ThemedText variant="footnote" numberOfLines={1}>
-          {t("team.summary", { shifts: member.shifts, hours: clock(member.minutes) })}
+          {t("team.summary", { shifts: member.shifts, hours: t("units.time", { time: clock(member.minutes) }) })}
         </ThemedText>
       </View>
       {member.former ? <Tag tone="muted" size="sm" label={t("team.former")} /> : null}

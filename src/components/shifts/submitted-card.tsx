@@ -35,7 +35,7 @@ export function SubmittedCard({ shift, format }: { shift: Shift; format: ReturnT
         <Tag tone={shift.status} size="sm" label={t(`status.${shift.status}`)} />
       </View>
       <View className="flex-row gap-3">
-        <Metric icon="hours" value={clock(shift.minutes ?? 0)} caption={t("units.hours")} />
+        <Metric icon="hours" value={clock(shift.workedMinutes ?? 0)} caption={t("units.hours")} />
         <Metric icon="packages" value={format.count(delivered(shift))} caption={t("shifts.submitted.delivered")} />
         <Metric icon="km" value={format.count(kmDriven(shift) ?? 0)} caption={t("units.km")} />
       </View>
@@ -46,6 +46,9 @@ export function SubmittedCard({ shift, format }: { shift: Shift; format: ReturnT
           · {shift.depot.name}
         </ThemedText>
       </View>
+      {shift.breakMinutes ? (
+        <ThemedText variant="footnote">{t("shifts.submitted.breakDeducted", { time: format.hours(shift.breakMinutes) })}</ThemedText>
+      ) : null}
       {shift.status === "submitted" ? <ThemedText variant="footnote">{t("shifts.submitted.waiting")}</ThemedText> : null}
     </Surface>
   );

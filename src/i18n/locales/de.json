@@ -120,10 +120,10 @@
     "rejected": "Abgelehnt"
   },
   "units": {
-    "duration": "{{hours}} Std. {{minutes}} Min.",
     "hours": "Stunden",
     "packages": "Pakete",
-    "km": "km"
+    "km": "km",
+    "time": "{{time}} h"
   },
   "home": {
     "greeting": {
@@ -157,7 +157,7 @@
     "month": {
       "approvedOnly": "Nur genehmigte Schichten",
       "estimatedPay": "Voraussichtlicher Lohn",
-      "approvedHours": "{{hours}} genehmigte Stunden",
+      "approvedHours": "{{hours}} genehmigt",
       "pendingOne": "1 Schicht wartet auf Genehmigung",
       "pendingOther": "{{count}} Schichten warten auf Genehmigung",
       "empty": "Diesen Monat noch keine genehmigten Schichten.",
@@ -168,7 +168,8 @@
       "rateDaily": "Tagessatz · {{amount}} pro Schicht",
       "noRate": "Noch kein Lohnsatz hinterlegt",
       "nextHourly": "Ab {{date}}: {{amount}} / Std.",
-      "nextDaily": "Ab {{date}}: {{amount}} pro Schicht"
+      "nextDaily": "Ab {{date}}: {{amount}} pro Schicht",
+      "spesen": "+ {{amount}} Spesen (steuerfrei)"
     },
     "pending": "Ausstehend",
     "error": "Dein Lohn konnte nicht geladen werden.",
@@ -192,12 +193,13 @@
       "delivered": "Zugestellt",
       "total": "Gesamt (genehmigt)",
       "empty": "In diesem Monat keine genehmigten oder ausstehenden Schichten.",
-      "openDay": "Schicht am {{day}} öffnen"
+      "openDay": "Schicht am {{day}} öffnen",
+      "spesen": "Spesen"
     },
     "recent": {
       "title": "Letzte Monate",
-      "summaryOne": "{{hours}} Std. · 1 Schicht",
-      "summaryOther": "{{hours}} Std. · {{count}} Schichten",
+      "summaryOne": "{{hours}} · 1 Schicht",
+      "summaryOther": "{{hours}} · {{count}} Schichten",
       "open": "{{month}} anzeigen"
     }
   },
@@ -267,7 +269,8 @@
     "submitted": {
       "title": "Heute",
       "delivered": "zugestellt",
-      "waiting": "Wartet auf Freigabe durch den Disponenten."
+      "waiting": "Wartet auf Freigabe durch den Disponenten.",
+      "breakDeducted": "Abgezogene Pause: {{time}}"
     },
     "error": "Die heutige Schicht konnte nicht geladen werden.",
     "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
@@ -329,7 +332,7 @@
     "corrected": "Korrigiert",
     "pay": "Lohn",
     "payWhenApproved": "Lohn nach Freigabe",
-    "payBreakdown": "{{hours}} Std. × {{rate}}/Std.",
+    "payBreakdown": "{{hours}} × {{rate}}/h",
     "noRate": "Für diesen Fahrer ist noch kein Lohnsatz hinterlegt.",
     "changes": "Änderungen",
     "correctedBy": "Korrigiert von {{name}} · {{when}}",
@@ -364,7 +367,9 @@
     "photos": {
       "none": "Keine Fotos",
       "some": "Fotos {{count}}/{{total}}"
-    }
+    },
+    "payBreakdownBreak": "{{shift}} − {{break}} Pause = {{hours}} × {{rate}}/h",
+    "spesen": "Spesen {{amount}} (steuerfrei)"
   },
   "calendar": {
     "list": "Liste",
@@ -756,5 +761,46 @@
       "missingBody": "Diese Person ist kein Mitglied der Firma mehr.",
       "back": "Zurück"
     }
+  },
+  "firmSettings": {
+    "title": "Firmeneinstellungen",
+    "error": "Die Firmeneinstellungen konnten nicht geladen werden.",
+    "general": "Allgemein",
+    "name": "Name",
+    "currency": "Währung",
+    "timeZone": "Zeitzone",
+    "locked": "Währung und Zeitzone sind gesperrt, sobald die Firma Schichten hat.",
+    "rules": "Pausen & Spesen",
+    "break": "Pause",
+    "spesen": "Spesen",
+    "breakLine": "{{short}} Min. ab {{after}} · {{long}} Min. ab {{longAfter}}",
+    "noBreak": "Keine Pause",
+    "spesenLine": "{{amount}}, wenn eine Schicht länger als {{after}} dauert",
+    "spesenOff": "Aus",
+    "summary": "Pause {{short}}/{{long}} Min. · Spesen {{spesen}}",
+    "nextChange": "Änderung ab {{date}}",
+    "notSet": "Noch keine Regel für Pausen und Spesen, daher wird nichts abgezogen. Lege eine an.",
+    "sheet": {
+      "newTitle": "Neue Pausen- und Spesenregel",
+      "editTitle": "Geplante Regel bearbeiten",
+      "body": "Pausen werden automatisch von den Stunden abgezogen. Spesen gibt es steuerfrei für genehmigte Schichten.",
+      "breakAfter": "Pause ab (h:mm)",
+      "breakMinutes": "Pause, Minuten",
+      "longBreakAfter": "Längere Pause ab (h:mm)",
+      "longBreakMinutes": "Längere Pause, Minuten",
+      "minutesHint": "Pausenminuten insgesamt, in 15er-Schritten.",
+      "decrease": "15 Minuten weniger",
+      "increase": "15 Minuten mehr",
+      "clockInvalid": "Format h:mm, z. B. 6:00",
+      "mismatch": "Die längere Pause muss später beginnen und mindestens so lang sein.",
+      "paySpesen": "Spesen zahlen",
+      "spesenAfter": "Spesen ab (h:mm)",
+      "amount": "Betrag ({{currency}})",
+      "pastWarning": "Das ändert genehmigte Stunden und Lohn ab {{date}}, auch in vergangenen Monaten.",
+      "pastConfirmTitle": "Stunden und Lohn ab {{date}} ändern?",
+      "pastConfirmAction": "Vergangene Stunden ändern",
+      "notEditable": "Diese Regel hat schon begonnen."
+    },
+    "starts": "Gilt ab {{date}}"
   }
 }

@@ -12,8 +12,12 @@ export type Shift = {
   startedAt: string;
   /** Set on submit. */
   finishedAt: string | null;
-  /** Working time, set on submit. */
+  /** Shift time (finish − start), set on submit. */
   minutes: number | null;
+  /** The automatic break from the firm's work rule on the shift's day; null until submitted. */
+  breakMinutes: number | null;
+  /** Shift time minus the break: what hours and hourly pay count. Null until submitted. */
+  workedMinutes: number | null;
   depot: { id: string; name: string };
   /** The VIN is shown to the courier as a QR; null when the owner hasn't entered one. */
   car: { id: string; plate: string; vin: string | null };
@@ -92,6 +96,36 @@ export type PayRates = { firm: Firm; today: string; firmDefault: PayRateTarget; 
 
 export type Firm = { name: string; currency: string; timeZone: string };
 
+/**
+ * A firm's break and Spesen rule, in force from `effectiveFrom` until the next entry starts. A shift over
+ * `breakAfterMinutes` loses `breakMinutes`, over `longBreakAfterMinutes` it loses `longBreakMinutes` in total.
+ * An approved shift over `spesenAfterMinutes` (shift time, before the break) earns `spesenMinor`; 0 = no Spesen.
+ */
+export type WorkRule = {
+  effectiveFrom: string;
+  breakAfterMinutes: number;
+  breakMinutes: number;
+  longBreakAfterMinutes: number;
+  longBreakMinutes: number;
+  spesenAfterMinutes: number;
+  spesenMinor: number;
+};
+
+/** One rule entry as the owner sees it in the history. Only upcoming entries can be edited or cancelled. */
+export type WorkRuleEntry = WorkRule & { id: string; upcoming: boolean; current: boolean; setByName: string; setAt: string };
+
+/** The owner's Firm settings. `locked`: the firm has shifts, so currency and timezone can't change. */
+export type FirmSettings = {
+  today: string;
+  name: string;
+  currency: string;
+  timeZone: string;
+  locked: boolean;
+  rule: WorkRule | null;
+  next: WorkRule | null;
+  entries: WorkRuleEntry[];
+};
+
 /** One month of a courier's shifts, oldest day first. `firstMonth` is where paging back stops. */
 export type CalendarMonth = {
   firm: Firm;
@@ -107,11 +141,15 @@ export type PayDay = {
   shiftId: string;
   date: string;
   status: "approved" | "submitted";
+  /** Worked time: shift time minus the break. */
   minutes: number;
+  breakMinutes: number;
   /** Delivered packages. */
   packages: number;
   km: number;
   payMinor: number | null;
+  /** Tax-free meal allowance; null until approved, like pay. */
+  spesenMinor: number | null;
 };
 
 /** One earlier month in the Pay tab's recent months list: approved shifts only. */

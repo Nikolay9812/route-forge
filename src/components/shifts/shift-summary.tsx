@@ -33,7 +33,7 @@ export function ShiftSummary({
       value: t("shifts.finish.timeRange", {
         start: format.time(startedAt),
         end: format.time(end),
-        duration: format.duration(elapsedMinutes(startedAt, end)),
+        duration: format.hours(elapsedMinutes(startedAt, end)),
       }),
     },
     { label: t("shifts.fields.station"), value: stationName },

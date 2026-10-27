@@ -60,7 +60,7 @@ export function TodayCard({
           <View className="flex-row gap-3">
             <Metric
               icon="hours"
-              value={clock(shift.minutes ?? minutesBetween(shift.startedAt, new Date(openedAt).toISOString()))}
+              value={clock(shift.workedMinutes ?? minutesBetween(shift.startedAt, new Date(openedAt).toISOString()))}
               caption={t("units.hours")}
             />
             <Metric icon="packages" value={format.count(delivered(shift))} caption={t("units.packages")} />

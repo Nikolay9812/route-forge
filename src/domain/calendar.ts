@@ -7,7 +7,7 @@ export type CalendarDay = { date: string; inMonth: boolean };
 export type MonthStats = {
   /** Every shift in the month, any status. */
   shifts: number;
-  /** Working time of submitted and approved shifts. */
+  /** Worked time (after the break) of submitted and approved shifts. */
   minutes: number;
   approvedMinutes: number;
   submitted: number;
@@ -67,8 +67,8 @@ export function monthStats(shifts: readonly Shift[]): MonthStats {
     stats.shifts += 1;
     if (shift.status === "submitted") stats.submitted += 1;
     if (shift.status === "rejected") stats.rejected += 1;
-    if (shift.status === "submitted" || shift.status === "approved") stats.minutes += shift.minutes ?? 0;
-    if (shift.status === "approved") stats.approvedMinutes += shift.minutes ?? 0;
+    if (shift.status === "submitted" || shift.status === "approved") stats.minutes += shift.workedMinutes ?? 0;
+    if (shift.status === "approved") stats.approvedMinutes += shift.workedMinutes ?? 0;
   }
   return stats;
 }

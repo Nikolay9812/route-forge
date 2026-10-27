@@ -39,8 +39,8 @@ check("shifts are oldest first", r.json.shifts.every((s, i, all) => i === 0 || a
 // Stats against a count straight from the database.
 const [hand] = await sql`
   select count(*)::int as shifts,
-    coalesce(sum(minutes) filter (where status in ('submitted', 'approved')), 0)::int as minutes,
-    coalesce(sum(minutes) filter (where status = 'approved'), 0)::int as approved,
+    coalesce(sum(minutes - case when minutes > 540 then 45 when minutes > 360 then 30 else 0 end) filter (where status in ('submitted', 'approved')), 0)::int as minutes,
+    coalesce(sum(minutes - case when minutes > 540 then 45 when minutes > 360 then 30 else 0 end) filter (where status = 'approved'), 0)::int as approved,
     (count(*) filter (where status = 'submitted'))::int as submitted,
     (count(*) filter (where status = 'rejected'))::int as rejected
   from shifts where firm_id = ${ivanov} and user_id = ${users.a} and to_char(date, 'YYYY-MM') = ${lastMonth}`;

@@ -35,7 +35,7 @@ export function ReviewList({ items, format }: { items: ReviewItem[]; format: Ret
               </ThemedText>
             </View>
             <View className="items-end gap-1">
-              <ThemedText variant="label">{format.duration(shift.minutes ?? 0)}</ThemedText>
+              <ThemedText variant="label">{format.hours(shift.workedMinutes ?? 0)}</ThemedText>
               <View className="flex-row gap-1">
                 <Tag size="sm" {...photoTag(shift.photoCount, t)} />
                 {shift.corrected ? <Tag tone="info" size="sm" label={t("review.corrected")} /> : null}

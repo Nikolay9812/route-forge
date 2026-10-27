@@ -51,7 +51,7 @@ export function RecentShifts({
                 </ThemedText>
               </View>
               <View className="items-end gap-1">
-                <ThemedText variant="label">{format.duration(shift.minutes ?? 0)}</ThemedText>
+                <ThemedText variant="label">{format.hours(shift.workedMinutes ?? 0)}</ThemedText>
                 <View className="flex-row gap-1">
                   {shift.corrected ? <Tag tone="info" size="sm" label={t("review.corrected")} /> : null}
                   <Tag tone={shift.status} size="sm" label={t(`status.${shift.status}`)} />

@@ -45,7 +45,7 @@ export function PayCard({
   format,
 }: {
   shift: Shift;
-  pay: { kind: PayKind; amountMinor: number; payMinor: number } | null;
+  pay: { kind: PayKind; amountMinor: number; payMinor: number; spesenMinor: number } | null;
   format: Format;
 }) {
   const { t } = useTranslation();
@@ -58,11 +58,23 @@ export function PayCard({
           <ThemedText variant="footnote">
             {pay.kind === "daily"
               ? t("review.payDaily")
-              : t("review.payBreakdown", {
-                  hours: format.hours(shift.minutes ?? 0),
-                  rate: format.money(pay.amountMinor),
-                })}
+              : shift.breakMinutes
+                ? t("review.payBreakdownBreak", {
+                    shift: format.hours(shift.minutes ?? 0),
+                    break: format.hours(shift.breakMinutes),
+                    hours: format.hours(shift.workedMinutes ?? 0),
+                    rate: format.money(pay.amountMinor),
+                  })
+                : t("review.payBreakdown", {
+                    hours: format.hours(shift.workedMinutes ?? 0),
+                    rate: format.money(pay.amountMinor),
+                  })}
           </ThemedText>
+          {pay.spesenMinor > 0 ? (
+            <ThemedText variant="footnote" color="ink">
+              {t("review.spesen", { amount: format.money(pay.spesenMinor) })}
+            </ThemedText>
+          ) : null}
         </>
       ) : (
         <ThemedText variant="body">{t("review.noRate")}</ThemedText>

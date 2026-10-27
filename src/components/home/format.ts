@@ -15,7 +15,7 @@ export function initials(fullName: string): string {
     .join("");
 }
 
-/** "7:30" for a shift's working time. */
+/** "7:30": hours where a caption already says "hours" (metric tiles). Everywhere else use `format.hours`. */
 export function clock(minutes: number): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`;
 }
@@ -26,8 +26,6 @@ export function useFormat(timeZone: string, currency: string) {
   return useMemo(() => {
     const locale = locales[language];
     const money = new Intl.NumberFormat(locale, { style: "currency", currency });
-    const hours = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
-    const tenths = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const count = new Intl.NumberFormat(locale);
     const longDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "long", day: "numeric", month: "long" });
     const shortDay = new Intl.DateTimeFormat(locale, { timeZone, weekday: "short", day: "numeric", month: "short" });
@@ -38,12 +36,9 @@ export function useFormat(timeZone: string, currency: string) {
     const timeOfDay = new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
     return {
       money: (minor: number) => money.format(minor / 100),
-      hours: (minutes: number) => hours.format(minutes / 60),
-      /** Always one decimal ("7,0"), so a column of hours lines up. */
-      hoursTenths: (minutes: number) => tenths.format(minutes / 60),
+      /** "7:15 h", "117:00 h": the one way hours read in the app. */
+      hours: (minutes: number) => t("units.time", { time: clock(minutes) }),
       count: (value: number) => count.format(value),
-      duration: (minutes: number) =>
-        t("units.duration", { hours: Math.floor(minutes / 60), minutes: minutes % 60 }),
       longDay: (date: string) => longDay.format(dateAtNoon(date)),
       shortDay: (date: string) => shortDay.format(dateAtNoon(date)),
       /** "12 Mar 1994": birth dates and document validity, where the year matters. */

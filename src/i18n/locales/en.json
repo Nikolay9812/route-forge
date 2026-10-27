@@ -120,10 +120,10 @@
     "rejected": "Rejected"
   },
   "units": {
-    "duration": "{{hours}} h {{minutes}} min",
     "hours": "hours",
     "packages": "packages",
-    "km": "km"
+    "km": "km",
+    "time": "{{time}} h"
   },
   "home": {
     "greeting": {
@@ -157,7 +157,7 @@
     "month": {
       "approvedOnly": "Approved shifts only",
       "estimatedPay": "Estimated pay",
-      "approvedHours": "{{hours}} approved hours",
+      "approvedHours": "{{hours}} approved",
       "pendingOne": "1 shift waiting for approval",
       "pendingOther": "{{count}} shifts waiting for approval",
       "empty": "No approved shifts yet this month.",
@@ -168,7 +168,8 @@
       "rateDaily": "Day rate · {{amount}} per shift",
       "noRate": "No pay rate set yet",
       "nextHourly": "From {{date}}: {{amount}} / h",
-      "nextDaily": "From {{date}}: {{amount}} per shift"
+      "nextDaily": "From {{date}}: {{amount}} per shift",
+      "spesen": "+ {{amount}} Spesen (tax-free)"
     },
     "pending": "Pending",
     "error": "Couldn't load your pay.",
@@ -192,12 +193,13 @@
       "delivered": "Delivered",
       "total": "Total (approved)",
       "empty": "No approved or pending shifts this month.",
-      "openDay": "Open the shift on {{day}}"
+      "openDay": "Open the shift on {{day}}",
+      "spesen": "Spesen"
     },
     "recent": {
       "title": "Recent months",
-      "summaryOne": "{{hours}} h · 1 shift",
-      "summaryOther": "{{hours}} h · {{count}} shifts",
+      "summaryOne": "{{hours}} · 1 shift",
+      "summaryOther": "{{hours}} · {{count}} shifts",
       "open": "Show {{month}}"
     }
   },
@@ -267,7 +269,8 @@
     "submitted": {
       "title": "Today",
       "delivered": "delivered",
-      "waiting": "Waiting for dispatcher approval."
+      "waiting": "Waiting for dispatcher approval.",
+      "breakDeducted": "Break deducted: {{time}}"
     },
     "error": "Couldn't load today's shift.",
     "offline": "No connection. Try again when you're online.",
@@ -329,7 +332,7 @@
     "corrected": "Corrected",
     "pay": "Pay",
     "payWhenApproved": "Pay when approved",
-    "payBreakdown": "{{hours}} h × {{rate}}/h",
+    "payBreakdown": "{{hours}} × {{rate}}/h",
     "noRate": "This courier has no pay rate yet.",
     "changes": "Changes",
     "correctedBy": "Corrected by {{name}} · {{when}}",
@@ -364,7 +367,9 @@
     "photos": {
       "none": "No photos",
       "some": "Photos {{count}}/{{total}}"
-    }
+    },
+    "payBreakdownBreak": "{{shift}} − {{break}} break = {{hours}} × {{rate}}/h",
+    "spesen": "Spesen {{amount}} (tax-free)"
   },
   "calendar": {
     "list": "List",
@@ -756,5 +761,46 @@
       "missingBody": "This person is no longer a member of the firm.",
       "back": "Back"
     }
+  },
+  "firmSettings": {
+    "title": "Firm settings",
+    "error": "Couldn't load the firm settings.",
+    "general": "General",
+    "name": "Name",
+    "currency": "Currency",
+    "timeZone": "Timezone",
+    "locked": "Currency and timezone are locked once the firm has shifts.",
+    "rules": "Breaks & Spesen",
+    "break": "Break",
+    "spesen": "Spesen",
+    "breakLine": "{{short}} min after {{after}} · {{long}} min after {{longAfter}}",
+    "noBreak": "No break",
+    "spesenLine": "{{amount}} when a shift is over {{after}}",
+    "spesenOff": "Off",
+    "summary": "Break {{short}}/{{long}} min · Spesen {{spesen}}",
+    "nextChange": "Changes on {{date}}",
+    "notSet": "No break or Spesen rule yet, so nothing is deducted. Schedule one.",
+    "sheet": {
+      "newTitle": "New break and Spesen rule",
+      "editTitle": "Edit upcoming rule",
+      "body": "Breaks come off worked hours automatically. Spesen is paid on approved shifts, tax-free.",
+      "breakAfter": "Break after (h:mm)",
+      "breakMinutes": "Break, minutes",
+      "longBreakAfter": "Longer break after (h:mm)",
+      "longBreakMinutes": "Longer break, minutes",
+      "minutesHint": "Break minutes in total, in steps of 15.",
+      "decrease": "15 minutes less",
+      "increase": "15 minutes more",
+      "clockInvalid": "Use h:mm, like 6:00",
+      "mismatch": "The longer break must start later and last at least as long.",
+      "paySpesen": "Pay Spesen",
+      "spesenAfter": "Spesen after (h:mm)",
+      "amount": "Amount ({{currency}})",
+      "pastWarning": "This changes approved hours and pay from {{date}}, including past months.",
+      "pastConfirmTitle": "Change hours and pay from {{date}}?",
+      "pastConfirmAction": "Change past hours",
+      "notEditable": "This rule has already started."
+    },
+    "starts": "Starts {{date}}"
   }
 }

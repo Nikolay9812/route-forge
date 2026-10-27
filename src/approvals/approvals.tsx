@@ -17,7 +17,7 @@ export type ApprovalDetail = {
   shift: Shift;
   courierName: string;
   /** Pay for this shift at the rate on its day; null when the courier has no rate yet. */
-  pay: { kind: PayKind; amountMinor: number; payMinor: number } | null;
+  pay: { kind: PayKind; amountMinor: number; payMinor: number; spesenMinor: number } | null;
   changes: ShiftChange[];
   stations: Station[];
   buses: Bus[];

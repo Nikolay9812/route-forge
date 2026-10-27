@@ -4,12 +4,13 @@ import { and, asc, count, desc, eq, gte, inArray, isNull, sql, type SQL } from "
 
 import { db } from "@/db";
 import { cars, depots, dispatcherDepots, shiftChanges, shifts } from "@/db/schema";
-import { rateFor, shiftPay } from "@/domain/salary";
+import { rateFor, shiftPay, shiftSpesen } from "@/domain/salary";
 import { diffShift } from "@/domain/shift";
 import type { Bus, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Station } from "@/domain/types";
 
 import { userNames, type Reviewer } from "./auth";
 import { payScheduleOf } from "./pay-rates";
+import { loadRules } from "./work-rules";
 import { photosOfShift } from "./shift-photos";
 import { selectShifts, toShift, type ShiftValues } from "./shifts";
 
@@ -75,8 +76,9 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
   if (!found) return null;
   const { shift, userId } = found;
 
-  const [schedule, changeRows, stations, buses, photos] = await Promise.all([
+  const [schedule, rules, changeRows, stations, buses, photos] = await Promise.all([
     payScheduleOf(scope.firmId, userId),
+    loadRules(scope.firmId),
     db
       .select()
       .from(shiftChanges)
@@ -88,10 +90,16 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
   ]);
   const names = await userNames([userId, ...changeRows.map((c) => c.changedBy)]);
 
-  // Pay as it will be once approved: the same per-shift math as the monthly totals.
+  // Pay and Spesen as they will be once approved: the same per-shift math as the monthly totals.
   const rate = rateFor(shift.date, schedule);
+  const asApproved = { ...shift, status: "approved" as const };
   const pay = rate
-    ? { kind: rate.kind, amountMinor: rate.amountMinor, payMinor: shiftPay({ ...shift, status: "approved" }, schedule) }
+    ? {
+        kind: rate.kind,
+        amountMinor: rate.amountMinor,
+        payMinor: shiftPay(asApproved, schedule),
+        spesenMinor: shiftSpesen(asApproved, rules),
+      }
     : null;
 
   const changes: ShiftChange[] = changeRows.map((c) => ({

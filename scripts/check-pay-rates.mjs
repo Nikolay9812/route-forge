@@ -84,7 +84,8 @@ try {
 
   // Day-rate pay in review detail and Home.
   const [shiftC] = await sql`
-    select id, to_char(date, 'YYYY-MM-DD') as date, minutes from shifts
+    select id, to_char(date, 'YYYY-MM-DD') as date,
+      minutes - case when minutes > 540 then 45 when minutes > 360 then 30 else 0 end as "workedMinutes" from shifts
     where firm_id = ${ivanov} and user_id = ${users.c} and status = 'approved' and date >= ${`${today.slice(0, 7)}-02`}
     order by date desc limit 1`;
   check("courier.c has an approved shift this month (seed)", Boolean(shiftC));
@@ -100,7 +101,7 @@ try {
   check("owner may backdate an entry", r.status === 201 && r.json.current?.kind === "hourly", r.status);
   backdatedId = r.json?.entries.find((e) => e.effectiveFrom === shiftC?.date)?.id ?? null;
   r = await call(token.owner, "GET", `/api/approvals/${shiftC?.id}`);
-  check("backdated rate reaches the approved shift's pay", r.json?.pay?.kind === "hourly" && r.json.pay.payMinor === Math.round((shiftC.minutes * 2000) / 60));
+  check("backdated rate reaches the approved shift's pay", r.json?.pay?.kind === "hourly" && r.json.pay.payMinor === Math.round((shiftC.workedMinutes * 2000) / 60));
   r = await call(token.c, "GET", "/api/pay");
   check("backdated rate changes the month total", r.json?.totals.payMinor !== homeBefore);
   await sql`delete from pay_rates where id = ${backdatedId}`;

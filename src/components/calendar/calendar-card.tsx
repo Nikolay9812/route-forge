@@ -5,7 +5,7 @@ import Animated, { Easing, FadeIn } from "react-native-reanimated";
 import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { Divider } from "@/components/divider";
-import { clock, type useFormat } from "@/components/home/format";
+import type { useFormat } from "@/components/home/format";
 import { Icon } from "@/components/icon";
 import type { IconName } from "@/components/icons";
 import { Surface } from "@/components/surface";
@@ -71,8 +71,8 @@ export function CalendarCard({
 
       <View className="flex-row gap-3 px-4 py-4">
         <Stat label={t("calendar.stats.shifts")} value={stats ? String(stats.shifts) : "–"} />
-        <Stat label={t("calendar.stats.hours")} value={stats ? clock(stats.minutes) : "–"} />
-        <Stat label={t("calendar.stats.approved")} value={stats ? clock(stats.approvedMinutes) : "–"} />
+        <Stat label={t("calendar.stats.hours")} value={stats ? format.hours(stats.minutes) : "–"} />
+        <Stat label={t("calendar.stats.approved")} value={stats ? format.hours(stats.approvedMinutes) : "–"} />
       </View>
       <Divider />
 
@@ -238,7 +238,7 @@ function MonthList({ shifts, format, onOpenShift }: { shifts: Shift[]; format: F
               {format.shortDay(shift.date)}
             </ThemedText>
             <ThemedText variant="body" color="ink-muted" style={{ fontVariant: ["tabular-nums"] }}>
-              {shift.minutes === null ? "–" : clock(shift.minutes)}
+              {shift.workedMinutes === null ? "–" : format.hours(shift.workedMinutes)}
             </ThemedText>
             <Tag tone={shift.status} size="sm" label={t(`status.${shift.status}`)} />
           </Pressable>

@@ -13,13 +13,14 @@ import { firmCouriers, userNames } from "./auth";
 import { calendarMonth, monthRange } from "./calendar";
 import { memberIds } from "./people";
 import { selectShifts, toShift } from "./shifts";
+import { breakMinutesSql } from "./work-rules";
 
 export type TeamMember = {
   userId: string;
   name: string;
   /** This month, in the reviewer's scope. */
   shifts: number;
-  /** Working time of this month's submitted and approved shifts. */
+  /** Worked time (after the break) of this month's submitted and approved shifts. */
   minutes: number;
   /** Submitted shifts waiting for review this month. */
   waiting: number;
@@ -44,7 +45,7 @@ export async function teamList(scope: ReviewScope, today: string): Promise<TeamM
       .select({
         userId: shifts.userId,
         shifts: count(),
-        minutes: sql<number>`coalesce(sum(${shifts.minutes}) filter (where ${shifts.status} in ('submitted', 'approved')), 0)::int`,
+        minutes: sql<number>`coalesce(sum(${shifts.minutes} - ${breakMinutesSql}) filter (where ${shifts.status} in ('submitted', 'approved')), 0)::int`,
         waiting: sql<number>`(count(*) filter (where ${shifts.status} = 'submitted'))::int`,
       })
       .from(shifts)

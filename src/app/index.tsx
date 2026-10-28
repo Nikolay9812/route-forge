@@ -4,7 +4,7 @@ import { isReviewer, useAuth, useFirm } from "@/auth";
 
 // Entry point: signed-out users start at onboarding. Signed-in dispatchers and owners go to their approvals, mechanics
 // to the cars, everyone else home (where a user without a firm sees "No firm yet"). Nothing renders while the firm is
-// being activated.
+// being activated and its role asked for; when that fails, the tabs' layout shows the error with Retry.
 export default function Index() {
   const { isSignedIn } = useAuth();
   const { firm } = useFirm();

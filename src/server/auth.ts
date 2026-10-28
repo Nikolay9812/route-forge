@@ -1,18 +1,15 @@
 // Session → firm → role, for API routes only (it reads CLERK_SECRET_KEY). Firm and user come from the verified
-// Clerk session token, never from the request body or URL.
-import { createClerkClient } from "@clerk/backend";
-
+// Clerk session token, never from the request body or URL; the role comes from `firm_members` (see ./members).
 import type { ApiErrorCode } from "@/domain/types";
 
-const secretKey = process.env.CLERK_SECRET_KEY;
-if (!secretKey) throw new Error("CLERK_SECRET_KEY is not set");
+import { clerk } from "./clerk";
+import { clerkMemberships, rolesOf, roleOf, type MemberRole } from "./members";
 
-/** Clerk's backend client, for server modules only. */
-export const clerk = createClerkClient({ secretKey, publishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY });
+export { clerk };
 
 // No `authorizedParties`: Clerk then refuses any token without an `azp` claim, and native app session tokens have
 // none (there's no web origin), so it would lock the app out.
-/** The verified session's user, active org and role, or null when the request has no valid session token. */
+/** The verified session's user and active org, or null when the request has no valid session token. */
 async function authenticate(request: Request) {
   const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
   return state.isAuthenticated ? state.toAuth() : null;
@@ -47,28 +44,40 @@ export async function requireSession(request: Request): Promise<{ userId: string
   return { userId: session.userId };
 }
 
+type FirmSession = { firmId: string; userId: string; role: MemberRole };
+
+/**
+ * The session's user, active firm and their role in it, or the error Response to return as is. The token's active
+ * org proves the Clerk membership (a member removed in Clerk loses it within a minute); a role row alone gives nothing.
+ */
+export async function requireFirmSession(request: Request): Promise<FirmSession | Response> {
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  const { userId, orgId } = session;
+  if (!orgId) return apiError("noFirm");
+  const role = await roleOf(orgId, userId);
+  if (!role) return apiError("noFirm");
+  return { firmId: orgId, userId, role };
+}
+
 export type Courier = { firmId: string; userId: string };
 
 /** The signed-in courier of the session's active firm, or the error Response to return as is. */
 export async function requireCourier(request: Request): Promise<Courier | Response> {
-  const session = await authenticate(request);
-  if (!session) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = session;
-  if (!orgId) return apiError("noFirm");
-  if (orgRole !== "org:courier") return apiError("role");
-  return { firmId: orgId, userId };
+  const session = await requireFirmSession(request);
+  if (session instanceof Response) return session;
+  if (session.role !== "courier") return apiError("role");
+  return { firmId: session.firmId, userId: session.userId };
 }
 
 export type Reviewer = { firmId: string; userId: string; role: "dispatcher" | "owner" };
 
 /** A signed-in dispatcher or owner of the session's active firm, or the error Response to return as is. */
 export async function requireReviewerSession(request: Request): Promise<Reviewer | Response> {
-  const session = await authenticate(request);
-  if (!session) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = session;
-  if (!orgId) return apiError("noFirm");
-  if (orgRole === "org:dispatcher") return { firmId: orgId, userId, role: "dispatcher" };
-  if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
+  const session = await requireFirmSession(request);
+  if (session instanceof Response) return session;
+  const { firmId, userId, role } = session;
+  if (role === "dispatcher" || role === "owner") return { firmId, userId, role };
   return apiError("role");
 }
 
@@ -76,24 +85,20 @@ export type Owner = { firmId: string; userId: string };
 
 /** The signed-in owner of the session's active firm, or the error Response to return as is. */
 export async function requireOwner(request: Request): Promise<Owner | Response> {
-  const session = await authenticate(request);
-  if (!session) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = session;
-  if (!orgId) return apiError("noFirm");
-  if (orgRole !== "org:owner") return apiError("role");
-  return { firmId: orgId, userId };
+  const session = await requireFirmSession(request);
+  if (session instanceof Response) return session;
+  if (session.role !== "owner") return apiError("role");
+  return { firmId: session.firmId, userId: session.userId };
 }
 
 export type GarageUser = { firmId: string; userId: string; role: "mechanic" | "owner" };
 
 /** A signed-in mechanic or owner of the session's active firm (the cars and the service log), or the error. */
 export async function requireGarageSession(request: Request): Promise<GarageUser | Response> {
-  const session = await authenticate(request);
-  if (!session) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = session;
-  if (!orgId) return apiError("noFirm");
-  if (orgRole === "org:mechanic") return { firmId: orgId, userId, role: "mechanic" };
-  if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
+  const session = await requireFirmSession(request);
+  if (session instanceof Response) return session;
+  const { firmId, userId, role } = session;
+  if (role === "mechanic" || role === "owner") return { firmId, userId, role };
   return apiError("role");
 }
 
@@ -117,19 +122,10 @@ export async function userNames(ids: string[]): Promise<Map<string, string>> {
   return new Map(ids.map((id) => [id, names.get(id)?.name ?? ""]));
 }
 
-/** User IDs of the firm's `org:courier` members, every page. */
+/** User IDs of the firm's current members whose role is courier. */
 export async function firmCouriers(firmId: string): Promise<string[]> {
-  const ids: string[] = [];
-  for (let offset = 0; ; offset += 100) {
-    const { data, totalCount } = await clerk.organizations.getOrganizationMembershipList({
-      organizationId: firmId,
-      role: ["org:courier"],
-      limit: 100,
-      offset,
-    });
-    for (const m of data) if (m.publicUserData?.userId) ids.push(m.publicUserData.userId);
-    if (offset + 100 >= totalCount) return ids;
-  }
+  const roles = await rolesOf(firmId, await clerkMemberships(firmId));
+  return [...roles].flatMap(([userId, role]) => (role === "courier" ? [userId] : []));
 }
 
 const firmNames = new Map<string, string>();

@@ -2,6 +2,8 @@ import { NativeTabs } from "expo-router/native-tabs";
 import { ActivityIndicator, View } from "react-native";
 
 import { isReviewer, useAuth, useFirm } from "@/auth";
+import { Alert } from "@/components/alert";
+import { Button } from "@/components/button";
 import { icons, type IconName } from "@/components/icons";
 import { NoFirm } from "@/components/no-firm";
 import { useTranslation, type TranslationKey } from "@/i18n";
@@ -29,11 +31,12 @@ const labelFont: Record<FontScript, string> = {
 };
 
 // The platform's own tab bar: switching tabs is instant, with no animation of ours. iOS keeps the system material.
-// The tabs need an active firm: until there is one, a spinner (activating it) or the "No firm yet" screen.
+// The tabs need an active firm and the role in it: until then, a spinner (activating the firm, asking for the role),
+// the "No firm yet" screen, or an error with Retry when the role couldn't be loaded.
 export default function AppLayout() {
   const { t } = useTranslation();
   const { signOut } = useAuth();
-  const { firm, refresh, accept } = useFirm();
+  const { firm, refresh, retry, accept } = useFirm();
   const fontFamily = labelFont[useFontScript()];
   const selected = useThemeColor("secondary-ink");
   const muted = useThemeColor("ink-muted");
@@ -49,6 +52,17 @@ export default function AppLayout() {
   }
   if (firm.status === "none") {
     return <NoFirm invitations={firm.invitations} onAccept={accept} onRefresh={refresh} onSignOut={signOut} />;
+  }
+  if (firm.status === "error") {
+    return (
+      <View className="flex-1 justify-center gap-3 bg-canvas px-4">
+        <Alert
+          tone={firm.code === "offline" ? "offline" : "danger"}
+          message={firm.code === "offline" ? t("firm.roleFailed.offline") : t("firm.roleFailed.error")}
+        />
+        <Button title={t("firm.roleFailed.retry")} variant="secondary" onPress={retry} />
+      </View>
+    );
   }
   const audience = isReviewer(firm.role) ? "reviewer" : firm.role === "mechanic" ? "mechanic" : "courier";
 

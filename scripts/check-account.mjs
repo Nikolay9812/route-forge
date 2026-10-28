@@ -31,12 +31,14 @@ const userId = created.json.id;
 let deleted = false;
 
 try {
-  const joined = await clerkApi("POST", `/organizations/${ivanov}/memberships`, { user_id: userId, role: "org:courier" });
+  const joined = await clerkApi("POST", `/organizations/${ivanov}/memberships`, { user_id: userId, role: "org:member" });
   if (joined.status !== 200) throw new Error(`Adding the test user to Ivanov Transport failed: ${joined.status}`);
   const token = await tokenFor(userId, ivanov);
+  let r = await call(token, "GET", "/api/me");
+  check("a member without metadata joins as a courier", r.status === 200 && r.json?.role === "courier", r.status);
 
   // A shift, contacts and an ID card photo.
-  let r = await call(token, "GET", "/api/shifts/today");
+  r = await call(token, "GET", "/api/shifts/today");
   const [depot] = r.json.stations;
   const [bus] = r.json.buses;
   r = await call(token, "POST", "/api/shifts/today", { depotId: depot.id, carId: bus.id, startKm: 1000, loaded: 100 });
@@ -68,6 +70,8 @@ try {
   const [details] = await sql`select count(*)::int as n from courier_details where user_id = ${userId}`;
   const [photos] = await sql`select count(*)::int as n from document_photos where user_id = ${userId}`;
   check("their documents are deleted", details.n === 0 && photos.n === 0, `${details.n} rows, ${photos.n} photos`);
+  const [roles] = await sql`select count(*)::int as n from firm_members where user_id = ${userId}`;
+  check("their role rows are deleted", roles.n === 0, roles.n);
   check("their photo file is deleted", (await headObject(key)) === null);
   check("their Clerk user is deleted", (await clerkApi("GET", `/users/${userId}`)).status === 404);
   const [shift] = await sql`select count(*)::int as n from shifts where id = ${shiftId} and user_id = ${userId}`;

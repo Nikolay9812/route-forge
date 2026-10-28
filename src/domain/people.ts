@@ -1,5 +1,6 @@
 // Input rules for the owner's People screen: invitations by email, and a member's role or dispatcher depots.
-// Owners can only hand out courier, dispatcher and mechanic; the owner role stays in the Clerk dashboard.
+// Owners can only hand out courier, dispatcher and mechanic; owners come from the firm's creator, the seed or
+// `npm run role:owner`. An invitation carries its role in Clerk `publicMetadata.role`.
 
 export const MAX_EMAIL = 254;
 /** More depots than any firm has; keeps a patch body small. */
@@ -39,6 +40,11 @@ export function validEmail(value: unknown): string | null {
 
 export function isAssignableRole(value: unknown): value is AssignableRole {
   return assignableRoles.includes(value as AssignableRole);
+}
+
+/** The role an invitation (or the membership it became) carries in its Clerk `publicMetadata`, or null. */
+export function roleFromMetadata(metadata: unknown): AssignableRole | null {
+  return isObject(metadata) && isAssignableRole(metadata.role) ? metadata.role : null;
 }
 
 /** Body of "invite": exactly `{ email, role }`. */

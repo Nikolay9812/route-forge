@@ -403,6 +403,9 @@ export type Person = {
 
 export type PendingInvitation = { id: string; email: string; role: "dispatcher" | "courier" | "mechanic"; createdAt: string };
 
+/** `GET /api/me`: the session's active firm and the user's role in it (from `firm_members`). */
+export type MeView = { firmId: string; role: Person["role"] };
+
 /** Every member, the pending invitations, and the active depots a dispatcher can be given. */
 export type PeopleList = {
   firm: Firm;

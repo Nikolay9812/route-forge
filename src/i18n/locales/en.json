@@ -325,6 +325,11 @@
       "acceptFailed": "Couldn't accept the invitation. Check your connection and try again.",
       "refresh": "Check again"
     },
+    "roleFailed": {
+      "error": "Couldn't load your firm.",
+      "offline": "No connection. Try again when you're online.",
+      "retry": "Try again"
+    },
     "roleNotYet": {
       "title": "Coming soon for your role",
       "body": "Screens for dispatchers and owners are on the way. For now the app logs couriers' shifts."

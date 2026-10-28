@@ -9,7 +9,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
-import { useAuth } from "@/auth";
+import { FirmProvider, useAuth } from "@/auth";
 import { CrashScreen } from "@/components/crash-screen";
 import { useLanguage } from "@/i18n";
 import { initMonitoring, reportError, wrapRoot } from "@/monitoring/sentry";
@@ -112,12 +112,14 @@ function RootLayout() {
       tokenCache={tokenCache}
       experimental={{ rethrowOfflineNetworkErrors: true }}
     >
-      <FontScriptProvider script={script}>
-        <ThemeProvider value={theme}>
-          <StatusBar style="auto" />
-          <RootStack fontsReady={loaded || !!error} />
-        </ThemeProvider>
-      </FontScriptProvider>
+      <FirmProvider>
+        <FontScriptProvider script={script}>
+          <ThemeProvider value={theme}>
+            <StatusBar style="auto" />
+            <RootStack fontsReady={loaded || !!error} />
+          </ThemeProvider>
+        </FontScriptProvider>
+      </FirmProvider>
     </ClerkProvider>
   );
 }

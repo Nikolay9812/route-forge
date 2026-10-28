@@ -2,7 +2,7 @@
 // (Node 23.6+ strips the TypeScript types).
 import assert from "node:assert/strict";
 
-import { MAX_EMAIL, normalizeEmail, parseInvite, parsePersonPatch, validEmail } from "../src/domain/people.ts";
+import { MAX_EMAIL, normalizeEmail, parseInvite, parsePersonPatch, roleFromMetadata, validEmail } from "../src/domain/people.ts";
 
 // Emails: trimmed and lowercased, a simple local@domain.tld shape, at most 254 characters.
 assert.equal(validEmail("  Anna.Petrova+clerk_test@Example.COM "), "anna.petrova+clerk_test@example.com");
@@ -44,5 +44,12 @@ assert.deepEqual(parsePersonPatch({ depotIds: Array.from({ length: 101 }, () => 
 assert.deepEqual(parsePersonPatch({ role: "courier", depotIds: [] }), { ok: false }, "both keys");
 assert.deepEqual(parsePersonPatch({}), { ok: false }, "neither key");
 assert.deepEqual(parsePersonPatch(null), { ok: false });
+
+// Invitation metadata (prompts/27): the role an invitation or its membership carries; never owner.
+assert.equal(roleFromMetadata({ role: "dispatcher" }), "dispatcher");
+assert.equal(roleFromMetadata({ role: "mechanic", note: "x" }), "mechanic");
+assert.equal(roleFromMetadata({ role: "courier" }), "courier");
+for (const meta of [{ role: "owner" }, { role: "org:courier" }, { role: "" }, {}, { role: null }, null, undefined, "courier", []])
+  assert.equal(roleFromMetadata(meta), null, JSON.stringify(meta));
 
 console.log("People rules ✅");

@@ -17,7 +17,7 @@ import {
 import type { CarPhotoSlot, DocumentPhoto } from "@/domain/types";
 
 import { apiError, readJson } from "./auth";
-import { deleteObject, headObject, presignGet, presignPut } from "./storage";
+import { deleteObject, keepUpload, presignGet, presignPut } from "./storage";
 
 /** The car's stored photos with an hour-long signed URL each. */
 export async function photosOfCar(firmId: string, carId: string): Promise<Partial<Record<CarPhotoSlot, DocumentPhoto>>> {
@@ -42,7 +42,7 @@ type Target = { firmId: string; userId: string; carId: string };
  */
 async function confirmCarPhoto({ firmId, userId, carId }: Target, slot: CarPhotoSlot, key: string) {
   if (!isPhotoKey(key, carPhotoPrefix(firmId, carId, slot))) return false;
-  const object = await headObject(key);
+  const object = await keepUpload(key);
   if (!object) return false;
   if (object.size === 0 || object.size > PHOTO_MAX_BYTES || !PHOTO_TYPES.includes(object.contentType as PhotoType)) {
     await deleteObject(key);

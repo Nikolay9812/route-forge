@@ -3,14 +3,16 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import "@/global.css";
 
 import { useFonts } from "expo-font";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps, type Theme } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 
 import { useAuth } from "@/auth";
+import { CrashScreen } from "@/components/crash-screen";
 import { useLanguage } from "@/i18n";
+import { initMonitoring, reportError, wrapRoot } from "@/monitoring/sentry";
 import { fontFiles, fontScriptFor, FontScriptProvider, restoreColorScheme, useThemeColor, type FontScript } from "@/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
@@ -21,6 +23,16 @@ if (!publishableKey) {
 
 SplashScreen.preventAutoHideAsync();
 restoreColorScheme();
+initMonitoring();
+
+// A render crash anywhere below shows this instead of a blank screen, and is reported.
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+    reportError(props.error);
+  }, [props.error]);
+  return <CrashScreen {...props} />;
+}
 
 const navigationFonts: Record<FontScript, Theme["fonts"]> = {
   latin: {
@@ -79,12 +91,16 @@ function RootStack({ fontsReady }: { fontsReady: boolean }) {
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
+      <Stack.Screen name="privacy" />
+      <Stack.Screen name="delete-account" />
       <Stack.Screen name="design-system" options={{ headerShown: true }} />
     </Stack>
   );
 }
 
-export default function RootLayout() {
+export default wrapRoot(RootLayout);
+
+function RootLayout() {
   const [loaded, error] = useFonts(fontFiles);
   const script = fontScriptFor(useLanguage());
   const theme = useNavigationTheme(script);

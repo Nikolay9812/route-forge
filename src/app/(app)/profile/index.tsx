@@ -3,7 +3,10 @@ import { Fragment, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useAuth, useFirm } from "@/auth";
+import { ActionSheet } from "@/components/action-sheet";
+import { Alert } from "@/components/alert";
 import { Button } from "@/components/button";
 import { Divider } from "@/components/divider";
 import { DocumentsFailure, DocumentsSkeleton } from "@/components/documents/load-state";
@@ -21,6 +24,7 @@ import { useToggleColorScheme } from "@/theme";
 // The moon/sun button switches light/dark for the whole app (remembered on the device).
 // Signing out flips the auth guard back to onboarding. Couriers get their documents; owners get the firm's depots
 // and cars, the service log, pay rates, people and couriers, after Firm settings. Mechanics get nothing more here.
+// Everyone gets Delete account at the bottom (the server refuses owners).
 export default function Profile() {
   const { t } = useTranslation();
   const { user, signOut } = useAuth();
@@ -29,6 +33,25 @@ export default function Profile() {
   const [signingOut, setSigningOut] = useState(false);
   const insets = useSafeAreaInsets();
   const colorScheme = useToggleColorScheme();
+
+  const api = useApi();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteFailure, setDeleteFailure] = useState<ApiFailure | null>(null);
+
+  // The server deletes the account; signing out then only clears this device's session.
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteFailure(null);
+    try {
+      await api("/api/me", { method: "DELETE" });
+    } catch (error) {
+      setDeleteFailure(failureOf(error));
+      setDeleting(false);
+      return;
+    }
+    await signOut().catch(() => {});
+  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -100,6 +123,32 @@ export default function Profile() {
         </View>
       ) : null}
       <Button title={t("profile.signOut")} variant="secondary" loading={signingOut} onPress={handleSignOut} />
+      <Button title={t("profile.privacy")} variant="secondary" size="sm" onPress={() => router.push("/privacy")} />
+      {deleteFailure ? (
+        <Alert
+          tone={deleteFailure === "offline" ? "offline" : "danger"}
+          message={t(
+            deleteFailure === "offline"
+              ? "profile.deleteOffline"
+              : deleteFailure === "notEditable"
+                ? "profile.deleteOwner"
+                : "profile.deleteError",
+          )}
+        />
+      ) : null}
+      <Button
+        title={t("profile.deleteAccount")}
+        variant="destructive"
+        loading={deleting}
+        onPress={() => setConfirmDelete(true)}
+      />
+      <ActionSheet
+        visible={confirmDelete}
+        title={t("profile.deleteTitle")}
+        actions={[{ label: t("profile.deleteConfirm"), destructive: true, onPress: () => void handleDelete() }]}
+        cancelLabel={t("profile.cancel")}
+        onClose={() => setConfirmDelete(false)}
+      />
     </ScrollView>
   );
 }

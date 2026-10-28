@@ -8,6 +8,7 @@ import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { PayKind, Shift, ShiftChange, ShiftField } from "@/domain/types";
 import { useTranslation, type TranslationKey } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { fieldsOf } from "@/shifts/draft";
 
 type Format = ReturnType<typeof useFormat>;
@@ -105,6 +106,7 @@ function changeValue(field: ShiftField, value: string | null, format: Format): s
 /** Who corrected what, grouped by save (same person, same minute). */
 export function ChangesCard({ changes, format }: { changes: ShiftChange[]; format: Format }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const groups: { key: string; byName: string; at: string; items: ShiftChange[] }[] = [];
   for (const change of changes) {
     const key = `${change.byName}|${change.at.slice(0, 16)}`;
@@ -123,7 +125,7 @@ export function ChangesCard({ changes, format }: { changes: ShiftChange[]; forma
           {i > 0 ? <Divider className="mb-1.5" /> : null}
           <ThemedText variant="footnote">
             {t("review.correctedBy", {
-              name: group.byName,
+              name: displayName(group.byName),
               when: `${format.shortDay(group.at.slice(0, 10))}, ${format.time(Date.parse(group.at))}`,
             })}
           </ThemedText>

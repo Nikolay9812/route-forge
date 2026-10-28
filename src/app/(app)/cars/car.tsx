@@ -20,6 +20,7 @@ import { TALON_RATIO } from "@/domain/photos";
 import type { DocumentPhoto, GarageCarDetail } from "@/domain/types";
 import { useGarageCar } from "@/garage/garage";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { useThemeColor } from "@/theme";
 
 const openCheck = (shiftId: string) => router.push({ pathname: "/cars/check", params: { shiftId } });
@@ -63,6 +64,7 @@ export default function Car() {
 
 function CarDetail({ detail }: { detail: GarageCarDetail }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const format = useFormat("UTC", "EUR");
   const [viewing, setViewing] = useState<DocumentPhoto | null>(null);
   const { car, checks, notes, today } = detail;
@@ -135,7 +137,7 @@ function CarDetail({ detail }: { detail: GarageCarDetail }) {
                   <FleetRow
                     icon="camera"
                     title={check.date === today ? t("garage.today") : format.shortDay(check.date)}
-                    detail={check.courierName}
+                    detail={displayName(check.courierName)}
                     trailing={<Tag tone={tag.tone} size="sm" label={tag.label} />}
                     onPress={() => openCheck(check.shiftId)}
                   />

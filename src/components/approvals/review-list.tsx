@@ -10,11 +10,13 @@ import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { ReviewItem } from "@/domain/types";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 
 // Shifts to review, as full-width rows that highlight on press (like Home's recent shifts). Each shows how many
 // vehicle check photos the courier took, so a missing check stands out.
 export function ReviewList({ items, format }: { items: ReviewItem[]; format: ReturnType<typeof useFormat> }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
 
   return (
     <Surface className="overflow-hidden">
@@ -28,7 +30,7 @@ export function ReviewList({ items, format }: { items: ReviewItem[]; format: Ret
           >
             <View className="flex-1 gap-0.5">
               <ThemedText variant="label" numberOfLines={1}>
-                {courierName}
+                {displayName(courierName)}
               </ThemedText>
               <ThemedText variant="footnote" numberOfLines={1}>
                 {format.shortDay(shift.date)} · {shift.depot.name} · {shift.car.plate}

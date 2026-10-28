@@ -20,7 +20,7 @@ import type { ApiErrorCode, CarNote, CarNoteInput, CarNotePhotoSlot, CarNotesPag
 
 import { apiError, readJson, userNames } from "./auth";
 import type { GarageContext } from "./context";
-import { deleteObject, deletePrefix, headObject, presignGet, presignPut } from "./storage";
+import { deleteObject, deletePrefix, keepUpload, presignGet, presignPut } from "./storage";
 
 type Result<T> = T | ApiErrorCode;
 type Viewer = Pick<GarageContext, "firmId" | "userId" | "role" | "date">;
@@ -207,7 +207,7 @@ function slotRow(firmId: string, noteId: string, slot: CarNotePhotoSlot) {
 async function confirmNotePhoto(viewer: Viewer, note: { id: string; carId: string }, slot: CarNotePhotoSlot, key: string) {
   const { firmId, userId } = viewer;
   if (!isPhotoKey(key, carNotePhotoPrefix(firmId, note.carId, note.id, slot))) return false;
-  const object = await headObject(key);
+  const object = await keepUpload(key);
   if (!object) return false;
   if (object.size === 0 || object.size > PHOTO_MAX_BYTES || !PHOTO_TYPES.includes(object.contentType as PhotoType)) {
     await deleteObject(key);

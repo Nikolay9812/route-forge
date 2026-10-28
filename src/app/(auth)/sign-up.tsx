@@ -127,6 +127,16 @@ export default function SignUp() {
       <View className="mt-6">
         <GoogleButton disabled={submitting} onError={setFormError} />
       </View>
+      <View className="mt-4 flex-row flex-wrap items-center justify-center gap-1">
+        <ThemedText variant="caption" color="ink-muted">
+          {t("auth.signUp.privacyIntro")}
+        </ThemedText>
+        <Link href="/privacy">
+          <ThemedText variant="caption" weight="semibold" className="underline">
+            {t("auth.signUp.privacyLink")}
+          </ThemedText>
+        </Link>
+      </View>
       {/* Mount point for Clerk's bot protection when the instance turns captcha on. */}
       <View nativeID="clerk-captcha" />
 

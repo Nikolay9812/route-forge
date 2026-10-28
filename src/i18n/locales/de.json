@@ -1,6 +1,11 @@
 {
   "app": {
-    "name": "routeforge"
+    "name": "routeforge",
+    "crash": {
+      "title": "Etwas ist schiefgelaufen",
+      "body": "Die App hatte einen Fehler. Nichts Gespeichertes ist verloren. Versuch es noch einmal, und starte die App neu, wenn es wieder passiert.",
+      "retry": "Erneut versuchen"
+    }
   },
   "onboarding": {
     "skip": "Überspringen",
@@ -58,7 +63,9 @@
       "intro": "Mit Route Forge erfasst du deine Schichten, verfolgst Freigaben und siehst deinen Lohn auf jedem Gerät.",
       "submit": "Konto erstellen",
       "haveAccount": "Schon ein Konto?",
-      "signIn": "Anmelden"
+      "signIn": "Anmelden",
+      "privacyIntro": "Mit dem Erstellen eines Kontos akzeptierst du die",
+      "privacyLink": "Datenschutzerklärung"
     },
     "signIn": {
       "title": "Willkommen zurück",
@@ -211,7 +218,15 @@
     "couriers": "Kuriere",
     "darkMode": "Dunkelmodus aktivieren",
     "lightMode": "Hellmodus aktivieren",
-    "people": "Personen"
+    "people": "Personen",
+    "deleteAccount": "Konto löschen",
+    "deleteTitle": "Dein Konto endgültig löschen? Dein Login, deine Dokumente und ihre Fotos werden gelöscht. Deine Schichten und dein Lohn bleiben bei deiner Firma, wie es das Gesetz verlangt.",
+    "deleteConfirm": "Mein Konto löschen",
+    "cancel": "Abbrechen",
+    "deleteOwner": "Inhaber können ihr Konto nicht in der App löschen. Wende dich an den Route Forge Support.",
+    "deleteError": "Dein Konto konnte nicht gelöscht werden. Versuch es noch einmal.",
+    "deleteOffline": "Keine Verbindung. Versuch es noch einmal, wenn du online bist.",
+    "privacy": "Datenschutzerklärung"
   },
   "shifts": {
     "title": "Heutige Schicht",
@@ -787,7 +802,8 @@
       "missingTitle": "Nicht in der Firma",
       "missingBody": "Diese Person ist kein Mitglied der Firma mehr.",
       "back": "Zurück"
-    }
+    },
+    "deletedUser": "Gelöschter Nutzer"
   },
   "firmSettings": {
     "title": "Firmeneinstellungen",
@@ -894,6 +910,16 @@
       "textPlaceholder": "z. B. Sommerreifen montiert, Profil 6 mm",
       "textMissing": "Beschreibe, was gemacht wurde.",
       "textTooLong": "Höchstens {{max}} Zeichen."
+    }
+  },
+  "legal": {
+    "privacy": {
+      "title": "Datenschutzerklärung",
+      "body": "[PLATZHALTER — der endgültige Text der Datenschutzerklärung ersetzt diesen vor der Veröffentlichung.]\n\nRoute Forge speichert, was deine Firma für Schichten und Lohn braucht: deinen Namen und deine E-Mail, deine Schichten (Zeiten, Kilometer, Pakete, Fahrzeug), Fotos der Fahrzeugkontrolle und die Dokumente, die du hinzufügst, etwa Personalausweis, Führerschein, Steuer- und Sozialversicherungsdaten und Bankkonto.\n\nDer Inhaber deiner Firma sieht deine Dokumente und deinen Lohn. Disponenten sehen die Schichten ihrer Depots. Mechaniker sehen die Fahrzeugpapiere und aktuelle Fotos der Fahrzeugkontrolle mit deinem Namen.\n\nDu kannst dein Konto in der App unter Profil → Konto löschen löschen. Dein Login und deine Dokumente werden gelöscht. Schichten und Lohn bleiben bei deiner Firma, die Lohnunterlagen gesetzlich aufbewahren muss."
+    },
+    "deleteAccount": {
+      "title": "Konto löschen",
+      "body": "1. Öffne Route Forge und melde dich an.\n\n2. Geh zu Profil und tippe unten auf Konto löschen.\n\n3. Bestätige mit Mein Konto löschen.\n\nWas gelöscht wird: dein Login, deine Dokumente und ihre Fotos. Was bei deiner Firma bleibt: deine Schichten, Fotos der Fahrzeugkontrolle, Einträge im Servicebuch und dein Lohn, die die Firma gesetzlich aufbewahren muss.\n\nFirmeninhaber können ihr Konto nicht in der App löschen. Wende dich an den Route Forge Support unter [PLATZHALTER Support-E-Mail]."
     }
   }
 }

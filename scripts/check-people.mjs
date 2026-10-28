@@ -104,7 +104,8 @@ try {
   // An invitation of Firm B can't be revoked by Ivanov's owner.
   const otherInvite = await clerkApi("POST", `/organizations/${firmB}/invitations`, {
     email_address: `people.b.${run}+clerk_test@example.com`,
-    role: "org:courier",
+    role: "org:member",
+    public_metadata: { role: "courier" },
   });
   if (otherInvite.json?.id) {
     r = await call(token.owner, "DELETE", `/api/people/invitations/${otherInvite.json.id}`);
@@ -195,8 +196,11 @@ try {
   check("removing again is notFound", r.status === 404, r.status);
 } finally {
   if (courierCRemoved) {
-    const back = await clerkApi("POST", `/organizations/${ivanov}/memberships`, { user_id: users.c, role: "org:courier" });
+    const back = await clerkApi("POST", `/organizations/${ivanov}/memberships`, { user_id: users.c, role: "org:member" });
     check("courier.c is put back in Ivanov Transport", back.status === 200, back.status);
+    // No metadata: the next request claims courier, as before the removal.
+    const me = await call(await tokenFor(users.c, ivanov), "GET", "/api/me");
+    check("courier.c is a courier again", me.json?.role === "courier", JSON.stringify(me.json));
   }
   if (originalDepots) await call(await tokenFor(users.owner, ivanov), "PATCH", `/api/people/${users.dispatcher}`, { depotIds: originalDepots });
   for (const id of invitationIds) await clerkApi("POST", `/organizations/${ivanov}/invitations/${id}/revoke`, {});

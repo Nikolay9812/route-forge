@@ -1,6 +1,7 @@
 // Development seed: firm settings and work rules, depots, cars (with papers and service log notes), pay rates, courier documents (photos wiped from R2) and six months of past shifts for the firms below.
-// Firms and members come from Clerk (looked up by organization name); everything else is written to the Neon
-// branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
+// Firms come from Clerk (looked up by organization name). The test users below are made members with their app role
+// (`firm_members`; Clerk gets `org:admin` for owners, `org:member` for the rest); everything else is written to
+// the Neon branch in DATABASE_URL. Each run wipes and re-creates these firms' rows: development data is worthless.
 // Run with `npm run db:seed`. The calendar is the same on every run of a day. Salary amounts are never printed.
 import { neon } from "@neondatabase/serverless";
 
@@ -16,6 +17,8 @@ const MONTHS_BACK = 6;
 const firms = [
   {
     name: "Ivanov Transport",
+    // Test users (`<name>+clerk_test@example.com`) and their role.
+    roles: { owner: "owner", dispatcher: "dispatcher", mechanic: "mechanic", "courier.a": "courier", "courier.c": "courier" },
     currency: "EUR",
     timeZone: "Europe/Berlin",
     depots: ["HBW3", "HBW1", "HBW7"],
@@ -98,6 +101,7 @@ const firms = [
   },
   {
     name: "Test Firm B",
+    roles: { "courier.b": "courier" },
     currency: "EUR",
     timeZone: "Europe/Berlin",
     depots: ["TFB1"],
@@ -117,9 +121,13 @@ if (NEON_BRANCH !== "dev") throw new Error("The seed wipes these firms' rows and
 
 const sql = neon(DATABASE_URL);
 
-async function clerk(path) {
-  const res = await fetch(`https://api.clerk.com/v1${path}`, { headers: { Authorization: `Bearer ${CLERK_SECRET_KEY}` } });
-  if (!res.ok) throw new Error(`Clerk ${path}: ${res.status}`);
+async function clerk(path, method = "GET", body) {
+  const res = await fetch(`https://api.clerk.com/v1${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${CLERK_SECRET_KEY}`, "Content-Type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`Clerk ${method} ${path}: ${res.status}`);
   return res.json();
 }
 
@@ -130,12 +138,24 @@ async function findOrg(name) {
   return org;
 }
 
-/** Members by role, e.g. { "org:courier": [{ id, identifier }] }, sorted by email: Clerk's own order isn't stable. */
-async function membersOf(orgId) {
+/**
+ * Makes each test user a member of the firm with the Clerk role that mirrors their app role, and answers them by
+ * role, e.g. { courier: [{ id, identifier }] }, sorted by email: Clerk's own order isn't stable.
+ */
+async function membersOf(orgId, roles) {
   const { data } = await clerk(`/organizations/${orgId}/memberships?limit=100`);
   const byRole = {};
-  for (const m of data) {
-    (byRole[m.role] ??= []).push({ id: m.public_user_data.user_id, identifier: m.public_user_data.identifier ?? "" });
+  for (const [name, role] of Object.entries(roles)) {
+    const identifier = `${name}+clerk_test@example.com`;
+    const [user] = await clerk(`/users?email_address=${encodeURIComponent(identifier)}`);
+    if (!user) throw new Error(`No Clerk user ${identifier}. Create the test users first.`);
+    const clerkRole = role === "owner" ? "org:admin" : "org:member";
+    const membership = data.find((m) => m.public_user_data.user_id === user.id);
+    if (!membership) await clerk(`/organizations/${orgId}/memberships`, "POST", { user_id: user.id, role: clerkRole });
+    else if (membership.role !== clerkRole) {
+      await clerk(`/organizations/${orgId}/memberships/${user.id}`, "PATCH", { role: clerkRole });
+    }
+    (byRole[role] ??= []).push({ id: user.id, identifier });
   }
   for (const list of Object.values(byRole)) list.sort((a, b) => a.identifier.localeCompare(b.identifier));
   return byRole;
@@ -177,11 +197,11 @@ function worksOn(userId, c, date) {
 for (const firm of firms) {
   const org = await findOrg(firm.name);
   const firmId = org.id;
-  const members = await membersOf(firmId);
-  const couriers = members["org:courier"] ?? [];
-  const dispatchers = (members["org:dispatcher"] ?? []).map((m) => m.id);
-  const owner = members["org:owner"]?.[0]?.id ?? null;
-  const mechanic = members["org:mechanic"]?.[0]?.id ?? null;
+  const members = await membersOf(firmId, firm.roles);
+  const couriers = members.courier ?? [];
+  const dispatchers = (members.dispatcher ?? []).map((m) => m.id);
+  const owner = members.owner?.[0]?.id ?? null;
+  const mechanic = members.mechanic?.[0]?.id ?? null;
   const today = todayIn(firm.timeZone);
   const month = today.slice(0, 7);
   const lastMonth = addMonths(month, -1);
@@ -191,6 +211,7 @@ for (const firm of firms) {
     sql`delete from shift_photos where firm_id = ${firmId}`,
     sql`delete from shifts where firm_id = ${firmId}`,
     sql`delete from dispatcher_depots where firm_id = ${firmId}`,
+    sql`delete from firm_members where firm_id = ${firmId}`,
     sql`delete from pay_rates where firm_id = ${firmId}`,
     sql`delete from firm_rules where firm_id = ${firmId}`,
     sql`delete from courier_details where firm_id = ${firmId}`,
@@ -203,6 +224,11 @@ for (const firm of firms) {
     sql`delete from firm_settings where firm_id = ${firmId}`,
     sql`insert into firm_settings (firm_id, currency, time_zone) values (${firmId}, ${firm.currency}, ${firm.timeZone})`,
   ]);
+  for (const [role, list] of Object.entries(members)) {
+    for (const { id } of list) {
+      await sql`insert into firm_members (firm_id, user_id, role, set_by) values (${firmId}, ${id}, ${role}, 'seed')`;
+    }
+  }
   // The firm's document and shift photos in R2 go with their rows; no photos are seeded.
   await deletePrefix(`firms/${firmId}/`);
 

@@ -147,4 +147,13 @@ export function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-export { isReviewer, useFirm, useFirmId, useSessionToken, type FirmInvitation, type FirmRole, type FirmState } from "./firm";
+export {
+  FirmProvider,
+  isReviewer,
+  useFirm,
+  useFirmId,
+  useSessionToken,
+  type FirmInvitation,
+  type FirmRole,
+  type FirmState,
+} from "./firm";

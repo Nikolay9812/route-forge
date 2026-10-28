@@ -325,6 +325,11 @@
       "acceptFailed": "Die Einladung konnte nicht angenommen werden. Prüfe die Verbindung und versuch es erneut.",
       "refresh": "Erneut prüfen"
     },
+    "roleFailed": {
+      "error": "Deine Firma konnte nicht geladen werden.",
+      "offline": "Keine Verbindung. Versuch es erneut, wenn du online bist.",
+      "retry": "Erneut versuchen"
+    },
     "roleNotYet": {
       "title": "Bald auch für deine Rolle",
       "body": "Ansichten für Disponenten und Inhaber sind in Arbeit. Im Moment erfasst die App die Schichten der Fahrer."

@@ -1,40 +1,37 @@
-// The owner's People screen: Clerk holds memberships, roles and invitations; Postgres holds only which depots a
-// dispatcher manages. Owners hand out courier and dispatcher; any change to an owner answers notEditable.
+// The owner's People screen: Clerk holds memberships and invitations; Postgres holds each member's role
+// (`firm_members`, see ./members) and which depots a dispatcher manages. Owners hand out courier, dispatcher and
+// mechanic; any change to an owner answers notEditable. An invitation carries its role in `publicMetadata.role`.
 // Emails are personal data: never logged (handle() logs only the error's name).
 import { isClerkAPIResponseError } from "@clerk/backend/errors";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { depots, dispatcherDepots } from "@/db/schema";
-import type { AssignableRole, InviteInput } from "@/domain/people";
+import { roleFromMetadata, type AssignableRole, type InviteInput } from "@/domain/people";
 import type { ApiErrorCode, Firm, PendingInvitation, PeopleList, Person } from "@/domain/types";
 
-import { clerk } from "./auth";
+import { clerk } from "./clerk";
+import {
+  clerkMemberships,
+  forgetFormerMembers,
+  forgetMember,
+  membershipOf,
+  rolesOf,
+  setMemberRole,
+  type ClerkMembership,
+  type MemberRole,
+} from "./members";
 
 type Result<T> = T | ApiErrorCode;
-type Role = Person["role"];
+type Role = MemberRole;
 
-const fromClerk: Record<string, Role> = {
-  "org:owner": "owner",
-  "org:dispatcher": "dispatcher",
-  "org:courier": "courier",
-  "org:mechanic": "mechanic",
-};
-const toClerk: Record<AssignableRole, string> = {
-  courier: "org:courier",
-  dispatcher: "org:dispatcher",
-  mechanic: "org:mechanic",
-};
-
-const USER_ID = /^user_[A-Za-z0-9]+$/;
 const INVITATION_ID = /^orginv_[A-Za-z0-9]+$/;
 
 type Member = Omit<Person, "depotIds">;
-type ClerkMembership = Awaited<ReturnType<typeof clerk.organizations.getOrganizationMembershipList>>["data"][number];
 
-function toMember(m: ClerkMembership): Member | null {
+function toMember(m: ClerkMembership, roles: Map<string, Role>): Member | null {
   const user = m.publicUserData;
-  const role = fromClerk[m.role];
+  const role = user?.userId ? roles.get(user.userId) : undefined;
   if (!user?.userId || !role) return null;
   const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
   return {
@@ -46,32 +43,28 @@ function toMember(m: ClerkMembership): Member | null {
   };
 }
 
-/** Every member of the firm in any role, every page. */
-export async function memberships(firmId: string): Promise<Member[]> {
-  const members: Member[] = [];
-  for (let offset = 0; ; offset += 100) {
-    const { data, totalCount } = await clerk.organizations.getOrganizationMembershipList({
-      organizationId: firmId,
-      limit: 100,
-      offset,
-    });
-    for (const m of data) {
-      const member = toMember(m);
-      if (member) members.push(member);
-    }
-    if (offset + 100 >= totalCount) return members;
-  }
+function idsOf(all: ClerkMembership[]): string[] {
+  return all.flatMap((m) => (m.publicUserData?.userId ? [m.publicUserData.userId] : []));
+}
+
+/**
+ * Every member of the firm with their role. Rows of people who are no longer Clerk members (removed in the Clerk
+ * dashboard) are deleted here, so they can't come back with an old role.
+ */
+async function members(firmId: string): Promise<Member[]> {
+  const all = await clerkMemberships(firmId);
+  const [roles] = await Promise.all([rolesOf(firmId, all), forgetFormerMembers(firmId, idsOf(all))]);
+  return all.flatMap((m) => toMember(m, roles) ?? []);
 }
 
 /** User IDs of everyone who is a member of the firm in any role. */
 export async function memberIds(firmId: string): Promise<Set<string>> {
-  return new Set((await memberships(firmId)).map((m) => m.userId));
+  return new Set(idsOf(await clerkMemberships(firmId)));
 }
 
 async function memberOf(firmId: string, userId: string): Promise<Member | null> {
-  if (!USER_ID.test(userId)) return null;
-  const { data } = await clerk.organizations.getOrganizationMembershipList({ organizationId: firmId, userId: [userId] });
-  return data[0] ? toMember(data[0]) : null;
+  const membership = await membershipOf(firmId, userId);
+  return membership ? toMember(membership, await rolesOf(firmId, [membership])) : null;
 }
 
 async function pendingInvitations(firmId: string): Promise<PendingInvitation[]> {
@@ -84,9 +77,9 @@ async function pendingInvitations(firmId: string): Promise<PendingInvitation[]> 
       offset,
     });
     for (const i of data) {
-      const role = fromClerk[i.role];
-      if (role && role !== "owner")
-        invitations.push({ id: i.id, email: i.emailAddress, role, createdAt: new Date(i.createdAt).toISOString() });
+      // One sent from the Clerk dashboard has no role: it joins as a courier.
+      const role = roleFromMetadata(i.publicMetadata) ?? "courier";
+      invitations.push({ id: i.id, email: i.emailAddress, role, createdAt: new Date(i.createdAt).toISOString() });
     }
     if (offset + 100 >= totalCount) return invitations;
   }
@@ -128,8 +121,8 @@ async function toPerson(firmId: string, member: Member): Promise<Person> {
 const roleOrder: Record<Role, number> = { owner: 0, dispatcher: 1, mechanic: 2, courier: 3 };
 
 export async function peopleList({ firm, firmId, userId }: { firm: Firm; firmId: string; userId: string }): Promise<PeopleList> {
-  const [members, invitations, depotRows, byUser] = await Promise.all([
-    memberships(firmId),
+  const [list, invitations, depotRows, byUser] = await Promise.all([
+    members(firmId),
     pendingInvitations(firmId),
     activeDepots(firmId),
     depotIdsByUser(firmId),
@@ -137,7 +130,7 @@ export async function peopleList({ firm, firmId, userId }: { firm: Firm; firmId:
   return {
     firm,
     you: userId,
-    members: members
+    members: list
       .map((m) => ({ ...m, depotIds: m.role === "dispatcher" ? (byUser.get(m.userId) ?? []) : [] }))
       .sort((a, b) => roleOrder[a.role] - roleOrder[b.role] || a.name.localeCompare(b.name)),
     invitations: invitations.sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
@@ -162,11 +155,15 @@ export async function invite(firmId: string, inviterId: string, input: InviteInp
     pendingInvitations(firmId),
   ]);
   if (totalCount > 0 || pending.some((i) => i.email.toLowerCase() === input.email)) return "exists";
+  // Someone removed in the Clerk dashboard may still have a role row: drop it, so they join with the new role.
+  const { data: users } = await clerk.users.getUserList({ emailAddress: [input.email], limit: 1 });
+  if (users[0]) await forgetMember(firmId, users[0].id);
   try {
     const i = await clerk.organizations.createOrganizationInvitation({
       organizationId: firmId,
       emailAddress: input.email,
-      role: toClerk[input.role],
+      role: "org:member",
+      publicMetadata: { role: input.role },
       inviterUserId: inviterId,
     });
     return { id: i.id, email: i.emailAddress, role: input.role, createdAt: new Date(i.createdAt).toISOString() };
@@ -194,17 +191,20 @@ async function changeable(firmId: string, userId: string): Promise<Result<Member
   return member;
 }
 
-function clearDepots(firmId: string, userId: string) {
-  return db.delete(dispatcherDepots).where(and(eq(dispatcherDepots.firmId, firmId), eq(dispatcherDepots.userId, userId)));
-}
-
-/** Courier ↔ dispatcher. A change clears the user's depot rows, so a new dispatcher starts with none. */
-export async function setRole(firmId: string, userId: string, role: AssignableRole): Promise<Result<Person>> {
+/** Courier, dispatcher or mechanic. A change clears the user's depot rows, so a new dispatcher starts with none. */
+export async function setRole(
+  firmId: string,
+  ownerId: string,
+  userId: string,
+  role: AssignableRole,
+): Promise<Result<Person>> {
   const member = await changeable(firmId, userId);
   if (typeof member === "string") return member;
   if (member.role === role) return toPerson(firmId, member);
-  await clerk.organizations.updateOrganizationMembership({ organizationId: firmId, userId, role: toClerk[role] });
-  await clearDepots(firmId, userId);
+  await db.batch([
+    setMemberRole(firmId, userId, role, ownerId),
+    db.delete(dispatcherDepots).where(and(eq(dispatcherDepots.firmId, firmId), eq(dispatcherDepots.userId, userId))),
+  ]);
   return { ...member, role, depotIds: [] };
 }
 
@@ -233,11 +233,11 @@ export async function setDepots(firmId: string, userId: string, depotIds: string
   return toPerson(firmId, member);
 }
 
-/** Ends the membership. Shifts, pay entries and documents stay; only the depot rows (access) go. */
+/** Ends the membership. Shifts, pay entries and documents stay; only the role and depot rows (access) go. */
 export async function removeMember(firmId: string, userId: string): Promise<Result<null>> {
   const member = await changeable(firmId, userId);
   if (typeof member === "string") return member;
   await clerk.organizations.deleteOrganizationMembership({ organizationId: firmId, userId });
-  await clearDepots(firmId, userId);
+  await forgetMember(firmId, userId);
   return null;
 }

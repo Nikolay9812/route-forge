@@ -200,3 +200,8 @@ After a fresh `db:seed`, all 13 dev-server checks pass, including `check:account
 `codewithantonio-hg/route-forge` (EU region) exists; its DSN is in `.env.local`, and org and project are in the
 `@sentry/react-native` plugin in `app.json`. Not run yet: the preview APK (needs `eas init` under the user's Expo
 account).
+
+Step 9 (2026-10-28): the first `clerk deploy` failed because the free Clerk plan doesn't cover custom org roles
+(`org:roles`) or more than 20 members per org (`app:allowed_memberships`). Roles moved to Neon in plan 27
+(`prompts/27-roles-in-database.md`), and the dev instance now uses only `org:admin`/`org:member` with a limit of
+20 members. Next: the user reruns `clerk deploy` (domain routeforge.app), then the rest of step 9 and step 10.

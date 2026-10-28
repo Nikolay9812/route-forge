@@ -236,6 +236,28 @@ export const shifts = pgTable(
   (t) => [uniqueIndex().on(t.firmId, t.userId, t.date)],
 );
 
+export const memberRole = pgEnum("member_role", ["owner", "dispatcher", "courier", "mechanic"]);
+
+/**
+ * Each member's app role in a firm, the only source of it (Clerk holds sign-in and membership, and only `org:admin`
+ * for owners and `org:member` for everyone else). A row gives access only while the Clerk membership exists.
+ */
+export const firmMembers = pgTable(
+  "firm_members",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    firmId: text().notNull(),
+    /** Clerk user ID of the member. */
+    userId: text().notNull(),
+    role: memberRole().notNull(),
+    /** Clerk user ID of whoever set the role, or `system` (claimed on first sight) or `seed`. */
+    setBy: text().notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.firmId, t.userId)],
+);
+
 /** The depots a dispatcher manages. Owners manage every depot and need no rows here. */
 export const dispatcherDepots = pgTable(
   "dispatcher_depots",

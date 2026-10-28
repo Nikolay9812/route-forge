@@ -13,7 +13,7 @@ export function PATCH(request: Request, { userId }: Record<string, string>) {
     if (!body.ok) return apiError("invalid");
     const person =
       "role" in body.value
-        ? await setRole(owner.firmId, userId, body.value.role)
+        ? await setRole(owner.firmId, owner.userId, userId, body.value.role)
         : await setDepots(owner.firmId, userId, body.value.depotIds);
     return typeof person === "string" ? apiError(person) : Response.json(person);
   });

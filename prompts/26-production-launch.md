@@ -193,6 +193,9 @@ Steps 1–8 built on branch `chapter-22-production-launch`, not yet committed. C
   `development` profile (it would need expo-dev-client). Server keys must be "sensitive", not "secret" (EAS Hosting
   can't deploy secrets). Production exports run under `eas env:exec production` so `EXPO_PUBLIC_` values come from
   production, not `.env.local`.
+- Step 3 reverted: with `authorizedParties` set, Clerk refuses tokens without `azp`, and native session tokens have
+  none (found on the preview deployment: every request answered 401). `APP_ORIGIN` now only builds the API origin
+  into the app.
 After a fresh `db:seed`, all 13 dev-server checks pass, including `check:account` (555 ✅, 0 ❌). Sentry project
 `codewithantonio-hg/route-forge` (EU region) exists; its DSN is in `.env.local`, and org and project are in the
 `@sentry/react-native` plugin in `app.json`. Not run yet: the preview APK (needs `eas init` under the user's Expo

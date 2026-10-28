@@ -10,13 +10,11 @@ if (!secretKey) throw new Error("CLERK_SECRET_KEY is not set");
 /** Clerk's backend client, for server modules only. */
 export const clerk = createClerkClient({ secretKey, publishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY });
 
-// The web build sends its origin in the token (`azp`), and a token minted for another site is refused. Native
-// session tokens carry no `azp`, so they pass either way.
-const authorizedParties = process.env.APP_ORIGIN ? [process.env.APP_ORIGIN] : undefined;
-
+// No `authorizedParties`: Clerk then refuses any token without an `azp` claim, and native app session tokens have
+// none (there's no web origin), so it would lock the app out.
 /** The verified session's user, active org and role, or null when the request has no valid session token. */
 async function authenticate(request: Request) {
-  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token", authorizedParties });
+  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
   return state.isAuthenticated ? state.toAuth() : null;
 }
 

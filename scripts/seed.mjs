@@ -111,8 +111,9 @@ const firms = [
   },
 ];
 
-const { CLERK_SECRET_KEY, DATABASE_URL } = process.env;
+const { CLERK_SECRET_KEY, DATABASE_URL, NEON_BRANCH } = process.env;
 if (!CLERK_SECRET_KEY || !DATABASE_URL) throw new Error("CLERK_SECRET_KEY and DATABASE_URL must be set (.env.local).");
+if (NEON_BRANCH !== "dev") throw new Error("The seed wipes these firms' rows and files: run it only against the Neon dev branch.");
 
 const sql = neon(DATABASE_URL);
 

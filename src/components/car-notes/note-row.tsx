@@ -10,6 +10,7 @@ import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import type { CarNote } from "@/domain/types";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 
 /** Where a stack keeps its note screen and note form sheet. */
 export const noteRoutes = {
@@ -26,12 +27,13 @@ export const addNote = (stack: NoteStack, carId: string, today: string) =>
 // that highlights on press.
 export function NoteRow({ note, showPlate = false, onPress }: { note: CarNote; showPlate?: boolean; onPress: () => void }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   // Calendar days formatted at UTC noon land on the same day everywhere.
   const format = useFormat("UTC", "EUR");
   const type = t(`carNotes.types.${note.type}`);
   const details = [
     note.km !== null ? t("carNotes.km", { km: format.count(note.km) }) : null,
-    note.byName,
+    displayName(note.byName),
     note.photoCount > 0 ? t("carNotes.photoCount", { count: note.photoCount }) : null,
   ].filter(Boolean);
   return (

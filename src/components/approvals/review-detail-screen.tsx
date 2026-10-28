@@ -14,6 +14,7 @@ import { VehicleCheckCard } from "@/components/shifts/vehicle-check-card";
 import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation, type TranslationKey } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { correctionOf, editErrors, editFieldsOf, type EditFields } from "@/shifts/edit";
 
 function failureMessage(failure: ApiFailure): TranslationKey {
@@ -28,6 +29,7 @@ function failureMessage(failure: ApiFailure): TranslationKey {
 // Shown in the Approvals and Team stacks; each has its own reject sheet so Back stays in that stack.
 export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/reject" | "/team/shift/reject" }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { resource, reload, approve, correct } = useApprovalDetail(id);
   const data = resource.status === "ready" ? resource.data : null;
@@ -90,7 +92,7 @@ export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/rej
       keyboardDismissMode="on-drag"
       automaticallyAdjustKeyboardInsets
     >
-      <Stack.Screen options={{ title: courierName }} />
+      <Stack.Screen options={{ title: displayName(courierName) }} />
 
       {editing ? (
         <Surface className="gap-4 p-5">

@@ -17,7 +17,7 @@ import {
 import type { Shift, ShiftPhotos, ShiftPhotoSlot } from "@/domain/types";
 
 import { apiError, readJson } from "./auth";
-import { deleteObject, headObject, presignGet, presignPut } from "./storage";
+import { deleteObject, keepUpload, presignGet, presignPut } from "./storage";
 
 /** The shift's stored photos with an hour-long signed URL each. */
 export async function photosOfShift(firmId: string, shiftId: string): Promise<ShiftPhotos> {
@@ -42,7 +42,7 @@ type Owner = { firmId: string; userId: string; shiftId: string };
  */
 async function confirmShiftPhoto({ firmId, userId, shiftId }: Owner, slot: ShiftPhotoSlot, key: string) {
   if (!isPhotoKey(key, shiftPhotoPrefix(firmId, userId, shiftId, slot))) return false;
-  const object = await headObject(key);
+  const object = await keepUpload(key);
   if (!object) return false;
   if (object.size === 0 || object.size > PHOTO_MAX_BYTES || !PHOTO_TYPES.includes(object.contentType as PhotoType)) {
     await deleteObject(key);

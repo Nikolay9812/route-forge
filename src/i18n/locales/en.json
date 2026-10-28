@@ -1,6 +1,11 @@
 {
   "app": {
-    "name": "routeforge"
+    "name": "routeforge",
+    "crash": {
+      "title": "Something went wrong",
+      "body": "The app hit an error. Nothing you saved is lost. Try again, and if it keeps happening, restart the app.",
+      "retry": "Try again"
+    }
   },
   "onboarding": {
     "skip": "Skip",
@@ -58,7 +63,9 @@
       "intro": "Join Route Forge to log your shifts, follow approvals and see your pay on any device.",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "privacyIntro": "By creating an account you accept the",
+      "privacyLink": "privacy policy"
     },
     "signIn": {
       "title": "Welcome back",
@@ -211,7 +218,15 @@
     "couriers": "Couriers",
     "darkMode": "Switch to dark mode",
     "lightMode": "Switch to light mode",
-    "people": "People"
+    "people": "People",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account for good? Your login, documents and their photos are deleted. Your shifts and pay stay with your firm, as the law requires.",
+    "deleteConfirm": "Delete my account",
+    "cancel": "Cancel",
+    "deleteOwner": "Owners can't delete their account in the app. Contact Route Forge support.",
+    "deleteError": "Your account couldn't be deleted. Try again.",
+    "deleteOffline": "No connection. Try again when you're online.",
+    "privacy": "Privacy policy"
   },
   "shifts": {
     "title": "Today's shift",
@@ -787,7 +802,8 @@
       "missingTitle": "Not in the firm",
       "missingBody": "This person is no longer a member of the firm.",
       "back": "Back"
-    }
+    },
+    "deletedUser": "Deleted user"
   },
   "firmSettings": {
     "title": "Firm settings",
@@ -894,6 +910,16 @@
       "textPlaceholder": "e.g. Summer tyres on, tread 6 mm",
       "textMissing": "Describe what was done.",
       "textTooLong": "At most {{max}} characters."
+    }
+  },
+  "legal": {
+    "privacy": {
+      "title": "Privacy policy",
+      "body": "[PLACEHOLDER — the final privacy policy text will replace this before release.]\n\nRoute Forge stores what your firm needs to run shifts and pay: your name and email, your shifts (times, kilometres, packages, car), vehicle check photos, and the documents you choose to add, such as your ID card, driving licence, tax and social security details and bank account.\n\nYour firm's owner can see your documents and pay. Dispatchers see shifts in their depots. Mechanics see car papers and recent vehicle check photos with your name.\n\nYou can delete your account in the app under Profile → Delete account. Your login and documents are deleted. Shifts and pay stay with your firm, which must keep payroll records by law."
+    },
+    "deleteAccount": {
+      "title": "Delete your account",
+      "body": "1. Open Route Forge and sign in.\n\n2. Go to Profile and tap Delete account at the bottom.\n\n3. Confirm with Delete my account.\n\nWhat's deleted: your login, your documents and their photos. What stays with your firm: your shifts, vehicle check photos, service log notes and pay, which the firm must keep by law.\n\nFirm owners can't delete their account in the app. Contact Route Forge support at [PLACEHOLDER support email]."
     }
   }
 }

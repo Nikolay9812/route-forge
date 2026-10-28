@@ -16,6 +16,7 @@ import { addDays, NOTE_EDIT_DAYS } from "@/domain/car-notes";
 import { carNotePhotoSlots } from "@/domain/photos";
 import type { CarNote, DocumentPhoto } from "@/domain/types";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 
 import { noteRoutes, type NoteStack } from "./note-row";
 
@@ -47,6 +48,7 @@ export function NoteScreen({ id, stack }: { id: string | undefined; stack: NoteS
 
 function NoteDetail({ note, actions, stack }: { note: CarNote; actions: ReturnType<typeof useCarNote>; stack: NoteStack }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const format = useFormat("UTC", "EUR");
   const [viewing, setViewing] = useState<DocumentPhoto | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -85,7 +87,7 @@ function NoteDetail({ note, actions, stack }: { note: CarNote; actions: ReturnTy
             </ThemedText>
           ) : null}
           <ThemedText variant="footnote">
-            {t("carNotes.by", { name: note.byName, date: format.fullDay(writtenOn) })}
+            {t("carNotes.by", { name: displayName(note.byName), date: format.fullDay(writtenOn) })}
           </ThemedText>
         </Surface>
 

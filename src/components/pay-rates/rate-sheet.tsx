@@ -14,12 +14,14 @@ import { addMonths } from "@/domain/calendar";
 import { monthOf } from "@/domain/dates";
 import { formatAmountInput, parseAmount, type RateKind } from "@/domain/pay-rates";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { usePayRateActions } from "@/pay-rates/pay-rates";
 
 // Schedule a rate change for the firm default (no userId) or a courier, or edit or cancel an upcoming one (`id`).
 // A start date before the firm's today changes approved pay, so saving it asks first.
 export function RateSheet() {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const params = useLocalSearchParams<{ userId?: string; id?: string }>();
   const actions = usePayRateActions(params.userId);
   const entry = actions.entry(params.id);
@@ -82,7 +84,7 @@ export function RateSheet() {
   return (
     <FleetSheet
       title={t(entry ? "payRates.sheet.editTitle" : "payRates.sheet.newTitle")}
-      body={params.userId ? actions.name : t("payRates.firmDefault")}
+      body={params.userId ? actions.name === undefined ? undefined : displayName(actions.name) : t("payRates.firmDefault")}
     >
       <SegmentedControl
         options={kinds}

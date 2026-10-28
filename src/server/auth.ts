@@ -10,6 +10,16 @@ if (!secretKey) throw new Error("CLERK_SECRET_KEY is not set");
 /** Clerk's backend client, for server modules only. */
 export const clerk = createClerkClient({ secretKey, publishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY });
 
+// The web build sends its origin in the token (`azp`), and a token minted for another site is refused. Native
+// session tokens carry no `azp`, so they pass either way.
+const authorizedParties = process.env.APP_ORIGIN ? [process.env.APP_ORIGIN] : undefined;
+
+/** The verified session's user, active org and role, or null when the request has no valid session token. */
+async function authenticate(request: Request) {
+  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token", authorizedParties });
+  return state.isAuthenticated ? state.toAuth() : null;
+}
+
 const statusOf: Record<ApiErrorCode, number> = {
   unauthorized: 401,
   noFirm: 403,
@@ -32,13 +42,20 @@ export function apiError(code: ApiErrorCode): Response {
   return Response.json({ error: code }, { status: statusOf[code] });
 }
 
+/** The signed-in user, with or without a firm (deleting one's own account), or the error Response to return as is. */
+export async function requireSession(request: Request): Promise<{ userId: string } | Response> {
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  return { userId: session.userId };
+}
+
 export type Courier = { firmId: string; userId: string };
 
 /** The signed-in courier of the session's active firm, or the error Response to return as is. */
 export async function requireCourier(request: Request): Promise<Courier | Response> {
-  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
-  if (!state.isAuthenticated) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = state.toAuth();
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = session;
   if (!orgId) return apiError("noFirm");
   if (orgRole !== "org:courier") return apiError("role");
   return { firmId: orgId, userId };
@@ -48,9 +65,9 @@ export type Reviewer = { firmId: string; userId: string; role: "dispatcher" | "o
 
 /** A signed-in dispatcher or owner of the session's active firm, or the error Response to return as is. */
 export async function requireReviewerSession(request: Request): Promise<Reviewer | Response> {
-  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
-  if (!state.isAuthenticated) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = state.toAuth();
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = session;
   if (!orgId) return apiError("noFirm");
   if (orgRole === "org:dispatcher") return { firmId: orgId, userId, role: "dispatcher" };
   if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };
@@ -61,9 +78,9 @@ export type Owner = { firmId: string; userId: string };
 
 /** The signed-in owner of the session's active firm, or the error Response to return as is. */
 export async function requireOwner(request: Request): Promise<Owner | Response> {
-  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
-  if (!state.isAuthenticated) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = state.toAuth();
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = session;
   if (!orgId) return apiError("noFirm");
   if (orgRole !== "org:owner") return apiError("role");
   return { firmId: orgId, userId };
@@ -73,9 +90,9 @@ export type GarageUser = { firmId: string; userId: string; role: "mechanic" | "o
 
 /** A signed-in mechanic or owner of the session's active firm (the cars and the service log), or the error. */
 export async function requireGarageSession(request: Request): Promise<GarageUser | Response> {
-  const state = await clerk.authenticateRequest(request, { acceptsToken: "session_token" });
-  if (!state.isAuthenticated) return apiError("unauthorized");
-  const { userId, orgId, orgRole } = state.toAuth();
+  const session = await authenticate(request);
+  if (!session) return apiError("unauthorized");
+  const { userId, orgId, orgRole } = session;
   if (!orgId) return apiError("noFirm");
   if (orgRole === "org:mechanic") return { firmId: orgId, userId, role: "mechanic" };
   if (orgRole === "org:owner") return { firmId: orgId, userId, role: "owner" };

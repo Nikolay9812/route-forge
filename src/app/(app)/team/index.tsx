@@ -14,6 +14,7 @@ import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { useTeam, type TeamMember } from "@/team/team";
 import { useThemeColor } from "@/theme";
 
@@ -88,22 +89,23 @@ export default function Team() {
 // Full-width row: highlights its background on press.
 function MemberRow({ member }: { member: TeamMember }) {
   const { t } = useTranslation();
+  const name = useDisplayName()(member.name);
   return (
     <Pressable
       accessibilityRole="button"
       onPress={() =>
-        router.push({ pathname: "/team/[userId]", params: { userId: member.userId, name: member.name } })
+        router.push({ pathname: "/team/[userId]", params: { userId: member.userId, name } })
       }
       className="min-h-16 flex-row items-center gap-3 px-4 py-3 active:bg-canvas"
     >
       <View className="size-10 items-center justify-center rounded-full bg-secondary-soft">
         <ThemedText variant="label" color="secondary-ink">
-          {initials(member.name)}
+          {initials(name)}
         </ThemedText>
       </View>
       <View className="flex-1 gap-0.5">
         <ThemedText variant="body" color="ink" numberOfLines={1}>
-          {member.name}
+          {name}
         </ThemedText>
         <ThemedText variant="footnote" numberOfLines={1}>
           {t("team.summary", { shifts: member.shifts, hours: t("units.time", { time: clock(member.minutes) }) })}

@@ -1,56 +1,46 @@
-# Welcome to your Expo app 👋
+# Route Forge
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Shifts, hours and pay for courier teams. Couriers log their daily work, dispatchers approve it, mechanics keep the
+service log, and owners see the whole firm, including salaries. One app serves many logistics firms.
 
-## Get started
+Expo (React Native) app with Expo Router API routes, Clerk for sign-in, firms and roles, Neon Postgres through
+Drizzle, and private photos in Cloudflare R2. `AGENTS.md` holds every decision that's still true. `prompts/` holds
+the plan for each feature.
 
-1. Install dependencies
+## Environments
 
-   ```bash
-   npm install
-   ```
+|                                   | Clerk                    | Neon         | R2 bucket                   | API                                  |
+| --------------------------------- | ------------------------ | ------------ | --------------------------- | ------------------------------------ |
+| development (your machine)        | dev instance (`pk_test`) | `dev` branch | `route-forge-documents-dev` | the Metro dev server                 |
+| preview (internal APK/TestFlight) | dev instance             | `dev` branch | `route-forge-documents-dev` | EAS Hosting, `preview` alias         |
+| production (stores)               | production (`pk_live`)   | `main`       | `route-forge-documents`     | EAS Hosting, `https://route-forge.expo.app` |
 
-2. Start the app
+Secrets live in `.env.local` (development) and `.env.production.local` (production database pushes), never in git,
+and in the EAS environments for builds and the hosted API. `.env.example` lists the names.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Develop
 
 ```bash
-npm run reset-project
+npm install
+npx expo start              # scan the QR code with Expo Go
+npm run db:push             # schema → Neon dev branch
+npm run db:seed             # wipe and re-seed the test firms (dev branch only)
+npx tsc --noEmit && npx expo lint
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+The `check:*` scripts in `package.json` test the API against the running dev server (dev branch only).
 
-### Other setup steps
+## Release
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm run db:push:prod                                   # schema → Neon main (asks before any data loss)
+npx eas-cli@latest env:exec production "npx expo export -p web"   # production EXPO_PUBLIC_ values, not .env.local's
+npx eas-cli@latest deploy --environment production --prod
+npx eas-cli@latest build --profile production --platform all
+npx eas-cli@latest submit --platform all
+```
 
-## Learn more
+Preview: the same with `preview` (`deploy --environment preview --alias preview`, no `--prod`), then
+`npx eas-cli@latest build --profile preview --platform android` makes an APK against the dev services.
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+EAS Hosting can't deploy variables of the "secret" type: store the server keys as "sensitive".

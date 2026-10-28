@@ -8,11 +8,13 @@ import { Surface } from "@/components/surface";
 import { ThemedText } from "@/components/themed-text";
 import { useGarageCheck } from "@/garage/garage";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 
 // One vehicle check of the last 7 days: who drove the car that day and its photos, read-only (a photo opens full
 // screen). Nothing else about the shift.
 export default function Check() {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const format = useFormat("UTC", "EUR");
   const { shiftId } = useLocalSearchParams<{ shiftId?: string }>();
   const { resource, reload } = useGarageCheck(shiftId);
@@ -29,7 +31,7 @@ export default function Check() {
         ) : (
           <>
             <Surface className="gap-0.5 p-5">
-              <ThemedText variant="title">{resource.data.courierName}</ThemedText>
+              <ThemedText variant="title">{displayName(resource.data.courierName)}</ThemedText>
               <ThemedText variant="footnote">{t("garage.drove", { date: format.longDay(resource.data.date) })}</ThemedText>
             </Surface>
             <VehicleCheckCard plate={resource.data.plate} photos={resource.data.photos} />

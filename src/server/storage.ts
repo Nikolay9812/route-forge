@@ -32,9 +32,28 @@ async function presign(method: "GET" | "PUT", key: string, seconds: number, head
   return signed.url;
 }
 
-/** A URL the app can PUT exactly one file of this type to, for 5 minutes. */
+// Uploads land under `pending/` and move to their key only once the app confirms them, so a file that's uploaded
+// but never kept (an abandoned upload, a closed app) sits under a prefix the bucket's lifecycle rule empties daily.
+const PENDING = "pending/";
+
+/** A URL the app can PUT exactly one file of this type to, for 5 minutes. The file waits under `pending/`. */
 export function presignPut(key: string, contentType: string): Promise<string> {
-  return presign("PUT", key, UPLOAD_SECONDS, { "Content-Type": contentType });
+  return presign("PUT", PENDING + key, UPLOAD_SECONDS, { "Content-Type": contentType });
+}
+
+/**
+ * Moves a confirmed upload from `pending/` to its key and answers its size and type, or null when nothing was
+ * uploaded there. The caller still checks size and type, and deletes the key when they're wrong.
+ */
+export async function keepUpload(key: string): Promise<{ size: number; contentType: string | null } | null> {
+  const object = await headObject(PENDING + key);
+  if (!object) return null;
+  const { bucketUrl } = env();
+  const source = `${new URL(bucketUrl).pathname}/${PENDING}${key}`.split("/").map(encodeURIComponent).join("/");
+  const response = await env().client.fetch(objectUrl(key), { method: "PUT", headers: { "x-amz-copy-source": source } });
+  if (!response.ok) throw new Error(`R2 copy failed: ${response.status}`);
+  await deleteObject(PENDING + key);
+  return object;
 }
 
 /** A URL that shows the file for an hour. */

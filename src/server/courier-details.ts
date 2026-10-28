@@ -20,7 +20,7 @@ import type { CourierDetails, CourierDocuments, CourierDocumentsList, DetailsSec
 
 import { apiError, firmCouriers, readJson, userNames } from "./auth";
 import { memberIds } from "./people";
-import { deleteObject, headObject, presignGet, presignPut } from "./storage";
+import { deleteObject, keepUpload, presignGet, presignPut } from "./storage";
 
 type Row = typeof courierDetails.$inferSelect;
 
@@ -96,7 +96,7 @@ export async function confirmPhoto(
   key: string,
 ): Promise<boolean> {
   if (!isPhotoKey(key, photoPrefix(firmId, userId, target))) return false;
-  const object = await headObject(key);
+  const object = await keepUpload(key);
   if (!object) return false;
   if (object.size === 0 || object.size > PHOTO_MAX_BYTES || !PHOTO_TYPES.includes(object.contentType as PhotoType)) {
     await deleteObject(key);

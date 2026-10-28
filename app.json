@@ -88,7 +88,15 @@
         }
       ],
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "codewithantonio-hg",
+          "project": "route-forge",
+          "url": "https://sentry.io/"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

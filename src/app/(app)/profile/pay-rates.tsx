@@ -15,6 +15,7 @@ import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
 import type { PayRates } from "@/domain/types";
 import { useTranslation } from "@/i18n";
+import { useDisplayName } from "@/people/display-name";
 import { usePayRates } from "@/pay-rates/pay-rates";
 import { useThemeColor } from "@/theme";
 
@@ -64,6 +65,7 @@ export default function PayRatesScreen() {
 
 function RatesList({ data }: { data: PayRates }) {
   const { t } = useTranslation();
+  const displayName = useDisplayName();
   const format = useFormat(data.firm.timeZone, data.firm.currency);
   const text = useRateText(format);
   const { firmDefault, couriers } = data;
@@ -111,7 +113,7 @@ function RatesList({ data }: { data: PayRates }) {
                 <Fragment key={courier.userId}>
                   {i > 0 ? <Divider className="mx-4" /> : null}
                   <RateRow
-                    title={courier.name}
+                    title={displayName(courier.name)}
                     detail={courier.current ? text.amount(courier.current) : undefined}
                     trailing={
                       !courier.current ? (

@@ -205,3 +205,24 @@ Step 9 (2026-10-28): the first `clerk deploy` failed because the free Clerk plan
 (`org:roles`) or more than 20 members per org (`app:allowed_memberships`). Roles moved to Neon in plan 27
 (`prompts/27-roles-in-database.md`), and the dev instance now uses only `org:admin`/`org:member` with a limit of
 20 members. Next: the user reruns `clerk deploy` (domain routeforge.app), then the rest of step 9 and step 10.
+
+Step 9 (2026-10-29): done, apart from the web pages. Clerk production (ins_3LLGrGfibezkdSjF8CJnx47ZL50) is verified with
+Google OAuth. Neon main is pushed and matches dev. The R2 bucket `route-forge-documents` (EEUR, private, `pending/` 1-day
+rule) has its own bucket-scoped token. EAS production has all 9 variables. The deploy is live at https://route-forge.expo.app:
+`/api/*` answers 401 without a token. Open bug (preview too, since the plan 26 deploy): every server-rendered page
+(`/`, `/privacy`, `/delete-account`) answers 500 `TypeError: Cannot read properties of undefined (reading 'generated')`
+at `_expo/server/render.js:2740` (`getRouteInfoForMatchedRoute(route, …)` gets `route` undefined), called from EAS
+Hosting's `__main.js` `getHtml`. Locally `npx expo serve` renders the same export fine, so EAS Hosting's runtime and
+expo-router 58's renderer probably don't agree on the render call. Next: compare versions (eas-cli, expo-server,
+expo-router), try a fix on preview, then redeploy production and check `/privacy` and `/delete-account`.
+
+SSR bug fixed (2026-10-29): in SDK 58, `web.output: "server"` always renders pages at runtime, and EAS Hosting's
+worker calls `getStaticContent` the pre-58 way (no `route`), hence the 500. `app.json` now uses `web.output: "static"`
+with `["expo-router", { "apiRoutes": true }]`: pages are pre-rendered at export, API routes ship as before, and
+`app.config.ts` merges `origin` into the plugin's options. Preview (route-forge--preview.expo.app) answers 200 for `/`,
+`/privacy`, `/delete-account` and 401 for `/api/*`. `npx expo export` sometimes segfaults on Windows (Node 24); rerun
+it. Next: the user redeploys production (README commands), then checks `/privacy` and `/delete-account`; then step 10.
+The legal pages were blank on production: the root layout waited for Clerk, and the production Clerk instance never
+loads on the web outside routeforge.app. `/privacy` and `/delete-account` now render without waiting for Clerk or
+fonts, so their text is also in the pre-rendered HTML (checked on preview). Never chain the export and the deploy: a
+failed export left an empty `dist/` that `deploy --prod` published (production answered 404 until redeployed).

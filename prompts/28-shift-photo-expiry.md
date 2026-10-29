@@ -1,6 +1,6 @@
 # 28 · Vehicle check photos expire after 14 days
 
-Status: approved (2026-10-29)
+Status: done (2026-10-29)
 
 ## Goal
 Vehicle check (shift) photos are deleted automatically 14 days after they're taken, so the bucket doesn't fill up
@@ -93,4 +93,9 @@ Steps 1–4 built on branch `chapter-25-shift-photo-expiry`. The dev bucket has 
 courier.b ("Ben Courier") were recreated in Clerk dev after the plan 26 account deletion tests, without passwords
 (email code). After `db:seed`, every `check:*` passes, including 5 new expiry checks in `check:shift-photos`.
 `check:car-papers` needs a fresh seed when run after the others (they move the odometer); that was already so.
-Not yet: the expired card seen on a phone, and step 5 (production bucket rule and redeploy).
+
+## Result
+Vehicle check photos are hidden 14 days after they're taken and their files are deleted by the bucket rule, on dev
+and production. Seen on the Samsung (dev): a photo aged 15 days showed "Deleted" with the note for the courier and
+the dispatcher, beside a live photo, and the count stayed "2 of 8". Production: `route-forge-documents` has both
+rules (read back from the Cloudflare API), and the redeployed `/privacy` states the 14 days.

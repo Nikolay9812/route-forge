@@ -64,8 +64,8 @@ render crash never leaves a blank screen. The first real firm (Ivanov Transport)
   `pending/{finalKey}`, and confirming copies the file to its real key and deletes the pending one. **Alternative,
   if the copy feels heavy:** a weekly script that lists keys and deletes those without a row. Default: the
   lifecycle rule.
-- **Shift photo expiry** (postponed earlier, 2 weeks wanted) stays out of this plan, but the privacy policy states
-  the current retention. Decide it before writing the policy text.
+- **Shift photo expiry** is plan 28 (`prompts/28-shift-photo-expiry.md`): deleted 14 days after they're taken; the
+  privacy policy states it.
 - **Web:** not offered to firms in v1 (photos don't work there). The server output still serves `/privacy`,
   `/delete-account` and the API.
 - **OTA updates:** not in v1. `runtimeVersion` is left unset until EAS Update is planned.

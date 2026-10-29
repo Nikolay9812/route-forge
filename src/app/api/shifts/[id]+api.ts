@@ -4,7 +4,7 @@ import { isId, parseCorrection } from "@/domain/shift";
 import { apiError, handle, readJson } from "@/server/auth";
 import { courierContext } from "@/server/context";
 import { editValues } from "@/server/edits";
-import { photosOfShift } from "@/server/shift-photos";
+import { shiftPhotoState } from "@/server/shift-photos";
 import { activeBuses, activeStations, fixShift, ownShift } from "@/server/shifts";
 
 export function GET(request: Request, { id }: Record<string, string>) {
@@ -19,8 +19,8 @@ export function GET(request: Request, { id }: Record<string, string>) {
       activeBuses(courier.firmId),
     ]);
     if (!shift) return apiError("notFound");
-    const photos = await photosOfShift(courier.firmId, shift.id);
-    return Response.json({ firm, shift, photos, stations, buses });
+    const { photos, expiredPhotos } = await shiftPhotoState(courier.firmId, shift.id);
+    return Response.json({ firm, shift, photos, expiredPhotos, stations, buses });
   });
 }
 

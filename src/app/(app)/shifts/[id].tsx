@@ -55,7 +55,7 @@ export default function OwnShift() {
     );
   }
 
-  const { shift, firm, stations, buses, photos } = resource.data;
+  const { shift, firm, stations, buses, photos, expiredPhotos } = resource.data;
   const rejected = shift.status === "rejected";
   const original = editFieldsOf(shift, firm.timeZone);
   const fields = edit?.fields ?? original;
@@ -116,7 +116,7 @@ export default function OwnShift() {
           {shift.status === "submitted" ? (
             <ThemedText variant="footnote">{t("shifts.submitted.waiting")}</ThemedText>
           ) : null}
-          <VehicleCheckCard plate={shift.car.plate} photos={photos} />
+          <VehicleCheckCard plate={shift.car.plate} photos={photos} expired={expiredPhotos} />
         </>
       )}
     </ScrollView>

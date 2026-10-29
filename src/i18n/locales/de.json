@@ -732,6 +732,8 @@
     "optional": "Optional. Fotos werden gespeichert, sobald du sie aufnimmst.",
     "count": "{{count}} von {{total}}",
     "missing": "Fehlt",
+    "deleted": "Gelöscht",
+    "expiredNote": "Fotos werden {{days}} Tage nach der Aufnahme gelöscht.",
     "none": "Keine Fotos hinzugefügt.",
     "groups": {
       "bus": "Transporter · {{plate}}",
@@ -920,11 +922,11 @@
   "legal": {
     "privacy": {
       "title": "Datenschutzerklärung",
-      "body": "[PLATZHALTER — der endgültige Text der Datenschutzerklärung ersetzt diesen vor der Veröffentlichung.]\n\nRoute Forge speichert, was deine Firma für Schichten und Lohn braucht: deinen Namen und deine E-Mail, deine Schichten (Zeiten, Kilometer, Pakete, Fahrzeug), Fotos der Fahrzeugkontrolle und die Dokumente, die du hinzufügst, etwa Personalausweis, Führerschein, Steuer- und Sozialversicherungsdaten und Bankkonto.\n\nDer Inhaber deiner Firma sieht deine Dokumente und deinen Lohn. Disponenten sehen die Schichten ihrer Depots. Mechaniker sehen die Fahrzeugpapiere und aktuelle Fotos der Fahrzeugkontrolle mit deinem Namen.\n\nDu kannst dein Konto in der App unter Profil → Konto löschen löschen. Dein Login und deine Dokumente werden gelöscht. Schichten und Lohn bleiben bei deiner Firma, die Lohnunterlagen gesetzlich aufbewahren muss."
+      "body": "[PLATZHALTER — der endgültige Text der Datenschutzerklärung ersetzt diesen vor der Veröffentlichung.]\n\nRoute Forge speichert, was deine Firma für Schichten und Lohn braucht: deinen Namen und deine E-Mail, deine Schichten (Zeiten, Kilometer, Pakete, Fahrzeug), Fotos der Fahrzeugkontrolle und die Dokumente, die du hinzufügst, etwa Personalausweis, Führerschein, Steuer- und Sozialversicherungsdaten und Bankkonto. Fotos der Fahrzeugkontrolle werden 14 Tage nach der Aufnahme gelöscht.\n\nDer Inhaber deiner Firma sieht deine Dokumente und deinen Lohn. Disponenten sehen die Schichten ihrer Depots. Mechaniker sehen die Fahrzeugpapiere und aktuelle Fotos der Fahrzeugkontrolle mit deinem Namen.\n\nDu kannst dein Konto in der App unter Profil → Konto löschen löschen. Dein Login und deine Dokumente werden gelöscht. Schichten und Lohn bleiben bei deiner Firma, die Lohnunterlagen gesetzlich aufbewahren muss."
     },
     "deleteAccount": {
       "title": "Konto löschen",
-      "body": "1. Öffne Route Forge und melde dich an.\n\n2. Geh zu Profil und tippe unten auf Konto löschen.\n\n3. Bestätige mit Mein Konto löschen.\n\nWas gelöscht wird: dein Login, deine Dokumente und ihre Fotos. Was bei deiner Firma bleibt: deine Schichten, Fotos der Fahrzeugkontrolle, Einträge im Servicebuch und dein Lohn, die die Firma gesetzlich aufbewahren muss.\n\nFirmeninhaber können ihr Konto nicht in der App löschen. Wende dich an den Route Forge Support unter [PLATZHALTER Support-E-Mail]."
+      "body": "1. Öffne Route Forge und melde dich an.\n\n2. Geh zu Profil und tippe unten auf Konto löschen.\n\n3. Bestätige mit Mein Konto löschen.\n\nWas gelöscht wird: dein Login, deine Dokumente und ihre Fotos. Was bei deiner Firma bleibt: deine Schichten, Fotos der Fahrzeugkontrolle (14 Tage nach der Aufnahme gelöscht), Einträge im Servicebuch und dein Lohn, die die Firma gesetzlich aufbewahren muss.\n\nFirmeninhaber können ihr Konto nicht in der App löschen. Wende dich an den Route Forge Support unter [PLATZHALTER Support-E-Mail]."
     }
   }
 }

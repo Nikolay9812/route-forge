@@ -54,7 +54,7 @@ try {
   // Courier: start, upload, keep, show.
   r = await call(t.a, "POST", path, { slot: "front", contentType: "image/jpeg" });
   check("courier starts an upload", r.status === 200 && typeof r.json?.uploadUrl === "string", r.status);
-  check("the key is under this shift and slot", r.json?.key.startsWith(`firms/${ivanov}/couriers/${users.a}/shifts/${id}/front/`));
+  check("the key is under this shift and slot", r.json?.key.startsWith(`shifts/${ivanov}/${users.a}/${id}/front/`));
   const first = r.json.key;
   check("the file goes straight to R2", (await upload(r.json.uploadUrl)).status === 200);
   r = await call(t.a, "PUT", path, { slot: "front", key: first });
@@ -96,7 +96,7 @@ try {
   check("keeping a photo that was never uploaded → invalid", r.status === 400, r.status);
   r = await call(t.a, "PUT", path, { slot: "back", key: second });
   check("another slot's key → invalid", r.status === 400, r.status);
-  const foreign = `firms/${ivanov}/couriers/${users.c}/shifts/${id}/front/0b5e3a52-6f1c-4d9e-9a51-2f6a1d0c7e44`;
+  const foreign = `shifts/${ivanov}/${users.c}/${id}/front/0b5e3a52-6f1c-4d9e-9a51-2f6a1d0c7e44`;
   r = await call(t.a, "PUT", path, { slot: "front", key: foreign });
   check("another courier's prefix → invalid", r.status === 400, r.status);
   for (const [name, body] of [
@@ -177,9 +177,30 @@ try {
   check("the logbook photo is kept", r.status === 200 && Boolean(r.json?.logbook), r.status);
   r = await call(t.a, "GET", `/api/shifts/${id}`);
   check("the count follows", r.json?.shift?.photoCount === 2);
+
+  // Expiry: a photo kept more than 14 days ago is hidden (its file is the bucket rule's to delete), but still counts.
+  await sql`update shift_photos set uploaded_at = now() - interval '15 days' where shift_id = ${id} and slot = 'logbook'`;
+  r = await call(t.a, "GET", `/api/shifts/${id}`);
+  check(
+    "an expired photo has no URL for the courier",
+    r.status === 200 && r.json?.photos?.logbook === undefined && Boolean(r.json?.photos?.front),
+    r.status,
+  );
+  check("the courier's answer lists it as expired", JSON.stringify(r.json?.expiredPhotos) === '["logbook"]');
+  check("an expired photo still counts", r.json?.shift?.photoCount === 2);
+  t = await tokens();
+  r = await call(t.dispatcher, "GET", `/api/approvals/${id}`);
+  check(
+    "the reviewer sees it as expired too",
+    r.status === 200 && r.json?.photos?.logbook === undefined && JSON.stringify(r.json?.expiredPhotos) === '["logbook"]',
+    r.status,
+  );
+  await sql`update shift_photos set uploaded_at = now() - interval '14 days' + interval '1 minute' where shift_id = ${id} and slot = 'logbook'`;
+  r = await call(t.a, "GET", `/api/shifts/${id}`);
+  check("a photo just under 14 days old is still shown", Boolean(r.json?.photos?.logbook) && r.json?.expiredPhotos?.length === 0);
 } finally {
   await clearToday();
-  const left = await listKeys(`firms/${ivanov}/couriers/${users.a}/shifts/`);
+  const left = await listKeys(`shifts/${ivanov}/${users.a}/`);
   check("no shift photo files are left behind", left.length === 0, left.length);
 }
 

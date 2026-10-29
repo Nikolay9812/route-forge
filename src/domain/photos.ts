@@ -129,9 +129,23 @@ export function parseShiftPhotoQuery(params: URLSearchParams): Parsed<{ slot: Sh
   return slot ? { ok: true, value: { slot } } : { ok: false };
 }
 
+/** Vehicle check photos are deleted this many days after they're taken, for every firm. */
+export const SHIFT_PHOTO_DAYS = 14;
+
+/**
+ * Shift photos live under their own top-level prefix, apart from documents under `firms/`, because the bucket's
+ * lifecycle rule deletes everything under it after `SHIFT_PHOTO_DAYS` and R2 rules match by prefix only.
+ */
+export const SHIFT_PHOTO_ROOT = "shifts/";
+
 /** Where one shift slot's photos live; the firm, courier and shift come from the session and the checked shift. */
 export function shiftPhotoPrefix(firmId: string, userId: string, shiftId: string, slot: ShiftPhotoSlot): string {
-  return `firms/${firmId}/couriers/${userId}/shifts/${shiftId}/${slot}/`;
+  return `${SHIFT_PHOTO_ROOT}${firmId}/${userId}/${shiftId}/${slot}/`;
+}
+
+/** Whether a photo kept at `uploadedAt` is past its days: strictly older than `SHIFT_PHOTO_DAYS` × 24 h. */
+export function shiftPhotoExpired(uploadedAt: Date, now: Date): boolean {
+  return now.getTime() - uploadedAt.getTime() > SHIFT_PHOTO_DAYS * 24 * 60 * 60 * 1000;
 }
 
 // Car photos (owner-only).

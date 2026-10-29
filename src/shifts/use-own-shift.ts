@@ -2,11 +2,18 @@ import { useCallback } from "react";
 
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource } from "@/api/use-resource";
-import type { Bus, Firm, Shift, ShiftPhotos, Station } from "@/domain/types";
+import type { Bus, Firm, Shift, ShiftPhotos, ShiftPhotoSlot, Station } from "@/domain/types";
 
 import type { EditBody } from "./edit";
 
-export type OwnShift = { firm: Firm; shift: Shift; photos: ShiftPhotos; stations: Station[]; buses: Bus[] };
+export type OwnShift = {
+  firm: Firm;
+  shift: Shift;
+  photos: ShiftPhotos;
+  expiredPhotos: ShiftPhotoSlot[];
+  stations: Station[];
+  buses: Bus[];
+};
 
 /** One of the courier's own shifts by id, and fixing it while it's rejected. */
 export function useOwnShift(id: string) {

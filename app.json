@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "primaryColor": "#11141C",
     "ios": {
-      "bundleIdentifier": "com.routeforge.app",
+      "bundleIdentifier": "app.routeforge",
       "icon": {
         "light": "./assets/images/icon.png",
         "dark": "./assets/images/icon-dark.png",
@@ -24,7 +24,7 @@
       }
     },
     "android": {
-      "package": "com.routeforge.app",
+      "package": "app.routeforge",
       "adaptiveIcon": {
         "backgroundColor": "#11141C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

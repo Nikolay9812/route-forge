@@ -11,22 +11,36 @@ import {
   parseShiftPhotoConfirm,
   parseShiftPhotoQuery,
   parseShiftPhotoRequest,
+  shiftPhotoExpired,
   shiftPhotoPrefix,
   type PhotoType,
 } from "@/domain/photos";
-import type { Shift, ShiftPhotos, ShiftPhotoSlot } from "@/domain/types";
+import type { Shift, ShiftPhotos, ShiftPhotoSlot, ShiftPhotoState } from "@/domain/types";
 
 import { apiError, readJson } from "./auth";
 import { deleteObject, keepUpload, presignGet, presignPut } from "./storage";
 
-/** The shift's stored photos with an hour-long signed URL each. */
-export async function photosOfShift(firmId: string, shiftId: string): Promise<ShiftPhotos> {
+/**
+ * The shift's photos: the live ones with an hour-long signed URL each, and the slots whose photo is past
+ * `SHIFT_PHOTO_DAYS` (the bucket's lifecycle rule deletes the file; the row stays, so counts don't change).
+ */
+export async function shiftPhotoState(firmId: string, shiftId: string): Promise<ShiftPhotoState> {
   const rows = await db
-    .select({ slot: shiftPhotos.slot, objectKey: shiftPhotos.objectKey })
+    .select({ slot: shiftPhotos.slot, objectKey: shiftPhotos.objectKey, uploadedAt: shiftPhotos.uploadedAt })
     .from(shiftPhotos)
     .where(and(eq(shiftPhotos.firmId, firmId), eq(shiftPhotos.shiftId, shiftId)));
-  const urls = await Promise.all(rows.map((row) => presignGet(row.objectKey)));
-  return Object.fromEntries(rows.map((row, i) => [row.slot, { key: row.objectKey, url: urls[i] }]));
+  const now = new Date();
+  const live = rows.filter((row) => !shiftPhotoExpired(row.uploadedAt, now));
+  const urls = await Promise.all(live.map((row) => presignGet(row.objectKey)));
+  return {
+    photos: Object.fromEntries(live.map((row, i) => [row.slot, { key: row.objectKey, url: urls[i] }])),
+    expiredPhotos: rows.filter((row) => shiftPhotoExpired(row.uploadedAt, now)).map((row) => row.slot as ShiftPhotoSlot),
+  };
+}
+
+/** The shift's live photos with an hour-long signed URL each. */
+export async function photosOfShift(firmId: string, shiftId: string): Promise<ShiftPhotos> {
+  return (await shiftPhotoState(firmId, shiftId)).photos;
 }
 
 function slotRow(firmId: string, shiftId: string, slot: ShiftPhotoSlot) {

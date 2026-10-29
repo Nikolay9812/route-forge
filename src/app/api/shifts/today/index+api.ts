@@ -3,7 +3,7 @@
 import { delivered, parsePatch, parseStart } from "@/domain/shift";
 import { apiError, handle, readJson } from "@/server/auth";
 import { courierContext } from "@/server/context";
-import { photosOfShift } from "@/server/shift-photos";
+import { shiftPhotoState } from "@/server/shift-photos";
 import {
   activeBuses,
   activeStations,
@@ -25,8 +25,10 @@ export function GET(request: Request) {
       activeStations(courier.firmId),
       activeBuses(courier.firmId),
     ]);
-    const photos = shift ? await photosOfShift(courier.firmId, shift.id) : {};
-    return Response.json({ firm, date, shift, photos, recent, stations, buses });
+    const { photos, expiredPhotos } = shift
+      ? await shiftPhotoState(courier.firmId, shift.id)
+      : { photos: {}, expiredPhotos: [] };
+    return Response.json({ firm, date, shift, photos, expiredPhotos, recent, stations, buses });
   });
 }
 

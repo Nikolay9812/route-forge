@@ -7,7 +7,7 @@ import { PhotoViewer } from "@/components/photo-viewer";
 import { Surface } from "@/components/surface";
 import { Tag } from "@/components/tag";
 import { ThemedText } from "@/components/themed-text";
-import { EXPECTED_SHIFT_PHOTOS, libraryAllowed, shiftPhotoGroups } from "@/domain/photos";
+import { EXPECTED_SHIFT_PHOTOS, libraryAllowed, SHIFT_PHOTO_DAYS, shiftPhotoGroups } from "@/domain/photos";
 import type { DocumentPhoto, ShiftPhotos, ShiftPhotoSlot } from "@/domain/types";
 import { useTranslation } from "@/i18n";
 import type { PickedPhoto } from "@/photos/upload";
@@ -48,12 +48,25 @@ type Editing = {
 // A shift's vehicle check: the bus from four sides plus two extras, the logbook and Mentor score, and the diesel
 // and AdBlue gauges, two per row with the slot name under each. With `editing` the courier adds photos (camera
 // only, except Mentor); without it the card is read-only: a photo opens full screen, a missing expected photo
-// says so, and empty extras are left out.
-export function VehicleCheckCard({ plate, photos, editing }: { plate: string; photos: ShiftPhotos; editing?: Editing }) {
+// says so, a photo deleted after `SHIFT_PHOTO_DAYS` says that instead (and still counts), and empty extras are
+// left out.
+export function VehicleCheckCard({
+  plate,
+  photos,
+  expired = [],
+  editing,
+}: {
+  plate: string;
+  photos: ShiftPhotos;
+  expired?: ShiftPhotoSlot[];
+  editing?: Editing;
+}) {
   const { t } = useTranslation();
   const [viewing, setViewing] = useState<{ photo: DocumentPhoto; slot: ShiftPhotoSlot } | null>(null);
-  const taken = EXPECTED_SHIFT_PHOTOS.filter((slot) => photos[slot]).length;
-  const shown = (slot: ShiftPhotoSlot) => editing || EXPECTED_SHIFT_PHOTOS.includes(slot) || photos[slot] !== undefined;
+  const deleted = (slot: ShiftPhotoSlot) => !editing && !photos[slot] && expired.includes(slot);
+  const taken = EXPECTED_SHIFT_PHOTOS.filter((slot) => photos[slot] || deleted(slot)).length;
+  const shown = (slot: ShiftPhotoSlot) =>
+    editing || EXPECTED_SHIFT_PHOTOS.includes(slot) || photos[slot] !== undefined || deleted(slot);
 
   const groups: { title: string | null; slots: ShiftPhotoSlot[] }[] = [
     { title: t("shiftPhotos.groups.bus", { plate }), slots: shiftPhotoGroups.bus.filter(shown) },
@@ -77,6 +90,11 @@ export function VehicleCheckCard({ plate, photos, editing }: { plate: string; ph
         {editing ? (
           <ThemedText variant="footnote" weight="regular">
             {t("shiftPhotos.optional")}
+          </ThemedText>
+        ) : null}
+        {!editing && expired.length > 0 ? (
+          <ThemedText variant="footnote" weight="regular">
+            {t("shiftPhotos.expiredNote", { days: SHIFT_PHOTO_DAYS })}
           </ThemedText>
         ) : null}
       </View>
@@ -104,7 +122,7 @@ export function VehicleCheckCard({ plate, photos, editing }: { plate: string; ph
                               onRemove: () => editing.onRemove(slot),
                             }
                           : {
-                              emptyText: t("shiftPhotos.missing"),
+                              emptyText: deleted(slot) ? t("shiftPhotos.deleted") : t("shiftPhotos.missing"),
                               onView: (photo: DocumentPhoto) => setViewing({ photo, slot }),
                             })}
                       />

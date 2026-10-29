@@ -9,6 +9,8 @@ import {
   parseShiftPhotoConfirm,
   parseShiftPhotoQuery,
   parseShiftPhotoRequest,
+  SHIFT_PHOTO_DAYS,
+  shiftPhotoExpired,
   shiftPhotoPrefix,
   shiftPhotoSlots,
 } from "../src/domain/photos.ts";
@@ -54,13 +56,22 @@ const uuid = "0b5e3a52-6f1c-4d9e-9a51-2f6a1d0c7e44";
 const shiftA = "11111111-1111-4111-8111-111111111111";
 const shiftB = "22222222-2222-4222-8222-222222222222";
 const prefix = shiftPhotoPrefix("org_1", "user_a", shiftA, "front");
-assert.equal(prefix, `firms/org_1/couriers/user_a/shifts/${shiftA}/front/`);
+assert.equal(prefix, `shifts/org_1/user_a/${shiftA}/front/`);
+assert.equal(prefix.startsWith("firms/"), false, "never under documents");
 assert.equal(isPhotoKey(prefix + uuid, prefix), true);
-assert.equal(isPhotoKey(`firms/org_1/couriers/user_a/shifts/${shiftB}/front/${uuid}`, prefix), false, "another shift");
-assert.equal(isPhotoKey(`firms/org_1/couriers/user_c/shifts/${shiftA}/front/${uuid}`, prefix), false, "another courier");
-assert.equal(isPhotoKey(`firms/org_1/couriers/user_a/shifts/${shiftA}/back/${uuid}`, prefix), false, "another slot");
+assert.equal(isPhotoKey(`shifts/org_1/user_a/${shiftB}/front/${uuid}`, prefix), false, "another shift");
+assert.equal(isPhotoKey(`shifts/org_1/user_c/${shiftA}/front/${uuid}`, prefix), false, "another courier");
+assert.equal(isPhotoKey(`shifts/org_1/user_a/${shiftA}/back/${uuid}`, prefix), false, "another slot");
 assert.equal(isPhotoKey(`${prefix}../../${shiftB}/front/${uuid}`, prefix), false);
 assert.equal(isPhotoKey(prefix, prefix), false, "no UUID");
 assert.equal(isPhotoKey(`${prefix}${uuid}/x`, prefix), false);
+
+// Expiry: kept for exactly 14 days, gone a minute later.
+assert.equal(SHIFT_PHOTO_DAYS, 14);
+const taken = new Date("2026-10-01T08:00:00Z");
+assert.equal(shiftPhotoExpired(taken, new Date("2026-10-01T08:00:00Z")), false);
+assert.equal(shiftPhotoExpired(taken, new Date("2026-10-15T08:00:00Z")), false, "exactly 14 days");
+assert.equal(shiftPhotoExpired(taken, new Date("2026-10-15T08:01:00Z")), true, "a minute more");
+assert.equal(shiftPhotoExpired(taken, new Date("2026-09-30T08:00:00Z")), false, "clock behind");
 
 console.log("Shift photo rules: all checks passed.");

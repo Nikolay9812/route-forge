@@ -13,7 +13,7 @@ import type { Bus, RejectReason, ReviewItem, Shift, ShiftChange, ShiftField, Sta
 import { userNames, type Reviewer } from "./auth";
 import { payScheduleOf } from "./pay-rates";
 import { loadRules } from "./work-rules";
-import { photosOfShift } from "./shift-photos";
+import { shiftPhotoState } from "./shift-photos";
 import { selectShifts, toShift, type ShiftValues } from "./shifts";
 
 export type ReviewScope = Reviewer & { depotIds: string[] | "all" };
@@ -128,7 +128,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
   if (!found) return null;
   const { shift, userId } = found;
 
-  const [schedule, rules, changeRows, stations, buses, photos] = await Promise.all([
+  const [schedule, rules, changeRows, stations, buses, { photos, expiredPhotos }] = await Promise.all([
     payScheduleOf(scope.firmId, userId),
     loadRules(scope.firmId),
     db
@@ -138,7 +138,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
       .orderBy(asc(shiftChanges.changedAt)),
     scopeStations(scope),
     activeBusesOf(scope.firmId),
-    photosOfShift(scope.firmId, id),
+    shiftPhotoState(scope.firmId, id),
   ]);
   const names = await userNames([userId, ...changeRows.map((c) => c.changedBy)]);
 
@@ -162,7 +162,7 @@ export async function reviewDetail(scope: ReviewScope, id: string) {
     at: c.changedAt.toISOString(),
   }));
 
-  return { shift, courierName: names.get(userId) ?? "", pay, changes, stations, buses, photos };
+  return { shift, courierName: names.get(userId) ?? "", pay, changes, stations, buses, photos, expiredPhotos };
 }
 
 /** Active depots the reviewer may move a shift to. */

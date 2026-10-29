@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from "react";
 
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
-import type { Bus, Firm, Shift, ShiftPhotos, Station } from "@/domain/types";
+import type { Bus, Firm, Shift, ShiftPhotos, ShiftPhotoSlot, Station } from "@/domain/types";
 
 import { emptyFields, fieldsOf, patchOf, type FieldName, type ShiftFields } from "./draft";
 
@@ -13,6 +13,8 @@ type TodayResponse = {
   shift: Shift | null;
   /** The shift's vehicle check photos as loaded; the card keeps its own copy as photos change. */
   photos: ShiftPhotos;
+  /** Slots whose photo was deleted after `SHIFT_PHOTO_DAYS`. */
+  expiredPhotos: ShiftPhotoSlot[];
   /** Up to five shifts before today, newest first. */
   recent: Shift[];
   stations: Station[];

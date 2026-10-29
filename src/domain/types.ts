@@ -348,6 +348,9 @@ export type ShiftPhotoSlot =
 
 export type ShiftPhotos = Partial<Record<ShiftPhotoSlot, DocumentPhoto>>;
 
+/** A shift's live photos, and the slots whose photo was deleted after `SHIFT_PHOTO_DAYS`. */
+export type ShiftPhotoState = { photos: ShiftPhotos; expiredPhotos: ShiftPhotoSlot[] };
+
 export type DocumentPhotos =Partial<Record<DetailsSection, Partial<Record<PhotoSlot, DocumentPhoto>>>>;
 
 /** One courier's documents, for the courier themselves or their firm's owner. */

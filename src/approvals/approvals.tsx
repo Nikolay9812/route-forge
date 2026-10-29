@@ -6,7 +6,7 @@ import { createContext, useCallback, useContext, useRef, useState, type PropsWit
 import { failureOf, useApi, type ApiFailure } from "@/api/client";
 import { useResource } from "@/api/use-resource";
 import { reviewQuery, type ReviewFilters, type ReviewOptions, type ReviewView } from "@/domain/review-filters";
-import type { Bus, Firm, PayKind, RejectReason, ReviewItem, Shift, ShiftChange, ShiftPhotos, Station } from "@/domain/types";
+import type { Bus, Firm, PayKind, RejectReason, ReviewItem, Shift, ShiftChange, ShiftPhotos, ShiftPhotoSlot, Station } from "@/domain/types";
 import type { EditBody } from "@/shifts/edit";
 
 export type ApprovalsView = ReviewView;
@@ -31,6 +31,7 @@ export type ApprovalDetail = {
   stations: Station[];
   buses: Bus[];
   photos: ShiftPhotos;
+  expiredPhotos: ShiftPhotoSlot[];
 };
 
 const RevisionContext = createContext<{ revision: number; bump: () => void }>({ revision: 0, bump: () => {} });

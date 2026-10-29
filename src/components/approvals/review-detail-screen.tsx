@@ -59,7 +59,7 @@ export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/rej
     );
   }
 
-  const { shift, courierName, pay, changes, stations, buses, photos, firm } = resource.data;
+  const { shift, courierName, pay, changes, stations, buses, photos, expiredPhotos, firm } = resource.data;
   const errors = editing ? editErrors(editing.fields) : {};
 
   const onApprove = async () => {
@@ -113,7 +113,7 @@ export function ReviewDetailScreen({ rejectPath }: { rejectPath: "/approvals/rej
           <RejectionAlert rejection={shift.rejection} />
           <PayCard shift={shift} pay={pay} format={format} />
           {changes.length > 0 ? <ChangesCard changes={changes} format={format} /> : null}
-          <VehicleCheckCard plate={shift.car.plate} photos={photos} />
+          <VehicleCheckCard plate={shift.car.plate} photos={photos} expired={expiredPhotos} />
         </>
       )}
 

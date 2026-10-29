@@ -231,6 +231,7 @@ for (const firm of firms) {
   }
   // The firm's document and shift photos in R2 go with their rows; no photos are seeded.
   await deletePrefix(`firms/${firmId}/`);
+  await deletePrefix(`shifts/${firmId}/`);
 
   const depots = [];
   for (const name of firm.depots) {

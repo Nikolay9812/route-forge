@@ -3,7 +3,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import "@/global.css";
 
 import { useFonts } from "expo-font";
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type ErrorBoundaryProps, type Theme } from "expo-router";
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useSegments, type ErrorBoundaryProps, type Theme } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -33,6 +33,8 @@ export function ErrorBoundary(props: ErrorBoundaryProps) {
   }, [props.error]);
   return <CrashScreen {...props} />;
 }
+
+const LEGAL_PAGES = ["privacy", "delete-account"];
 
 const navigationFonts: Record<FontScript, Theme["fonts"]> = {
   latin: {
@@ -71,9 +73,12 @@ function useNavigationTheme(script: FontScript): Theme {
 // Signed-out users only reach onboarding and (auth); signed-in users only (app). A guard turning false
 // sends the user to index, which redirects by auth state. Nothing renders, and the splash stays up,
 // until Clerk has restored the session from the token cache, so onboarding never flashes for a signed-in user.
+// The legal pages need no session and render at once: they are pre-rendered for the web, where the production
+// Clerk instance never loads outside its own domain.
 function RootStack({ fontsReady }: { fontsReady: boolean }) {
   const { isLoaded, isSignedIn } = useAuth();
-  const ready = fontsReady && isLoaded;
+  const legalPage = LEGAL_PAGES.includes(useSegments()[0] ?? "");
+  const ready = legalPage || (fontsReady && isLoaded);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();

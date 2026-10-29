@@ -37,7 +37,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "output": "server",
+      "output": "static",
       "name": "Route Forge",
       "shortName": "Route Forge",
       "description": "Shifts, hours and pay for courier teams.",
@@ -50,7 +50,12 @@
       "de": "./src/i18n/native/de.json"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "apiRoutes": true
+        }
+      ],
       [
         "expo-splash-screen",
         {

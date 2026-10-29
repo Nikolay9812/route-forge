@@ -8,6 +8,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   if (!origin) return config as ExpoConfig;
   return {
     ...config,
-    plugins: (config.plugins ?? []).map((plugin) => (plugin === "expo-router" ? ["expo-router", { origin }] : plugin)),
+    plugins: (config.plugins ?? []).map((plugin) =>
+      Array.isArray(plugin) && plugin[0] === "expo-router" ? ["expo-router", { ...plugin[1], origin }] : plugin,
+    ),
   } as ExpoConfig;
 };
